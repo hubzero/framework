@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit>
+<phpunit backupGlobals="false"
+         bootstrap="phpunit.php"
+>
     <testsuites>
         <testsuite name="HUBzero Framework Test Suite">
-            <directory suffix="Test.php">./tests</directory>
+            <directory suffix="Test.php">./src/Database/Tests</directory>
         </testsuite>
     </testsuites>
     <logging>
