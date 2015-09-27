@@ -24,10 +24,10 @@
  *
  * HUBzero is a registered trademark of Purdue University.
  *
- * @package     hubzero-cms
- * @author      Nicholas J. Kisseberth <nkissebe@purdue.edu>
- * @copyright	Copyright 2010-2015 HUBzero Foundation, LLC.
- * @license     http://opensource.org/licenses/MIT MIT
+ * @package   framework
+ * @author    Nicholas J. Kisseberth <nkissebe@purdue.edu>
+ * @copyright Copyright 2010-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Password;
