@@ -12,6 +12,8 @@ install: composer install --prefer-source --no-interaction
 script:
   - mkdir -p build/logs
   - vendor/bin/phpunit
+  - vendor/bin/phpcs -n --standard=vendor/hubzero/standards/Php/ruleset.xml src/
+  - vendor/bin/parallel-lint src/
 
 after_script:
   - php vendor/bin/coveralls
