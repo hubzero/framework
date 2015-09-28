@@ -5,6 +5,8 @@
 
 The HUBzero framework powers the popular HUBzero cms.
 
+To review documentation or get started, visit https://hubzero.org/documentation/current.
+
 ## What is HUBzero?
 
 HUBzero® is an open source software platform for building powerful Web sites that support scientific discovery, learning, and collaboration. Some refer to such web sites as "collaboratories" supporting "team science." We call them "hubs" because each site becomes a focal point for its user community.
