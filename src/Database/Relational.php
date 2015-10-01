@@ -901,12 +901,18 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 	 * The {@link \Hubzero\Database\Rows} class also has a count method, which is used
 	 * to count rows after they've already been fetched.
 	 *
+	 * If possible, you shouldn't use this method.  We have to make a clone of the current
+	 * query so that it won't be empty if you later try to fetch the results of the original
+	 * query.  It would be better to go ahead and fetch the results and call the count
+	 * method on the rows object, thus potentially saving a query if you later plan
+	 * to fetch the original rows that you were trying to count.
+	 *
 	 * @return  int
 	 * @since   2.0.0
 	 **/
 	public function count()
 	{
-		return $this->rows()->count();
+		return $this->copy()->rows()->count();
 	}
 
 	/**
