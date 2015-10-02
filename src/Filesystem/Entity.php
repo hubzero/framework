@@ -251,8 +251,15 @@ class Entity extends Object
 	 **/
 	public function getName()
 	{
-		if (isset($this->basename)) return $this->basename;
-		if (isset($this->filename)) return $this->filename;
+		if (isset($this->basename))
+		{
+			return $this->basename;
+		}
+
+		if (isset($this->filename))
+		{
+			return $this->filename;
+		}
 
 		if (isset($this->path))
 		{
@@ -345,7 +352,10 @@ class Entity extends Object
 	 **/
 	public function hasAdapterOrFail()
 	{
-		if (!isset($this->adapter)) throw new \Exception('No adapter set', 500);
+		if (!isset($this->adapter))
+		{
+			throw new \Exception('No adapter set', 500);
+		}
 
 		return $this;
 	}

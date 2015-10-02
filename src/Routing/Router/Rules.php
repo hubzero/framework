@@ -70,7 +70,7 @@ class Rules implements Countable, Iterator
 	 */
 	public function close($value)
 	{
-		if ( ! $value instanceof Closure)
+		if (! $value instanceof Closure)
 		{
 			$value = function() use ($value)
 			{

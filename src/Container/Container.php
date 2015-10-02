@@ -109,12 +109,10 @@ class Container implements ArrayAccess
 
 		// If an instance of the type is currently being managed as a raw value, 
 		// protected value, or is a parameter.
-		if (
-			isset($this->raw[$id])
+		if (isset($this->raw[$id])
 			|| !is_object($this->values[$id])
 			|| isset($this->protected[$this->values[$id]])
-			|| !method_exists($this->values[$id], '__invoke')
-		)
+			|| !method_exists($this->values[$id], '__invoke'))
 		{
 			return $this->values[$id];
 		}

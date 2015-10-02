@@ -90,7 +90,7 @@ class Provider
 	 */
 	public function setRequestTokenPath($path)
 	{
-		$this->_request_token_path = trim($path,'/');
+		$this->_request_token_path = trim($path, '/');
 	}
 
 	/**
@@ -101,7 +101,7 @@ class Provider
 	 */
 	public function setAccessTokenPath($path)
 	{
-		$this->_access_token_path = trim($path,'/');
+		$this->_access_token_path = trim($path, '/');
 	}
 
 	/**
@@ -112,7 +112,7 @@ class Provider
 	 */
 	public function setAuthorizePath($path)
 	{
-		$this->_authorize_path = trim($path,'/');
+		$this->_authorize_path = trim($path, '/');
 	}
 
 	/**
@@ -158,7 +158,7 @@ class Provider
 
 		$parts = parse_url($uri);
 
-		$path = trim($parts['path'],'/');
+		$path = trim($parts['path'], '/');
 
 		if ($path == $this->_request_token_path)
 		{
@@ -186,9 +186,9 @@ class Provider
 				|| isset($_POST['x_auth_mode'])
 				|| isset($_POST['x_auth_username'])
 				|| isset($_POST['x_auth_password'])
-				|| !strpos($header,'x_auth_mode')
-				|| !strpos($header,'x_auth_username')
-				|| !strpos($header,'x_auth_password'))
+				|| !strpos($header, 'x_auth_mode')
+				|| !strpos($header, 'x_auth_username')
+				|| !strpos($header, 'x_auth_password'))
 			{
 				$this->_provider->is2LeggedEndpoint(true);
 				//$this->_provider->addRequiredParameter ('x_auth_mode');
@@ -199,7 +199,7 @@ class Provider
 
 		try
 		{
-			$this->_provider->checkOAuthRequest($uri,$method);
+			$this->_provider->checkOAuthRequest($uri, $method);
 
 			return true;
 		}
@@ -208,7 +208,7 @@ class Provider
 		}
 
 		// No attempt was made to sign this, let it pass as such
-		if ( ($this->_provider->consumer_key === null)
+		if (($this->_provider->consumer_key === null)
 			&& ($this->_provider->consumer_secret === null)
 			&& ($this->_provider->nonce === null)
 			&& ($this->_provider->token === null)
@@ -245,7 +245,7 @@ class Provider
 		// request signed without token is allowed to pass
 		if ($message == "oauth_problem=token_rejected")
 		{
-			if ( ($this->_provider->consumer_key !== null)
+			if (($this->_provider->consumer_key !== null)
 				&& ($this->_provider->consumer_secret !== null)
 				&& ($this->_provider->nonce !== null)
 				&& (empty($this->_provider->token))
@@ -268,7 +268,7 @@ class Provider
 			$reason = 'Bad Request';
 			$status = 400;
 		}
-		else if (strpos($message,"oauth_problem=parameter_absent") !== false)
+		else if (strpos($message, "oauth_problem=parameter_absent") !== false)
 		{
 			$reason = 'Bad Request';
 			$status = 400;

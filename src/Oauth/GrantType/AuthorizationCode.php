@@ -1,9 +1,9 @@
 <?php
 /**
-* HUBzero CMS
-*
-* Copyright 2005-2015 HUBzero Foundation, LLC.
-*
+ * HUBzero CMS
+ *
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -23,12 +23,12 @@
  * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
-*
-* @package   framework
-* @author    Christopher Smoak <csmoak@purdue.edu>
-* @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
-* @license   http://opensource.org/licenses/MIT MIT
-*/
+ *
+ * @package   framework
+ * @author    Christopher Smoak <csmoak@purdue.edu>
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @license   http://opensource.org/licenses/MIT MIT
+ */
 
 namespace Hubzero\Oauth\GrantType;
 

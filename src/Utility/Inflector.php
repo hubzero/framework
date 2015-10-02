@@ -110,7 +110,7 @@ class Inflector
 			return $result;
 		}
 
-		if ( ! static::is_countable($result))
+		if (! static::is_countable($result))
 		{
 			return $result;
 		}

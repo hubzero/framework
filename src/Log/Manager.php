@@ -109,7 +109,7 @@ class Manager
 		// If the given driver has not been created before, we will create the instances
 		// here and cache it so we can return it next time very quickly. If there is
 		// already a driver created by this name, we'll just return that instance.
-		if ( ! isset($this->loggers[$name]))
+		if (! isset($this->loggers[$name]))
 		{
 			$this->loggers[$name] = $this->createLog($name);
 		}

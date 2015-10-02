@@ -45,35 +45,35 @@ class Teller extends Object
 	 *
 	 * @var  object
 	 */
-	protected $_db   = NULL;
+	protected $_db   = null;
 
 	/**
 	 * User ID
 	 *
 	 * @var  string
 	 */
-	public $uid      = NULL;
+	public $uid      = null;
 
 	/**
 	 * Current point balance
 	 *
 	 * @var  mixed
 	 */
-	public $balance  = NULL;
+	public $balance  = null;
 
 	/**
 	 * Lifetime point earnings
 	 *
 	 * @var  mixed
 	 */
-	public $earnings = NULL;
+	public $earnings = null;
 
 	/**
 	 * Credit point balance
 	 *
 	 * @var  mixed
 	 */
-	public $credit   = NULL;
+	public $credit   = null;
 
 	/**
 	 * Constructor
@@ -394,4 +394,3 @@ class Teller extends Object
 		return true;
 	}
 }
-

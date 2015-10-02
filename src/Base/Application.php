@@ -255,7 +255,10 @@ class Application extends Container
 		// If the application has already booted, we will call this boot method on
 		// the provider class so it has an opportunity to do its boot logic and
 		// will be ready for any usage by the developer's application logics.
-		if ($this->booted) $this->bootProvider($provider);
+		if ($this->booted)
+		{
+			$this->bootProvider($provider);
+		}
 
 		return $this;
 	}
@@ -401,7 +404,10 @@ class Application extends Container
 	 */
 	public function boot()
 	{
-		if ($this->booted) return;
+		if ($this->booted)
+		{
+			return;
+		}
 
 		array_walk($this->serviceProviders, function($p)
 		{

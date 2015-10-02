@@ -121,7 +121,7 @@ class Project
 
 		$cvars = get_class_vars(__CLASS__);
 
-		foreach ($cvars as $key=>$value)
+		foreach ($cvars as $key => $value)
 		{
 			if ($key{0} == '_')
 			{
@@ -318,7 +318,7 @@ class Project
 
 		$first = true;
 
-		foreach ($classvars as $property=>$value)
+		foreach ($classvars as $property => $value)
 		{
 			if (($property{0} == '_') || in_array($property, $this->_list_keys))
 			{
@@ -917,4 +917,3 @@ class Project
 		return $result;
 	}
 }
-

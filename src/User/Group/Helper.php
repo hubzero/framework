@@ -229,8 +229,8 @@ class Helper
 			$gids   .= "$r,";
 		}
 
-		$values = rtrim($values,',');
-		$gids = rtrim($gids,',');
+		$values = rtrim($values, ',');
+		$gids = rtrim($gids, ',');
 
 		$sql = 'INSERT INTO `#__xgroups_invitees` (gidNumber,uidNumber) VALUES ' . $values . ';';
 
@@ -267,7 +267,9 @@ class Helper
 	public static function search_roles($group, $role = '')
 	{
 		if ($role == '')
+		{
 			return false;
+		}
 
 		$db =  \App::get('db');
 

@@ -102,7 +102,10 @@ class Asset
 		// Re-inject the asset id into the model
 		$this->model->set('asset_id', $asset->id);
 
-		if ($asset->getError()) return false;
+		if ($asset->getError())
+		{
+			return false;
+		}
 
 		// Specify how a new or moved node asset is inserted into the tree
 		if (!$this->model->get('asset_id', null) || $asset->parent_id != $parentId)
@@ -120,7 +123,10 @@ class Asset
 			$asset->rules = (string)$this->model->assetRules;
 		}
 
-		if (!$asset->check() || !$asset->store()) return false;
+		if (!$asset->check() || !$asset->store())
+		{
+			return false;
+		}
 
 		// Register an event to update the asset name once we know the model id
 		if ($this->model->isNew())
@@ -150,7 +156,10 @@ class Asset
 
 		if ($asset->loadByName($this->getAssetName()))
 		{
-			if (!$asset->delete()) return false;
+			if (!$asset->delete())
+			{
+				return false;
+			}
 		}
 
 		return true;

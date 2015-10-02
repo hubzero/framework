@@ -531,10 +531,12 @@ class String
 			switch (rand(1, 3))
 			{
 				case 1:
-					$safe .= '&#' . ord($letter) . ';'; break;
+					$safe .= '&#' . ord($letter) . ';';
+					break;
 
 				case 2:
-					$safe .= '&#x' . dechex(ord($letter)) . ';'; break;
+					$safe .= '&#x' . dechex(ord($letter)) . ';';
+					break;
 
 				case 3:
 					$safe .= $letter;
@@ -641,7 +643,10 @@ class String
 				}
 
 				// If it all matched, record the position
-				if ($match) $instances[] = $i;
+				if ($match)
+				{
+					$instances[] = $i;
+				}
 			}
 		}
 
@@ -704,7 +709,10 @@ class String
 	{
 		foreach ((array) $needles as $needle)
 		{
-			if ($needle != '' && strpos($haystack, $needle) !== false) return true;
+			if ($needle != '' && strpos($haystack, $needle) !== false)
+			{
+				return true;
+			}
 		}
 
 		return false;
@@ -722,7 +730,10 @@ class String
 	{
 		foreach ((array) $needles as $needle)
 		{
-			if ($needle != '' && strpos($haystack, $needle) === 0) return true;
+			if ($needle != '' && strpos($haystack, $needle) === 0)
+			{
+				return true;
+			}
 		}
 
 		return false;
@@ -740,18 +751,21 @@ class String
 	{
 		foreach ((array) $needles as $needle)
 		{
-			if ((string) $needle === substr($haystack, -strlen($needle))) return true;
+			if ((string) $needle === substr($haystack, -strlen($needle)))
+			{
+				return true;
+			}
 		}
 
 		return false;
 	}
 
 		/**
-	 * Replaces &amp; with & for XHTML compliance
-	 *
-	 * @param   string  $text  Text to process
-	 * @return  string  Processed string.
-	 */
+   * Replaces &amp; with & for XHTML compliance
+   *
+   * @param   string  $text  Text to process
+   * @return  string  Processed string.
+   */
 	public static function ampReplace($text)
 	{
 		$text = str_replace('&&', '*--*', $text);

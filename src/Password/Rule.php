@@ -280,7 +280,7 @@ class Rule
 					}
 				}
 
-				if (self::isBasedOnName($password,$name))
+				if (self::isBasedOnName($password, $name))
 				{
 					$fail[] = $rule['failuremsg'];
 				}

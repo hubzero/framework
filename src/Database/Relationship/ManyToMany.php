@@ -112,8 +112,16 @@ class ManyToMany extends OneToManyThrough
 		$columns = $this->model->getStructure()->getTableColumns($this->associativeTable);
 
 		// Get rid of known columns (don't use a primary key other than id and you'll be fine here!)
-		if (isset($columns['id'])) unset($columns['id']);
-		if (isset($this->shifter)) unset($columns[$this->shifter]);
+		if (isset($columns['id']))
+		{
+			unset($columns['id']);
+		}
+
+		if (isset($this->shifter))
+		{
+			unset($columns[$this->shifter]);
+		}
+
 		unset($columns[$this->associativeLocal]);
 		unset($columns[$this->associativeRelated]);
 
@@ -151,7 +159,10 @@ class ManyToMany extends OneToManyThrough
 				$data = array_merge($this->getConnectionData(), [$this->associativeRelated => $id]);
 
 				// If we have associative data, include that in the query
-				if (is_array($associative)) $data = array_merge($data, $associative);
+				if (is_array($associative))
+				{
+					$data = array_merge($data, $associative);
+				}
 
 				// Save data
 				$query = $this->model->getQuery()->push($this->associativeTable, $data, true);
@@ -190,7 +201,10 @@ class ManyToMany extends OneToManyThrough
 			      ->whereEquals($this->associativeLocal, $this->model->getPkValue())
 			      ->whereIn($this->associativeRelated, $ids);
 
-			if (isset($constraint) && is_callable($constraint)) call_user_func_array($constraint, [$query]);
+			if (isset($constraint) && is_callable($constraint))
+			{
+				call_user_func_array($constraint, [$query]);
+			}
 
 			$query->execute();
 		}

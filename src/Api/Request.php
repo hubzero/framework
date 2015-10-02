@@ -124,7 +124,7 @@ class Request
 	{
 		if (($options == '_SERVER') || (in_array('_SERVER', $options)))
 		{
-			$this->set('request','_SERVER');
+			$this->set('request', '_SERVER');
 
 			if (isset($_GET['format']))
 			{
@@ -141,11 +141,11 @@ class Request
 
 			if (empty($this->accepts))
 			{
-				$format = strrchr($_SERVER['REQUEST_URI'],'.');
+				$format = strrchr($_SERVER['REQUEST_URI'], '.');
 
-				if (strchr($format,'/') === false)
+				if (strchr($format, '/') === false)
 				{
-					$this->accepts = $this->_parse_accept(substr($format,1));
+					$this->accepts = $this->_parse_accept(substr($format, 1));
 				}
 			}
 
@@ -191,11 +191,13 @@ class Request
 
 		$what = (array) $what;
 
-		if (in_array('all',$what)) {
-			$what = array_merge($what, array('method','request','version','headers','body','hostname','scheme','postdata'));
+		if (in_array('all', $what))
+		{
+			$what = array_merge($what, array('method', 'request', 'version', 'headers', 'body', 'hostname', 'scheme', 'postdata'));
 		}
 
-		foreach ($what as $item) {
+		foreach ($what as $item)
+		{
 			switch ($item)
 			{
 				case 'method':
@@ -210,7 +212,7 @@ class Request
 				case 'headers':
 					$this->set('header', null);
 
-					foreach ($_SERVER as $key=>$value)
+					foreach ($_SERVER as $key => $value)
 					{
 						if (strncmp($key, 'HTTP_', 5) == 0)
 						{
@@ -223,7 +225,7 @@ class Request
 					}
 					break;
 				case 'body':
-					$this->set('body','php://input');
+					$this->set('body', 'php://input');
 					break;
 				case 'hostname':
 					$this->set('hostname', $_SERVER['HTTP_HOST']);
@@ -231,11 +233,11 @@ class Request
 				case 'scheme':
 					if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'])
 					{
-						$this->set('scheme','https');
+						$this->set('scheme', 'https');
 					}
 					else
 					{
-						$this->set('scheme','http');
+						$this->set('scheme', 'http');
 					}
 				case 'postdata':
 					$this->set('postdata', $_POST);
@@ -254,11 +256,10 @@ class Request
 
 		$what = (array) $what;
 
-		if (in_array('all',$what))
+		if (in_array('all', $what))
 		{
-			$what = array_merge($what, array('uri','get','method','version','headers','postdata'));
+			$what = array_merge($what, array('uri', 'get', 'method', 'version', 'headers', 'postdata'));
 		}
-
 
 		// uri.... fill _SERVER: SCRIPT_*, QUERY_STRING
 		// method... fill _SERVER: REQUEST_METHOD
@@ -336,9 +337,9 @@ class Request
 					$_POST = $this->get('postdata');
 					break;
 				case 'headers':
-					foreach ($this->headers as $key=>$value)
+					foreach ($this->headers as $key => $value)
 					{
-						$key = str_replace('-','_',$key);
+						$key = str_replace('-', '_', $key);
 						$key = "HTTP_" . strtoupper($key);
 						$_SERVER[$key] = $value;
 					}
@@ -371,7 +372,7 @@ class Request
 
 			if (!empty($_POST))
 			{
-				foreach ($_POST as $k=>$v)
+				foreach ($_POST as $k => $v)
 				{
 					$_REQUEST[$k] = $v;
 				}
@@ -383,7 +384,7 @@ class Request
 
 			if (!empty($_GET))
 			{
-				foreach ($_GET as $k=>$v)
+				foreach ($_GET as $k => $v)
 				{
 					$_REQUEST[$k] = $v;
 				}
@@ -609,7 +610,7 @@ class Request
 				{
 					$this->query = '';
 
-					foreach ($value as $key=>$value)
+					foreach ($value as $key => $value)
 					{
 						if (!empty($this->query))
 						{
@@ -743,5 +744,4 @@ class Request
 				return false;
 		}
 	}
-
 }

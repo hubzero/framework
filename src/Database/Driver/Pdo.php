@@ -214,10 +214,22 @@ class Pdo extends Driver
 	 **/
 	private function inferType($binding)
 	{
-		if (is_bool($binding))     $type = \PDO::PARAM_BOOL;
-		elseif (is_null($binding)) $type = \PDO::PARAM_NULL;
-		elseif (is_int($binding))  $type = \PDO::PARAM_INT;
-		else                       $type = \PDO::PARAM_STR;
+		if (is_bool($binding))
+		{
+			$type = \PDO::PARAM_BOOL;
+		}
+		elseif (is_null($binding))
+		{
+			$type = \PDO::PARAM_NULL;
+		}
+		elseif (is_int($binding))
+		{
+			$type = \PDO::PARAM_INT;
+		}
+		else
+		{
+			$type = \PDO::PARAM_STR;
+		}
 
 		return $type;
 	}
@@ -539,7 +551,10 @@ class Pdo extends Driver
 		$this->setQuery( 'SHOW FIELDS FROM ' . $table );
 		$fields = $this->loadObjectList('Field');
 
-		if (!is_array($fields)) return false;
+		if (!is_array($fields))
+		{
+			return false;
+		}
 
 		return (in_array($field, array_keys($fields))) ? true : false;
 	}
@@ -557,7 +572,10 @@ class Pdo extends Driver
 		$this->setQuery('SHOW KEYS FROM ' . $table);
 		$keys = $this->loadObjectList('Key_name');
 
-		if (!is_array($keys)) return false;
+		if (!is_array($keys))
+		{
+			return false;
+		}
 
 		return (in_array($key, array_keys($keys))) ? true : false;
 	}
@@ -744,7 +762,10 @@ class Pdo extends Driver
 	 */
 	public function select($database)
 	{
-		if (empty($database)) return false;
+		if (empty($database))
+		{
+			return false;
+		}
 
 		$this->connection->exec('USE ' . $this->quoteName($database));
 

@@ -137,4 +137,3 @@ class Module extends Object
 		return $content;
 	}
 }
-

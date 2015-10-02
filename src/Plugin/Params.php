@@ -88,7 +88,7 @@ class Params extends \JTable
 	 * @param   string   $element  Plugin name
 	 * @return  boolean  True on success
 	 */
-	public function loadPlugin($oid=null, $folder=null, $element=NULL)
+	public function loadPlugin($oid=null, $folder=null, $element=null)
 	{
 		$oid     = $oid     ?: $this->object_id;
 		$folder  = $folder  ?: $this->folder;
@@ -172,4 +172,3 @@ class Params extends \JTable
 		return $params;
 	}
 }
-

@@ -294,13 +294,22 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 	public function __call($name, $arguments)
 	{
 		// See if method is available as a helper method on current class
-		if ($this->hasHelper($name)) return $this->callHelper($name, $arguments);
+		if ($this->hasHelper($name))
+		{
+			return $this->callHelper($name, $arguments);
+		}
 
 		// See if method is available as a transformer on current class
-		if ($this->hasTransformer($name)) return $this->callTransformer($name, $arguments);
+		if ($this->hasTransformer($name))
+		{
+			return $this->callTransformer($name, $arguments);
+		}
 
 		// Check if it is a parsable field (i.e. wiki/html)
-		if ($this->isParsable($name)) return $this->parse($name, (isset($arguments[0])) ? $arguments[0] : 'parsed');
+		if ($this->isParsable($name))
+		{
+			return $this->parse($name, (isset($arguments[0])) ? $arguments[0] : 'parsed');
+		}
 
 		// See if we need to call a query method
 		if (in_array($name, get_class_methods($this->query)))
@@ -360,10 +369,16 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 	public function __get($name)
 	{
 		// First, see if a transformer is available on the model
-		if ($this->hasTransformer($name)) return $this->callTransformer($name);
+		if ($this->hasTransformer($name))
+		{
+			return $this->callTransformer($name);
+		}
 
 		// Check if it is a parsable field (i.e. wiki/html)
-		if ($this->isParsable($name)) return $this->parse($name);
+		if ($this->isParsable($name))
+		{
+			return $this->parse($name);
+		}
 
 		// Next check for an attribute on the model
 		if (isset($this->attributes[$name]))
@@ -1110,7 +1125,10 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 		$row = self::one($id);
 
 		// See if we have a valid row
-		if ($row === false) $row = self::blank();
+		if ($row === false)
+		{
+			$row = self::blank();
+		}
 
 		return $row;
 	}
@@ -1163,7 +1181,10 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 	public function save()
 	{
 		// Validate
-		if (!$this->validate()) return false;
+		if (!$this->validate())
+		{
+			return false;
+		}
 
 		// See if we're creating or updating
 		$method = $this->isNew() ? 'create' : 'modify';
@@ -1287,7 +1308,10 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 		// If it has an associated Joomla asset entry, try deleting that first
 		if ($this->hasAttribute('asset_id'))
 		{
-			if (!Asset::destroy($this)) return false;
+			if (!Asset::destroy($this))
+			{
+				return false;
+			}
 		}
 
 		return $this->query->remove(
@@ -1447,7 +1471,10 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 		$keys = array_unique($keys);
 
 		// Set our where clause if needed
-		if (!empty($keys)) $this->whereIn($relationship->getLocalKey(), $keys);
+		if (!empty($keys))
+		{
+			$this->whereIn($relationship->getLocalKey(), $keys);
+		}
 
 		return $this;
 	}
@@ -1499,7 +1526,10 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 	{
 		$validity = Rules::validate($this->attributes, $this->getRules());
 
-		if ($validity === true) return true;
+		if ($validity === true)
+		{
+			return true;
+		}
 
 		$this->setErrors($validity);
 		return false;
@@ -1548,7 +1578,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 	public function ordered($orderBy = 'orderby', $orderDir = 'orderdir')
 	{
 		// Look for our request vars of interest
-		$this->orderBy  = Request::getCmd($orderBy,  $this->getState('orderby',  $this->orderBy));
+		$this->orderBy  = Request::getCmd($orderBy, $this->getState('orderby', $this->orderBy));
 		$this->orderDir = Request::getCmd($orderDir, $this->getState('orderdir', $this->orderDir));
 
 		$qualifiedOrderBy = $this->orderBy;
@@ -1567,7 +1597,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 		$this->order($qualifiedOrderBy, $this->orderDir);
 
 		// Set state for future use
-		$this->setState('orderby',  $this->orderBy);
+		$this->setState('orderby', $this->orderBy);
 		$this->setState('orderdir', $this->orderDir);
 
 		return $this;
@@ -1881,10 +1911,16 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 		foreach ($this->includes as $relationship)
 		{
 			// Check for array, meaning we have relationship_name => constraint
-			if (is_array($relationship)) list($relationship, $constraint) = $relationship;
+			if (is_array($relationship))
+			{
+				list($relationship, $constraint) = $relationship;
+			}
 
 			// Parse for nested relationships
-			if (strpos($relationship, '.')) list($relationship, $subs) = explode('.', $relationship, 2);
+			if (strpos($relationship, '.'))
+			{
+				list($relationship, $subs) = explode('.', $relationship, 2);
+			}
 
 			// If we have subs and a constraint, the constraint should apply to the subs, not the intermediate relation
 			if (isset($subs) && isset($constraint))

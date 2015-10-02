@@ -30,7 +30,7 @@
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-if ( ! function_exists('app'))
+if (! function_exists('app'))
 {
 	/**
 	 * Get the root Facade application instance.
@@ -51,7 +51,7 @@ if ( ! function_exists('app'))
 	}
 }
 
-if ( ! function_exists('config'))
+if (! function_exists('config'))
 {
 	/**
 	 * Get the specified configuration value.
@@ -73,7 +73,7 @@ if ( ! function_exists('config'))
 	}
 }
 
-if ( ! function_exists('ddie'))
+if (! function_exists('ddie'))
 {
 	/**
 	 * Dump the passed variables and end the script.
@@ -91,7 +91,7 @@ if ( ! function_exists('ddie'))
 	}
 }
 
-if ( ! function_exists('dlog'))
+if (! function_exists('dlog'))
 {
 	/**
 	 * Dump the passed variables to the debug bar.
@@ -108,7 +108,7 @@ if ( ! function_exists('dlog'))
 	}
 }
 
-if ( ! function_exists('dump'))
+if (! function_exists('dump'))
 {
 	/**
 	 * Dump the passed variables.
@@ -125,7 +125,7 @@ if ( ! function_exists('dump'))
 	}
 }
 
-if ( ! function_exists('with'))
+if (! function_exists('with'))
 {
 	/**
 	 * Return the given object. Useful for chaining.

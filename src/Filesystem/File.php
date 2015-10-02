@@ -194,7 +194,10 @@ class File extends Entity
 	 **/
 	public function save()
 	{
-		if (!isset($this->contents)) return false;
+		if (!isset($this->contents))
+		{
+			return false;
+		}
 
 		// We can save a stream or string...so see which it is
 		$method = (is_resource($this->contents) && get_resource_type($this->contents) == 'stream') ? 'putStream' : 'put';

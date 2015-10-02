@@ -135,4 +135,3 @@ class Notify extends \JTable
 		return true;
 	}
 }
-

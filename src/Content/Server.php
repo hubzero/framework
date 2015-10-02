@@ -527,4 +527,3 @@ class Server extends Object
 		return true;
 	}
 }
-

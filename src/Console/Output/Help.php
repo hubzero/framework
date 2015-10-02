@@ -163,7 +163,7 @@ class Help extends Output
 	 * @param   string  $required  If it's required, we'll style a bit differently
 	 * @return  $this
 	 **/
-	public function addArgument($argument, $details = NULL, $example = NULL, $required = false)
+	public function addArgument($argument, $details = null, $example = null, $required = false)
 	{
 		if (!$this->hasArgumentsSection)
 		{

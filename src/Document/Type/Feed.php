@@ -49,12 +49,12 @@ class Feed extends Base
 	public $syndicationURL = '';
 
 	 /**
-	 * Image feed element
-	 *
-	 * optional
-	 *
-	 * @var  object
-	 */
+   * Image feed element
+   *
+   * optional
+   *
+   * @var  object
+   */
 	public $image = null;
 
 	/**
@@ -67,30 +67,30 @@ class Feed extends Base
 	public $copyright = '';
 
 	 /**
-	 * Published date feed element
-	 *
-	 *  optional
-	 *
-	 * @var  string
-	 */
+   * Published date feed element
+   *
+   *  optional
+   *
+   * @var  string
+   */
 	public $pubDate = '';
 
 	 /**
-	 * Lastbuild date feed element
-	 *
-	 * optional
-	 *
-	 * @var  string
-	 */
+   * Lastbuild date feed element
+   *
+   * optional
+   *
+   * @var  string
+   */
 	public $lastBuildDate = '';
 
 	 /**
-	 * Editor feed element
-	 *
-	 * optional
-	 *
-	 * @var  string
-	 */
+   * Editor feed element
+   *
+   * optional
+   *
+   * @var  string
+   */
 	public $editor = '';
 
 	/**
@@ -101,12 +101,12 @@ class Feed extends Base
 	public $docs = '';
 
 	 /**
-	 * Editor email feed element
-	 *
-	 * optional
-	 *
-	 * @var  string
-	 */
+   * Editor email feed element
+   *
+   * optional
+   *
+   * @var  string
+   */
 	public $editorEmail = '';
 
 	/**

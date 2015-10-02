@@ -91,13 +91,19 @@ class Template extends Scaffolding
 		{
 			$to = $matchesTo[2];
 
-			if ($matchesTo[1] == 'app') $pathTo = PATH_APP;
+			if ($matchesTo[1] == 'app')
+			{
+				$pathTo = PATH_APP;
+			}
 		}
 		if (isset($matchesFrom[0]))
 		{
 			$from = $matchesFrom[2];
 
-			if ($matchesFrom[1] == 'app') $pathFrom = PATH_APP;
+			if ($matchesFrom[1] == 'app')
+			{
+				$pathFrom = PATH_APP;
+			}
 		}
 
 		// Make sure template doesn't already exist

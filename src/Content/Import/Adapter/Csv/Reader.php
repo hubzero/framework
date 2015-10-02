@@ -206,8 +206,8 @@ class Reader implements Iterator
 		if (!$this->next())
 		{
 			fclose($this->file);
-			return FALSE;
+			return false;
 		}
-		return TRUE;
+		return true;
 	}
 }

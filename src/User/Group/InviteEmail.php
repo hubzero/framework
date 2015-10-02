@@ -35,7 +35,7 @@ namespace Hubzero\User\Group;
 /**
  * Group email invite table class
  */
-Class InviteEmail extends \JTable
+class InviteEmail extends \JTable
 {
 	/**
 	 * Constructor

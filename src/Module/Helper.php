@@ -71,7 +71,7 @@ class Helper
 	 */
 	public static function displayModule($name, $style=-1)
 	{
-		echo self::renderModule($name,$style);
+		echo self::renderModule($name, $style);
 	}
 
 	/**
@@ -109,4 +109,3 @@ class Helper
 		return \Module::params($id);
 	}
 }
-

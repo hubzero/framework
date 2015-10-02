@@ -38,7 +38,7 @@ use Hubzero\Config\Processor as Base;
 /**
  * JSON processor for Registry.
  *
-  * Based, in part, on Joomla's JRegistry format classes
+ * Based, in part, on Joomla's JRegistry format classes
  */
 class Json extends Base
 {

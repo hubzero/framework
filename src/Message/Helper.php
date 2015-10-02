@@ -193,4 +193,3 @@ class Helper extends Object
 		return true;
 	}
 }
-

@@ -289,4 +289,3 @@ class Helper
 		return $prfx . $someid;
 	}
 }
-

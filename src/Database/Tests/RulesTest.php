@@ -141,7 +141,7 @@ class RulesTest extends Basic
 	public function testCompoundRules()
 	{
 		$pass = Rules::validate(['name' => "mr cool"], ['name' => 'notempty|alpha']);
-		$fail = Rules::validate(['name' => ""],        ['name' => 'notempty|alpha']);
+		$fail = Rules::validate(['name' => ""], ['name' => 'notempty|alpha']);
 
 		$this->assertTrue($pass, 'Rule (notempty|alpha) should have validated with a name of "mr cool"');
 		$this->assertCount(2, $fail, 'Rules (notempty|alpha) should have returned two errors for a name of ""');

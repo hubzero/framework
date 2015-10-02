@@ -90,12 +90,12 @@ class RefreshToken implements GrantTypeInterface
 	}
 
 	/**
-     * Exchange refresh token or new access token
-     * 
-     * @param   object  $request   Request object
-     * @param   object  $response  Response object
-     * @return  bool    Result of auth
-     */
+  * Exchange refresh token or new access token
+  * 
+  * @param   object  $request   Request object
+  * @param   object  $response  Response object
+  * @return  bool    Result of auth
+  */
 	public function validateRequest(RequestInterface $request, ResponseInterface $response)
 	{
 		// make sure request has a refresh token

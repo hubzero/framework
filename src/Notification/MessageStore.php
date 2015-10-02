@@ -62,4 +62,4 @@ interface MessageStore
 	 * @return  void
 	 */
 	public function clear($domain);
-} 
+}

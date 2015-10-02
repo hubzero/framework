@@ -333,11 +333,11 @@ class Event implements ArrayAccess, Serializable, Countable
 	}
 
 		/**
-	 * Tell if the given event argument exists.
-	 *
-	 * @param   string  $name  The argument name.
-	 * @return  boolean  True if it exists, false otherwise.
-	 */
+   * Tell if the given event argument exists.
+   *
+   * @param   string  $name  The argument name.
+   * @return  boolean  True if it exists, false otherwise.
+   */
 	public function offsetExists($name)
 	{
 		return $this->hasArgument($name);

@@ -77,14 +77,14 @@ abstract class Model extends Object
 	 *
 	 * @var object
 	 */
-	protected $_tbl = NULL;
+	protected $_tbl = null;
 
 	/**
 	 * Database
 	 *
 	 * @var  object
 	 */
-	protected $_db = NULL;
+	protected $_db = null;
 
 	/**
 	 * Model context.
@@ -92,7 +92,7 @@ abstract class Model extends Object
 	 *
 	 * @var  string
 	 */
-	protected $_context = NULL;
+	protected $_context = null;
 
 	/**
 	 * Constructor
@@ -139,7 +139,7 @@ abstract class Model extends Object
 	 * @param   string  $property  The name of the property
 	 * @param   mixed   $default   The default value
 	 * @return  mixed   The value of the property
- 	 */
+  */
 	public function get($property, $default=null)
 	{
 		if (isset($this->_tbl->$property))
@@ -639,4 +639,3 @@ abstract class Model extends Object
 		throw new \BadMethodCallException(sprintf(__CLASS__ . '; Method [%s] does not exist.', $method));
 	}
 }
-

@@ -33,10 +33,10 @@
 namespace Hubzero\Content;
 
 /**
-* HUBzero Database migrations class
-*
-* @TODO: add flag to ignore development scripts?
-*/
+ * HUBzero Database migrations class
+ *
+ * @TODO: add flag to ignore development scripts?
+ */
 class Migration
 {
 	/**

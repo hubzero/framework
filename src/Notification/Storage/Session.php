@@ -127,4 +127,4 @@ class Session implements MessageStore
 
 		return $domain . 'application.queue';
 	}
-} 
+}

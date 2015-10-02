@@ -47,21 +47,21 @@ class Archive extends Object
 	 *
 	 * @var  object
 	 */
-	private $_db = NULL;
+	private $_db = null;
 
 	/**
 	 * Record list
 	 *
 	 * @var  object
 	 */
-	private $_hooks = NULL;
+	private $_hooks = null;
 
 	/**
 	 * Record total
 	 *
 	 * @var  integer
 	 */
-	private $_hooks_total = NULL;
+	private $_hooks_total = null;
 
 	/**
 	 * Constructor

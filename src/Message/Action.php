@@ -92,4 +92,3 @@ class Action extends \JTable
 		return $this->_db->loadColumn();
 	}
 }
-

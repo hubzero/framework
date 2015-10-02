@@ -55,8 +55,16 @@ class Collection extends ItemList
 		{
 			if (!isset($a->$key) || !isset($b->$key))
 			{
-				if (!isset($a->$key)) return ($asc) ? -1 :  1;
-				if (!isset($b->$key)) return ($asc) ?  1 : -1;
+				if (!isset($a->$key))
+				{
+					return ($asc) ? -1 :  1;
+				}
+
+				if (!isset($b->$key))
+				{
+					return ($asc) ?  1 : -1;
+				}
+
 				return 0;
 			}
 
@@ -106,7 +114,7 @@ class Collection extends ItemList
 		$tarname = uniqid() . '.zip';
 		$zip     = new \ZipArchive;
 
-		if ($zip->open($temp . DS . $tarname, \ZipArchive::OVERWRITE) === TRUE)
+		if ($zip->open($temp . DS . $tarname, \ZipArchive::OVERWRITE) === true)
 		{
 			foreach ($this->_data as $entity)
 			{

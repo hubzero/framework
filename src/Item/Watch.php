@@ -255,7 +255,7 @@ class Watch extends \JTable
 	 * @param   integer  $created_by
 	 * @return  object   Return boolean
 	 */
-	public function loadRecord($item_id, $item_type, $created_by, $email = NULL)
+	public function loadRecord($item_id, $item_type, $created_by, $email = null)
 	{
 		if (!$item_id || !$item_type || (!$created_by && !$email))
 		{

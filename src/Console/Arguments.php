@@ -47,28 +47,28 @@ class Arguments
 	 *
 	 * @var  array
 	 **/
-	private $raw = NULL;
+	private $raw = null;
 
 	/**
 	 * Class name - command to execute
 	 *
 	 * @var  string
 	 **/
-	private $class = NULL;
+	private $class = null;
 
 	/**
 	 * Task name - class method to execute
 	 *
 	 * @var  string
 	 **/
-	private $task = NULL;
+	private $task = null;
 
 	/**
 	 * Array of additional options being passed to the command
 	 *
 	 * @var  array
 	 **/
-	private $opts = NULL;
+	private $opts = null;
 
 	/**
 	 * Constructor
@@ -287,7 +287,10 @@ class Arguments
 				}
 			}
 
-			if ($notfound) throw new UnsupportedCommandException("Unknown command: {$command}.");
+			if ($notfound)
+			{
+				throw new UnsupportedCommandException("Unknown command: {$command}.");
+			}
 		}
 
 		return $class;

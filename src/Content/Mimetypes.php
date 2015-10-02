@@ -774,7 +774,7 @@ class Mimetypes
 	 * @param   string  $file  File Name (relative location such as "image_test.jpg" or full "http://site.com/path/to/image_test.jpg")
 	 * @return  string  The type of the file passed in the argument
 	 */
-	public function getMimeType($file = NULL)
+	public function getMimeType($file = null)
 	{
 		if (is_file($file))
 		{
@@ -828,7 +828,7 @@ class Mimetypes
 	 * @param   string  $file  The full file name
 	 * @return  string  The file extension
 	 */
-	private function _getExtension($file = NULL)
+	private function _getExtension($file = null)
 	{
 		if (!is_null($file))
 		{

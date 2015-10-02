@@ -77,7 +77,10 @@ class Local implements AdapterInterface
 	 */
 	public function read($path)
 	{
-		if ($this->isFile($path)) return file_get_contents($path);
+		if ($this->isFile($path))
+		{
+			return file_get_contents($path);
+		}
 
 		throw new FileNotFoundException(\Lang::txt('File does not exist at path %s', $path));
 	}
@@ -131,7 +134,10 @@ class Local implements AdapterInterface
 			// on Windows, even if the parent folder is writable
 			@chmod($path, 0777);
 
-			if (!@unlink($path)) $success = false;
+			if (!@unlink($path))
+			{
+				$success = false;
+			}
 		}
 
 		return $success;
@@ -456,7 +462,10 @@ class Local implements AdapterInterface
 	 */
 	public function copyDirectory($directory, $destination, $options = null)
 	{
-		if (!$this->isDirectory($directory)) return false;
+		if (!$this->isDirectory($directory))
+		{
+			return false;
+		}
 
 		$options = $options ?: FilesystemIterator::SKIP_DOTS;
 
@@ -481,7 +490,10 @@ class Local implements AdapterInterface
 			{
 				$path = $item->getPathname();
 
-				if (!$this->copyDirectory($path, $target, $options)) return false;
+				if (!$this->copyDirectory($path, $target, $options))
+				{
+					return false;
+				}
 			}
 
 			// If the current items is just a regular file, we will just copy this to the new
@@ -489,7 +501,10 @@ class Local implements AdapterInterface
 			// and return false, so the developer is aware that the copy process failed.
 			else
 			{
-				if (!$this->copy($item->getPathname(), $target)) return false;
+				if (!$this->copy($item->getPathname(), $target))
+				{
+					return false;
+				}
 			}
 		}
 
@@ -501,7 +516,10 @@ class Local implements AdapterInterface
 	 */
 	public function deleteDirectory($directory, $preserve = false)
 	{
-		if (!$this->isDirectory($directory)) return false;
+		if (!$this->isDirectory($directory))
+		{
+			return false;
+		}
 
 		$items = new FilesystemIterator($directory);
 
@@ -524,7 +542,10 @@ class Local implements AdapterInterface
 			}
 		}
 
-		if (!$preserve) @rmdir($directory);
+		if (!$preserve)
+		{
+			@rmdir($directory);
+		}
 
 		return true;
 	}

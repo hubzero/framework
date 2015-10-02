@@ -100,7 +100,7 @@ class Terms extends Base implements CommandInterface
 
 			// Update registration config value to require re-agreeing upon next login
 			$params = \Component::params('com_members');
-			$currentTOU = $params->get('registrationTOU','RHRH');
+			$currentTOU = $params->get('registrationTOU', 'RHRH');
 			$newTOU     = substr_replace($currentTOU, 'R', 3);
 			$params->set('registrationTOU', $newTOU);
 

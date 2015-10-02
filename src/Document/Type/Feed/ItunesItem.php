@@ -89,4 +89,3 @@ class ItunesItem extends Item
 	 */
 	public $itunes_subcategories = null;
 }
-

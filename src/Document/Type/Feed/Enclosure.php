@@ -58,4 +58,3 @@ class Enclosure extends Object
 	 */
 	public $type = '';
 }
-

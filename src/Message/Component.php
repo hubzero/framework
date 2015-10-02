@@ -157,4 +157,3 @@ class Component extends \JTable
 		return $this->_db->loadColumn();
 	}
 }
-
