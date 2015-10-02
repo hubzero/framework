@@ -228,7 +228,10 @@ class Memory extends None
 	 */
 	protected function expiration($minutes)
 	{
-		if ($minutes === 0) return 9999999999;
+		if ($minutes === 0)
+		{
+			return 9999999999;
+		}
 
 		return time() + ($minutes * 60);
 	}

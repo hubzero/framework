@@ -44,7 +44,7 @@ class Config extends Object
 	 *
 	 * @var  object
 	 */
-	protected $_db = NULL;
+	protected $_db = null;
 
 	/**
 	 * Constructor
@@ -65,4 +65,3 @@ class Config extends Object
 		}
 	}
 }
-

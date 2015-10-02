@@ -150,7 +150,7 @@ class Comment extends \JTable
 			//then the file extension is ok
 			foreach ($validFileExts as $key => $value)
 			{
-				if (preg_match("/$value/i", $uploadedFileExtension) )
+				if (preg_match("/$value/i", $uploadedFileExtension))
 				{
 					$extOk = true;
 				}
@@ -312,7 +312,7 @@ class Comment extends \JTable
 	 * @param   integer  $parent     ID of parent comment
 	 * @return  mixed    False if error otherwise array of records
 	 */
-	public function getComments($item_type=NULL, $item_id=0, $parent=0, $limit=25, $start=0)
+	public function getComments($item_type=null, $item_id=0, $parent=0, $limit=25, $start=0)
 	{
 		if (!$item_type)
 		{
@@ -388,7 +388,7 @@ class Comment extends \JTable
 	 * @param   integer  $id  ID of parent comment
 	 * @return  boolean  True if successful otherwise returns and error message
 	 */
-	public function deleteDescendants($id=NULL)
+	public function deleteDescendants($id=null)
 	{
 		if (is_array($id))
 		{
@@ -455,7 +455,7 @@ class Comment extends \JTable
 	 * @param   integer  $state  State to set (0=unpublished, 1=published, 2=trashed)
 	 * @return  boolean  True if successful otherwise returns and error message
 	 */
-	public function setDescendantState($id=NULL, $state=0)
+	public function setDescendantState($id=null, $state=0)
 	{
 		if (is_array($id))
 		{

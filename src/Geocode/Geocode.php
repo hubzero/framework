@@ -532,4 +532,3 @@ class Geocode
 		return $iplocation;
 	}
 }
-

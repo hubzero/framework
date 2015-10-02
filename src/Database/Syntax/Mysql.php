@@ -362,7 +362,10 @@ class Mysql
 	 **/
 	public function build($type)
 	{
-		if (empty($this->{$type})) return false;
+		if (empty($this->{$type}))
+		{
+			return false;
+		}
 
 		$method = 'build' . ucfirst($type);
 
@@ -384,7 +387,10 @@ class Mysql
 			$string = ($select['count']) ? "COUNT({$select['column']})" : $select['column'];
 
 			// See if we're including an alias
-			if (isset($select['as'])) $string .= " AS {$select['as']}";
+			if (isset($select['as']))
+			{
+				$string .= " AS {$select['as']}";
+			}
 
 			// @FIXME: not quoting name here because we could have a function here as well
 			// $selects[] = $this->connection->quoteName($string, $select['as']);
@@ -527,7 +533,10 @@ class Mysql
 		}
 
 		// Catch instance where last item was at a greater depth and never got a closing ')'
-		if ($depth > 0) $strings[] = str_repeat(')', $depth);
+		if ($depth > 0)
+		{
+			$strings[] = str_repeat(')', $depth);
+		}
 
 		return implode("\n", $strings);
 	}

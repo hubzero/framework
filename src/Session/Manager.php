@@ -125,11 +125,11 @@ class Manager extends Object
 		{
 			if (ini_get('session.gc_probability') < 1)
 			{
-				ini_set('session.gc_probability',1);
+				ini_set('session.gc_probability', 1);
 			}
 			if (ini_get('session.gc_divisor') < 1)
 			{
-				ini_set('session.gc_divisor',100);
+				ini_set('session.gc_divisor', 100);
 			}
 		}
 
@@ -353,7 +353,10 @@ class Manager extends Object
 
 		$names = array();
 
-		if ($glob === false) return $names;
+		if ($glob === false)
+		{
+			return $names;
+		}
 
 		$handlers = array_filter($glob, function($file)
 		{

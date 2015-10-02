@@ -208,7 +208,7 @@ class Sanitize
 		//$string = html_entity_decode($string, ENT_COMPAT, "UTF-8");
 
 		// Remove any attribute starting with "on" or xmlns
-		$string = preg_replace('#(<[^>]+[\x00-\x20\"\'])(on|xmlns)[^>]*>#iUu',"$1>", $string);
+		$string = preg_replace('#(<[^>]+[\x00-\x20\"\'])(on|xmlns)[^>]*>#iUu', "$1>", $string);
 
 		// Remove javascript: and vbscript: protocol
 		$string = preg_replace('#([a-z]*)[\x00-\x20]*=[\x00-\x20]*([\`\'\"]*)[\\x00-\x20]*j[\x00-\x20]*a[\x00-\x20]*v[\x00-\x20]*a[\x00-\x20]*s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:#iUu', '$1=$2nojavascript...', $string);
@@ -225,9 +225,9 @@ class Sanitize
 
 		// Remove really unwanted tags
 		$string = self::stripTags($string,
-			'applet', 'meta',  'xml',     'blink',  'link',  'style',
-			'script', 'embed', 'object',  'iframe', 'frame', 'frameset',
-			'ilayer', 'layer', 'bgsound', 'title',  'base'
+			'applet', 'meta', 'xml', 'blink', 'link', 'style',
+			'script', 'embed', 'object', 'iframe', 'frame', 'frameset',
+			'ilayer', 'layer', 'bgsound', 'title', 'base'
 		);
 
 		return $string;
@@ -339,8 +339,8 @@ class Sanitize
 
 		// Add map tag
 		$map = $def->addElement(
-			'map',   // name
-			'Block',  // content set
+			'map', // name
+			'Block', // content set
 			'Flow', // allowed children
 			'Common', // attribute collection
 			array( // attributes
@@ -353,8 +353,8 @@ class Sanitize
 
 		// Add area tag
 		$area = $def->addElement(
-			'area',   // name
-			'Block',  // content set
+			'area', // name
+			'Block', // content set
 			'Empty', // don't allow children
 			'Common', // attribute collection
 			array( // attributes

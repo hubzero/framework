@@ -169,7 +169,7 @@ class Base
 				}
 				catch (\PDOException $e)
 				{
-					$instance = NULL;
+					$instance = null;
 					return false;
 				}
 			}
@@ -177,7 +177,7 @@ class Base
 			// Test the connection
 			if (!$instance->connected())
 			{
-				$instance = NULL;
+				$instance = null;
 				return false;
 			}
 		}
@@ -375,7 +375,7 @@ class Base
 	 * @param   bool    $createMenuItem  Create an admin menu item for this component
 	 * @return  bool
 	 **/
-	public function addComponentEntry($name, $option=NULL, $enabled=1, $params='', $createMenuItem=true)
+	public function addComponentEntry($name, $option=null, $enabled=1, $params='', $createMenuItem=true)
 	{
 		if ($this->baseDb->tableExists('#__components'))
 		{
@@ -891,7 +891,7 @@ class Base
 	 * @param   int     $protected  Whether or not the template is a core one or not
 	 * @return  bool
 	 **/
-	public function addTemplateEntry($element, $name=null, $client=1, $enabled=1, $home=0, $styles=NULL, $protected=0)
+	public function addTemplateEntry($element, $name=null, $client=1, $enabled=1, $home=0, $styles=null, $protected=0)
 	{
 		if ($this->baseDb->tableExists('#__extensions'))
 		{
@@ -947,7 +947,7 @@ class Base
 	 * @param   int     $protected  Whether or not the template is a core one or not
 	 * @return  void
 	 **/
-	public function installTemplate($element, $name=null, $client=1, $styles=NULL, $protected=0)
+	public function installTemplate($element, $name=null, $client=1, $styles=null, $protected=0)
 	{
 		$this->addTemplateEntry($element, $name, $client, 1, 1, $styles, $protected);
 	}
@@ -1055,7 +1055,7 @@ class Base
 	 * @param   string  $name  Plugin name
 	 * @return  bool
 	 **/
-	public function deletePluginEntry($folder, $element=NULL)
+	public function deletePluginEntry($folder, $element=null)
 	{
 		if ($this->baseDb->tableExists('#__plugins'))
 		{

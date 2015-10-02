@@ -93,15 +93,15 @@ class MarketHistory extends \JTable
 	 */
 	public function getRecord($itemid=0, $action='', $category='', $created='', $log = '')
 	{
-		if ($itemid === NULL)
+		if ($itemid === null)
 		{
 			$itemid = $this->itemid;
 		}
-		if ($action === NULL)
+		if ($action === null)
 		{
 			$action = $this->action;
 		}
-		if ($category === NULL)
+		if ($category === null)
 		{
 			$category = $this->category;
 		}
@@ -140,4 +140,3 @@ class MarketHistory extends \JTable
 		return $this->_db->loadResult();
 	}
 }
-

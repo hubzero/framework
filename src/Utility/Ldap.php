@@ -74,8 +74,8 @@ class Ldap
 
 		$ldap_params = \Component::params('com_system');
 
-		$acctman   = $ldap_params->get('ldap_managerdn','cn=admin');
-		$acctmanPW = $ldap_params->get('ldap_managerpw','');
+		$acctman   = $ldap_params->get('ldap_managerdn', 'cn=admin');
+		$acctmanPW = $ldap_params->get('ldap_managerpw', '');
 		$pldap     = $ldap_params->get('ldap_primary', 'ldap://localhost');
 
 		$negotiate_tls = $ldap_params->get('ldap_tls', 0);
@@ -268,7 +268,7 @@ class Ldap
 		}
 
 		$ldap_params = \Component::params('com_system');
-		$hubLDAPBaseDN = $ldap_params->get('ldap_basedn','');
+		$hubLDAPBaseDN = $ldap_params->get('ldap_basedn', '');
 
 		if (is_numeric($user) && $user >= 0)
 		{
@@ -301,7 +301,7 @@ class Ldap
 			$entry['objectclass'][] = 'posixAccount'; // MUST cn,gidNumber,homeDirectory,uidNumber
 			$entry['objectclass'][] = 'shadowAccount';
 
-			foreach ($dbinfo as $key=>$value)
+			foreach ($dbinfo as $key => $value)
 			{
 				if (is_array($value) && $value != array())
 				{
@@ -406,7 +406,7 @@ class Ldap
 
 		$entry = array();
 
-		foreach ($dbinfo as $key=>$value)
+		foreach ($dbinfo as $key => $value)
 		{
 			if ($ldapinfo[$key] != $dbinfo[$key])
 			{
@@ -518,7 +518,7 @@ class Ldap
 		}
 
 		$ldap_params = \Component::params('com_system');
-		$hubLDAPBaseDN = $ldap_params->get('ldap_basedn','');
+		$hubLDAPBaseDN = $ldap_params->get('ldap_basedn', '');
 
 		if (isset($dbinfo['gidNumber']) || (is_numeric($group) && $group >= 0))
 		{
@@ -545,7 +545,7 @@ class Ldap
 			$entry['objectclass'][] = 'top';
 			$entry['objectclass'][] = 'posixGroup';
 
-			foreach ($dbinfo as $key=>$value)
+			foreach ($dbinfo as $key => $value)
 			{
 				if (is_array($value) && $value != array())
 				{
@@ -640,7 +640,7 @@ class Ldap
 			$ldapinfo['memberUid'] = array($ldapinfo['memberUid']);
 		}
 
-		foreach ($dbinfo as $key=>$value)
+		foreach ($dbinfo as $key => $value)
 		{
 			if ($ldapinfo[$key] != $dbinfo[$key])
 			{
@@ -754,7 +754,7 @@ class Ldap
 		}
 
 		$ldap_params = \Component::params('com_system');
-		$hubLDAPBaseDN = $ldap_params->get('ldap_basedn','');
+		$hubLDAPBaseDN = $ldap_params->get('ldap_basedn', '');
 
 		if (is_numeric($group) && $group >= 0)
 		{
@@ -972,7 +972,7 @@ class Ldap
 
 		// delete all old hubGroup schema based group entries
 		$ldap_params = \Component::params('com_system');
-		$hubLDAPBaseDN = $ldap_params->get('ldap_basedn','');
+		$hubLDAPBaseDN = $ldap_params->get('ldap_basedn', '');
 
 		$dn = "ou=groups," . $hubLDAPBaseDN;
 		$filter = '(objectclass=hubGroup)';
@@ -995,7 +995,7 @@ class Ldap
 					{
 						$gids[] = "gid=" . $attr['gid'][0] . "," .  "ou=groups," . $hubLDAPBaseDN;
 					}
-					else if (array_key_exists('cn',$attr))
+					else if (array_key_exists('cn', $attr))
 					{
 						$gids[] = "cn=" . $attr['cn'][0] . "," .  "ou=groups," . $hubLDAPBaseDN;
 					}
@@ -1121,7 +1121,7 @@ class Ldap
 
 		// delete all old hubAccount schema based user entries
 		$ldap_params = \Component::params('com_system');
-		$hubLDAPBaseDN = $ldap_params->get('ldap_basedn','');
+		$hubLDAPBaseDN = $ldap_params->get('ldap_basedn', '');
 
 		$dn = "ou=users," . $hubLDAPBaseDN;
 		$filter = '(objectclass=hubAccount)';

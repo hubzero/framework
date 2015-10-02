@@ -65,9 +65,9 @@ class ResponseServiceProvider extends ServiceProvider
 		{
 			xdebug_disable();
 		}
-		ini_set('zlib.output_compression','0');
-		ini_set('output_handler','');
-		ini_set('implicit_flush','0');
+		ini_set('zlib.output_compression', '0');
+		ini_set('output_handler', '');
+		ini_set('implicit_flush', '0');
 
 		$this->app['config']->set('debug', 0);
 		$this->app['config']->set('debug_lang', 0);

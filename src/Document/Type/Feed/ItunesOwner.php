@@ -49,4 +49,3 @@ class ItunesOwner extends Object
 	 */
 	public $name = '';
 }
-

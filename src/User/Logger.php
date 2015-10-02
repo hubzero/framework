@@ -39,7 +39,7 @@ use Hubzero\Base\Object;
  *
  * This is basically an aggregator class.  It helps us map our relational models
  * and namespaces in a similar fashion.
-*/
+ */
 class Logger extends Object
 {
 	/**

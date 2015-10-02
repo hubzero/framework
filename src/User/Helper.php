@@ -60,7 +60,7 @@ class Helper
 			$i++;
 		}
 
-		return($genpass);
+		return $genpass;
 	}
 
 	/**
@@ -71,7 +71,7 @@ class Helper
 	 */
 	public static function encrypt_password($password)
 	{
-		return("{MD5}" . base64_encode(pack('H*', md5($password))));
+		return "{MD5}" . base64_encode(pack('H*', md5($password)));
 	}
 
 	/**
@@ -145,12 +145,16 @@ class Helper
 		$db = \App::get('db');
 
 		if (empty($id))
+		{
 			return false;
+		}
 
 		$id = intval($id);
 
 		if ($id <= 0)
+		{
 			return false;
+		}
 
 		$query = 'DELETE FROM `#__xdomain_users` WHERE uidNumber=' . $db->quote($id) . ';';
 
@@ -178,7 +182,9 @@ class Helper
 		$result = $db->loadObject();
 
 		if (empty($result))
+		{
 			return false;
+		}
 
 		return true;
 	}
@@ -249,7 +255,9 @@ class Helper
 		$db = \App::get('db');
 
 		if (empty($domain))
+		{
 			return 0;
+		}
 
 		$query = 'SELECT domain_id FROM `#__xdomains` WHERE ' .
 				 '#__xdomains.domain=' . $db->quote($domain);
@@ -269,7 +277,9 @@ class Helper
 			$domain_id = $db->insertid();
 		}
 		else
+		{
 			$domain_id = $result->domain_id;
+		}
 
 		$query = 'INSERT INTO `#__xdomain_users` (domain_id,domain_username,uidNumber) ' .
 			' VALUES (' . $db->quote($domain_id) . ',' .
@@ -468,4 +478,3 @@ class Helper
 		return $common;
 	}
 }
-

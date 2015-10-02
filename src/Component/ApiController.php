@@ -49,7 +49,7 @@ class ApiController implements ControllerInterface
 	 *
 	 * @var  string
 	 */
-	protected $_name = NULL;
+	protected $_name = null;
 
 	/**
 	 * Container for storing overloaded data
@@ -63,7 +63,7 @@ class ApiController implements ControllerInterface
 	 *
 	 * @var	 string
 	 */
-	protected $_task = NULL;
+	protected $_task = null;
 
 	/**
 	 * A list of executable tasks
@@ -405,4 +405,3 @@ class ApiController implements ControllerInterface
 		$this->send($output);
 	}
 }
-

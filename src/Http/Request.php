@@ -394,7 +394,10 @@ class Request extends BaseRequest
 	{
 		$path = $this->getBasePath();
 
-		if ($pathonly) return $path;
+		if ($pathonly)
+		{
+			return $path;
+		}
 
 		return $this->root() . ($path ? trim($path, '/') . '/' : '');
 	}
@@ -422,7 +425,10 @@ class Request extends BaseRequest
 	{
 		$segments = explode('/', $this->path());
 
-		return array_values(array_filter($segments, function($v) { return $v != ''; }));
+		return array_values(array_filter($segments, function ($v)
+		{
+			return $v != '';
+		}));
 	}
 
 	/**
@@ -487,7 +493,10 @@ class Request extends BaseRequest
 		{
 			foreach (func_get_args() as $value)
 			{
-				if ( ! $this->has($value)) return false;
+				if (! $this->has($value))
+				{
+					return false;
+				}
 			}
 
 			return true;
@@ -572,9 +581,15 @@ class Request extends BaseRequest
 	{
 		$array = $this->files->all();
 
-		if (is_null($key)) return $array;
+		if (is_null($key))
+		{
+			return $array;
+		}
 
-		if (isset($array[$key])) return $array[$key];
+		if (isset($array[$key]))
+		{
+			return $array[$key];
+		}
 
 		return $default;
 	}

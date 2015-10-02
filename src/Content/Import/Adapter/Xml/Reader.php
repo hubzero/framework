@@ -130,7 +130,10 @@ class Reader implements Iterator
 		$this->reader->open($this->file, 'UTF-8', XMLReader::VALIDATE | XMLReader::SUBST_ENTITIES);
 
 		// fast forward to first record
-		while ($this->reader->read() && $this->reader->name !== $this->key);
+		while ($this->reader->read() && $this->reader->name !== $this->key)
+		{
+			// Do nothing...
+		}
 	}
 
 	/**

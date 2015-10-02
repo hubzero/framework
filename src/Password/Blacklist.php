@@ -364,7 +364,7 @@ class Blacklist
 		// @FIXME: badly inefficient
 		for ($i = 0; $i < $len; $i++)
 		{
-			if (preg_match('/[a-zA-Z]/',$word[$i]))
+			if (preg_match('/[a-zA-Z]/', $word[$i]))
 			{
 				$word2 .= $word[$i];
 			}
@@ -384,7 +384,7 @@ class Blacklist
 			$word = $db->quote($word);
 		}
 
-		$query .= implode($words,',');
+		$query .= implode($words, ',');
 
 		$query .= ");";
 

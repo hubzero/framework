@@ -55,7 +55,7 @@ class Rss extends Renderer
 	 * @param   string  $content  Override the output of the renderer
 	 * @return  string  The output of the script
 	 */
-	public function render($name = NULL, $params = NULL, $content = NULL)
+	public function render($name = null, $params = null, $content = null)
 	{
 		$now  = new Date('now');
 		$data = $this->doc;
@@ -102,7 +102,7 @@ class Rss extends Renderer
 		{
 			$feed .= '		<itunes:owner>' . "\n";
 			$feed .= '			<itunes:name>' . $this->escape($data->itunes_owner->name) . '</itunes:name>' . "\n";
-			$feed .= '			<itunes:email>' . $data->itunes_owner->email . '</itunes:email>' . "\n";;
+			$feed .= '			<itunes:email>' . $data->itunes_owner->email . '</itunes:email>' . "\n";
 			$feed .= '		</itunes:owner>' . "\n";
 		}
 		if ($data->itunes_explicit != '')
@@ -303,7 +303,7 @@ class Rss extends Renderer
 			{
 				$feed .= "			<guid>" . $this->escape($data->items[$i]->guid) . "</guid>\n";
 			}
-			if ($data->items[$i]->enclosure != NULL)
+			if ($data->items[$i]->enclosure != null)
 			{
 				$feed .= '			<enclosure url="' . $data->items[$i]->enclosure->url . '" length="' . $data->items[$i]->enclosure->length . '" type="' . $data->items[$i]->enclosure->type . '"/>' . "\n";
 			}
@@ -340,4 +340,3 @@ class Rss extends Renderer
 		return htmlspecialchars($text, ENT_COMPAT, 'UTF-8');
 	}
 }
-

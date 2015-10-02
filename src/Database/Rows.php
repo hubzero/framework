@@ -50,7 +50,7 @@ class Rows implements Iterator
 	 *
 	 * @var  array
 	 **/
-	private $rows = NULL;
+	private $rows = null;
 
 	/**
 	 * Order by used to retrieve these rows
@@ -291,7 +291,7 @@ class Rows implements Iterator
 		if ($this->rows && $this->count())
 		{
 			$key   = key($this->rows);
-			$valid = ($key !== NULL && $key !== FALSE);
+			$valid = ($key !== null && $key !== false);
 		}
 
 		return $valid;

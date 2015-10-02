@@ -107,11 +107,17 @@ class Manager
 
 		$routes = PATH_CORE . DS . 'bootstrap' . DS . $client .  DS . 'routes.php';
 
-		if (file_exists($routes)) require $routes;
+		if (file_exists($routes))
+		{
+			require $routes;
+		}
 
 		$routes = PATH_APP . DS . 'bootstrap' . DS . $client .  DS . 'routes.php';
 
-		if (file_exists($routes)) require $routes;
+		if (file_exists($routes))
+		{
+			require $routes;
+		}
 
 		return $router;
 	}

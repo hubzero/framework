@@ -651,7 +651,10 @@ class Query
 		$type       = strtolower($type);
 
 		// Default structure if needed
-		if ($type == 'select' && is_null($structure)) $structure = 'rows';
+		if ($type == 'select' && is_null($structure))
+		{
+			$structure = 'rows';
+		}
 
 		$this->connection->prepare($query)->bind($this->syntax->getBindings());
 

@@ -118,7 +118,10 @@ class Handler
 
 		$this->registerExceptionHandler();
 
-		if ($client != 'testing') $this->registerShutdownHandler();
+		if ($client != 'testing')
+		{
+			$this->registerShutdownHandler();
+		}
 	}
 
 	/**
@@ -196,7 +199,10 @@ class Handler
 		{
 			extract($error);
 
-			if (!in_array($type, array(E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE))) return;
+			if (!in_array($type, array(E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE)))
+			{
+				return;
+			}
 
 			$this->handleException(new FatalError($message, $type, 0, $file, $line));
 		}

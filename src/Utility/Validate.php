@@ -186,7 +186,7 @@ class Validate
 	 * @param      unknown $x Value to check
 	 * @return     boolean True if valid, false if invalid
 	 */
-	static public function integer($x)
+	public static function integer($x)
 	{
 		return (self::numeric($x) && intval($x) == $x);
 	}
@@ -197,7 +197,7 @@ class Validate
 	 * @param      integer $x Value to check
 	 * @return     boolean True if valid, false if invalid
 	 */
-	static public function positiveInteger($x)
+	public static function positiveInteger($x)
 	{
 		return (self::integer($x) && $x > 0);
 	}
@@ -208,7 +208,7 @@ class Validate
 	 * @param      integer $x Value to check
 	 * @return     boolean True if valid, false if invalid
 	 */
-	static public function nonNegativeInteger($x)
+	public static function nonNegativeInteger($x)
 	{
 		return (self::integer($x) && $x >= 0);
 	}
@@ -219,7 +219,7 @@ class Validate
 	 * @param      integer $x Value to check
 	 * @return     boolean True if valid, false if invalid
 	 */
-	static public function nonPositiveInteger($x)
+	public static function nonPositiveInteger($x)
 	{
 		return (self::integer($x) && $x <= 0);
 	}
@@ -230,7 +230,7 @@ class Validate
 	 * @param      integer $x Value to check
 	 * @return     boolean True if valid, false if invalid
 	 */
-	static public function negativeInteger($x)
+	public static function negativeInteger($x)
 	{
 		return (self::integer($x) && $x < 0);
 	}
@@ -294,7 +294,7 @@ class Validate
 	 * @param  boolean $allowDashes Allow dashes in cn
 	 * @return boolean True if valid, false if invalid
 	 */
-	static public function group($cn, $allowDashes = false)
+	public static function group($cn, $allowDashes = false)
 	{
 		$pattern = '/^[0-9a-z]+[' . ($allowDashes ? '-' : '') . '_0-9a-z]*$/';
 
@@ -327,7 +327,7 @@ class Validate
 	 * @return boolean True if reserved, False if not
 	 * @throws InvalidArgumentException
 	 */
-	static public function reserved($type, $val)
+	public static function reserved($type, $val)
 	{
 		static $reserved = array(
 			'username'  => array(
@@ -798,4 +798,3 @@ class Validate
 		self::$errors = array();
 	}
 }
-

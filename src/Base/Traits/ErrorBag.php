@@ -125,4 +125,3 @@ trait ErrorBag
 		return $this;
 	}
 }
-

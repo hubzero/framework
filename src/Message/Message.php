@@ -186,4 +186,3 @@ class Message extends \JTable
 		return $this->_db->loadResult();
 	}
 }
-

@@ -158,4 +158,3 @@ class Number
 		return $result;
 	}
 }
-

@@ -169,8 +169,15 @@ class Manager
 		list($dest,   $destName,   $destMount)   = self::parseLocation($dest);
 
 		// Make sure we got the mounts we need
-		if (!$sourceMount) throw new \Exception("'{$sourceMount}' has not been mounted", 500);
-		if (!$destMount) throw new \Exception("'{$destMount}' has not been mounted", 500);
+		if (!$sourceMount)
+		{
+			throw new \Exception("'{$sourceMount}' has not been mounted", 500);
+		}
+
+		if (!$destMount)
+		{
+			throw new \Exception("'{$destMount}' has not been mounted", 500);
+		}
 
 		// Check to see if destination already exists
 		if ($destMount->has(self::getRelativePath($dest)))

@@ -171,7 +171,7 @@ class Builder
 						 && $tokens[$i - 1][0] === T_WHITESPACE
 						 && $tokens[$i][0] === T_STRING)
 						{
-							include_once($inc);
+							include_once $inc;
 
 							return $tokens[$i][1];
 						}

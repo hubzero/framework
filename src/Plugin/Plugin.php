@@ -281,4 +281,3 @@ class Plugin extends Object
 		return $view;
 	}
 }
-

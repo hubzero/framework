@@ -109,7 +109,10 @@ class OneShiftsToMany extends OneToMany
 	 **/
 	protected function getRelations($keys, $constraint = null)
 	{
-		if (isset($constraint)) call_user_func_array($constraint, array($this->related));
+		if (isset($constraint))
+		{
+			call_user_func_array($constraint, array($this->related));
+		}
 
 		return $this->related
 		            ->whereIn($this->relatedKey, array_unique($keys))

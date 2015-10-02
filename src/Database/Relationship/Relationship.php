@@ -305,15 +305,21 @@ class Relationship
 	 **/
 	public function seedWithRelation($rows, $name, $constraint = null, $subs = null)
 	{
-		if (!$keys = $rows->fieldsByKey($this->localKey)) return $rows;
+		if (!$keys = $rows->fieldsByKey($this->localKey))
+		{
+			return $rows;
+		}
 
 		$relations = $this->getRelations($keys, $constraint);
 
-		if (isset($subs)) $relations->including($subs);
+		if (isset($subs))
+		{
+			$relations->including($subs);
+		}
 
 		$resultsByRelatedKey = $this->getResultsByRelatedKey($relations);
 
-		return $this->seed($rows, $resultsByRelatedKey , $name);
+		return $this->seed($rows, $resultsByRelatedKey, $name);
 	}
 
 	/**
@@ -326,7 +332,10 @@ class Relationship
 	 **/
 	protected function getRelations($keys, $constraint = null)
 	{
-		if (isset($constraint)) call_user_func_array($constraint, array($this->related));
+		if (isset($constraint))
+		{
+			call_user_func_array($constraint, array($this->related));
+		}
 
 		return $this->related->whereIn($this->relatedKey, array_unique($keys));
 	}

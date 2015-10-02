@@ -102,9 +102,9 @@ class RateLimitService extends Middleware
 		}
 
 		// Add rate limit headers
-		$response->headers->set('X-RateLimit-Limit',     $limit);
+		$response->headers->set('X-RateLimit-Limit', $limit);
 		$response->headers->set('X-RateLimit-Remaining', $remaining);
-		$response->headers->set('X-RateLimit-Reset',     $reset);
+		$response->headers->set('X-RateLimit-Reset', $reset);
 
 		// Return response
 		return $response;

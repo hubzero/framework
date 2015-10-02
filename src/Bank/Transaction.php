@@ -319,4 +319,3 @@ class Transaction extends \JTable
 		return $total ? $total : 0;
 	}
 }
-

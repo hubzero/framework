@@ -93,12 +93,18 @@ class ClientDetector
 
 				$const = 'JPATH_' . strtoupper($environment);
 
-				if (!defined($const)) continue;
+				if (!defined($const))
+				{
+					continue;
+				}
 
 				// To determine the current environment, we'll simply iterate through the possible
 				// environments and look for the host that matches the host for this request we
 				// are currently processing here, then return back these environment's names.
-				if (JPATH_BASE == constant($const)) return $client;
+				if (JPATH_BASE == constant($const))
+				{
+					return $client;
+				}
 			}
 		}
 

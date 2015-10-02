@@ -70,9 +70,9 @@ class Account extends \JTable
 	 * @param   integer  $oid  User ID
 	 * @return  boolean  True on success
 	 */
-	public function load_uid($oid=NULL)
+	public function load_uid($oid=null)
 	{
-		if ($oid === NULL)
+		if ($oid === null)
 		{
 			return false;
 		}
@@ -89,4 +89,3 @@ class Account extends \JTable
 		}
 	}
 }
-

@@ -209,7 +209,7 @@ class File extends \JTable
 	 * @param   integer  $comment_id  ID of parent comment
 	 * @return  boolean  true if successful otherwise returns and error message
 	 */
-	public function loadByComment($comment_id=NULL)
+	public function loadByComment($comment_id=null)
 	{
 		$this->_db->setQuery("SELECT * FROM $this->_tbl WHERE comment_id=" . $this->_db->quote((int) $comment_id));
 		return $this->_db->loadObject();
@@ -222,7 +222,7 @@ class File extends \JTable
 	 * @param   integer  $comment_id  ID of parent comment
 	 * @return  boolean  true if successful otherwise returns and error message
 	 */
-	public function deleteByComment($comment_id=NULL)
+	public function deleteByComment($comment_id=null)
 	{
 		if ($comment_id === null)
 		{
@@ -266,7 +266,7 @@ class File extends \JTable
 	 * @param   integer  $comment_id  ID of parent comment
 	 * @return  boolean  true  if successful otherwise returns and error message
 	 */
-	public function deleteFile($filename=NULL)
+	public function deleteFile($filename=null)
 	{
 		if ($filename === null)
 		{

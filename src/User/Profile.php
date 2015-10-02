@@ -540,7 +540,7 @@ class Profile extends Object
 
 		$this->clear();
 
-		foreach ($_propertyauthormap as $property=>$aproperty)
+		foreach ($_propertyauthormap as $property => $aproperty)
 		{
 			if (!empty($result[$aproperty]))
 			{
@@ -567,7 +567,7 @@ class Profile extends Object
 			return false;
 		}
 
-		foreach ($_propertyregmap as $property=>$rproperty)
+		foreach ($_propertyregmap as $property => $rproperty)
 		{
 			if ($registration->get($rproperty) !== null)
 			{
@@ -887,7 +887,7 @@ class Profile extends Object
 		$first = true;
 		$affected = 0;
 
-		foreach ($classvars as $property=>$value)
+		foreach ($classvars as $property => $value)
 		{
 			if ('_' == substr($property, 0, 1))
 			{
@@ -907,7 +907,7 @@ class Profile extends Object
 			{
 				if (is_object($this->_params))
 				{
-					$query .= "params='".str_replace("", "",$this->_params->toString())."'";
+					$query .= "params='".str_replace("", "", $this->_params->toString())."'";
 				}
 				else
 				{
@@ -937,7 +937,7 @@ class Profile extends Object
 
 		$affected = $db->getAffectedRows();
 
-		foreach ($classvars as $property=>$value)
+		foreach ($classvars as $property => $value)
 		{
 			if (('_auxv_' != substr($property, 0, 6)) && ('_auxs_' != substr($property, 0, 6)))
 			{
@@ -986,7 +986,7 @@ class Profile extends Object
 
 			if (property_exists(__CLASS__, '_auxv_' . $property))
 			{
-				foreach ($list as $key=>$value)
+				foreach ($list as $key => $value)
 				{
 					$list[$key] = $db->quote($value);
 				}
@@ -1040,7 +1040,7 @@ class Profile extends Object
 
 		$affected = 0;
 
-		foreach ($classvars as $property=>$value)
+		foreach ($classvars as $property => $value)
 		{
 			if ('_auxv_' != substr($property, 0, 6) && '_auxs_' != substr($property, 0, 6))
 			{
@@ -1236,7 +1236,9 @@ class Profile extends Object
 			}
 		}
 		else
+		{
 			$value = strval($value);
+		}
 
 		$this->$property = $value;
 

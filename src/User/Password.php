@@ -129,7 +129,7 @@ class Password
 
 		$this->_updatedkeys = array();
 
-		foreach ($cvars as $key=>$value)
+		foreach ($cvars as $key => $value)
 		{
 			if ($key{0} != '_')
 			{
@@ -244,7 +244,7 @@ class Password
 
 		if (!empty($result))
 		{
-			foreach ($result as $key=>$value)
+			foreach ($result as $key => $value)
 			{
 				$this->__set($key, $value);
 			}
@@ -290,7 +290,7 @@ class Password
 
 		$first = true;
 
-		foreach ($classvars as $property=>$value)
+		foreach ($classvars as $property => $value)
 		{
 			if (($property{0} == '_'))
 			{

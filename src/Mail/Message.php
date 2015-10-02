@@ -85,11 +85,21 @@ class Message extends \Swift_Message
 		{
 			switch (strtolower($priority))
 			{
-				case 'high':   $priority = 1; break;
-				case 'normal': $priority = 3; break;
-				case 'low':    $priority = 5; break;
+				case 'high':
+					$priority = 1;
+					break;
 
-				default:       $priority = 3; break;
+				case 'normal':
+					$priority = 3;
+					break;
+
+				case 'low':
+					$priority = 5;
+					break;
+
+				default:
+					$priority = 3;
+					break;
 			}
 		}
 		return parent::setPriority($priority);

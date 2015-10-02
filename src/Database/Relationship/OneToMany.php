@@ -90,19 +90,28 @@ class OneToMany extends Relationship
 	public function save($data)
 	{
 		// Check and make sure this is an array of arrays
-		if (!is_array($data)) return false;
+		if (!is_array($data))
+		{
+			return false;
+		}
 
 		if (isset($data[0]) && is_array($data[0]))
 		{
 			foreach ($data as $d)
 			{
-				if (!parent::save($d)) return false;
+				if (!parent::save($d))
+				{
+					return false;
+				}
 			}
 		}
 		else
 		{
 			// If not an array of arrays, we'll assume it's just one item to save
-			if (!parent::save($data)) return false;
+			if (!parent::save($data))
+			{
+				return false;
+			}
 		}
 
 		return true;

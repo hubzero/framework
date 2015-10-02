@@ -103,7 +103,6 @@ class Util
 	{
 		if (!is_string($path) && !empty($path))
 		{
-			var_dump($path); die();
 			throw new \InvalidArgumentException('$path is not a string.');
 		}
 

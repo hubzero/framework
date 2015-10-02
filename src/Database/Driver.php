@@ -181,13 +181,17 @@ abstract class Driver
 	public function __call($method, $args)
 	{
 		// We have to have args
-		if (empty($args)) return;
+		if (empty($args))
+		{
+			return;
+		}
 
 		switch ($method)
 		{
 			case 'q':
 				return $this->quote($args[0], isset($args[1]) ? $args[1] : true);
 				break;
+
 			case 'nq':
 			case 'qn':
 				return $this->quoteName($args[0], isset($args[1]) ? $args[1] : null);
@@ -368,10 +372,16 @@ abstract class Driver
 		foreach (get_object_vars($object) as $k => $v)
 		{
 			// Only process non-null scalars
-			if (is_array($v) or is_object($v) or $v === null) continue;
+			if (is_array($v) or is_object($v) or $v === null)
+			{
+				continue;
+			}
 
 			// Ignore any internal fields
-			if ($k[0] == '_') continue;
+			if ($k[0] == '_')
+			{
+				continue;
+			}
 
 			// Prepare and sanitize the fields and values for the database query
 			$fields[] = $this->quoteName($k);
@@ -383,7 +393,10 @@ abstract class Driver
 		$this->prepare(sprintf($statement, implode(',', $fields), implode(',', $values)))
 		     ->bind($binds);
 
-		if (!$this->execute()) return false;
+		if (!$this->execute())
+		{
+			return false;
+		}
 
 		// Update the primary key if it exists
 		$id = $this->insertid();
@@ -418,7 +431,10 @@ abstract class Driver
 		foreach (get_object_vars($object) as $k => $v)
 		{
 			// Only process scalars that are not internal fields.
-			if (is_array($v) or is_object($v) or $k[0] == '_') continue;
+			if (is_array($v) or is_object($v) or $k[0] == '_')
+			{
+				continue;
+			}
 
 			// Set the primary key to the WHERE clause instead of a field to update
 			if ($k == $key)
@@ -452,7 +468,10 @@ abstract class Driver
 		}
 
 		// We don't have any fields to update
-		if (empty($fields)) return true;
+		if (empty($fields))
+		{
+			return true;
+		}
 
 		// Set the query and execute the update.
 		$this->setQuery(sprintf($statement, implode(",", $fields), $where));
@@ -473,7 +492,10 @@ abstract class Driver
 		$return = null;
 
 		// Execute the query
-		if (!$this->execute()) return null;
+		if (!$this->execute())
+		{
+			return null;
+		}
 
 		// Get the first row from the result set as an associative array
 		if ($row = $this->fetchAssoc())
@@ -506,7 +528,10 @@ abstract class Driver
 		$array = [];
 
 		// Execute the query
-		if (!$this->execute()) return null;
+		if (!$this->execute())
+		{
+			return null;
+		}
 
 		// Get all of the rows from the result set
 		while ($row = $this->fetchAssoc())
@@ -541,7 +566,10 @@ abstract class Driver
 		$column = [];
 
 		// Execute the query
-		if (!$this->execute()) return null;
+		if (!$this->execute())
+		{
+			return null;
+		}
 
 		// Get all of the rows from the result set as arrays
 		while ($row = $this->fetchArray())
@@ -568,7 +596,10 @@ abstract class Driver
 	public function loadNextObject($class = 'stdClass')
 	{
 		// Get the next row from the result set as an object of type $class
-		if ($row = $this->fetchObject($class)) return $row;
+		if ($row = $this->fetchObject($class))
+		{
+			return $row;
+		}
 
 		// Free up system resources and return
 		$this->freeResult();
@@ -588,7 +619,10 @@ abstract class Driver
 	public function loadNextRow()
 	{
 		// Get the next row from the result set as an array
-		if ($row = $this->fetchArray()) return $row;
+		if ($row = $this->fetchArray())
+		{
+			return $row;
+		}
 
 		// Free up system resources and return
 		$this->freeResult();
@@ -609,7 +643,10 @@ abstract class Driver
 		$return = null;
 
 		// Execute the query
-		if (!$this->execute()) return null;
+		if (!$this->execute())
+		{
+			return null;
+		}
 
 		// Get the first row from the result set as an object of type $class
 		if ($row = $this->fetchObject($class))
@@ -635,7 +672,10 @@ abstract class Driver
 		$return = null;
 
 		// Execute the query
-		if (!$this->execute()) return null;
+		if (!$this->execute())
+		{
+			return null;
+		}
 
 		// Get the first row from the result set as an array
 		if ($row = $this->fetchArray())
@@ -661,7 +701,10 @@ abstract class Driver
 		$return = null;
 
 		// Execute the query
-		if (!$this->execute()) return null;
+		if (!$this->execute())
+		{
+			return null;
+		}
 
 		// Get the first row from the result set as an array
 		if ($row = $this->fetchArray())
@@ -692,7 +735,10 @@ abstract class Driver
 		$rows = [];
 
 		// Execute the query
-		if (!$this->execute()) return null;
+		if (!$this->execute())
+		{
+			return null;
+		}
 
 		// Get all of the rows from the result set as arrays
 		while ($row = $this->fetchArray())
@@ -730,7 +776,10 @@ abstract class Driver
 		$rows = [];
 
 		// Execute the query
-		if (!$this->execute()) return null;
+		if (!$this->execute())
+		{
+			return null;
+		}
 
 		// Get all of the rows from the result set as objects of type $class
 		while ($row = $this->fetchObject($class))
@@ -774,7 +823,10 @@ abstract class Driver
 			$class = __NAMESPACE__ . '\\Driver\\' . str_ireplace('.php', '', ucfirst(trim($type)));
 
 			// If the class doesn't exist...these are not the droids you're looking for...
-			if (!class_exists($class)) continue;
+			if (!class_exists($class))
+			{
+				continue;
+			}
 
 			// Our class exists, so now we just need to know if it passes it's test method
 			if (call_user_func_array(array($class, 'test'), array()))

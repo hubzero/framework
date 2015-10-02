@@ -71,7 +71,7 @@ class Recipient extends \JTable
 	 * @param   integer  $uid  User ID
 	 * @return  boolean  True on success
 	 */
-	public function loadRecord($mid=NULL, $uid=NULL)
+	public function loadRecord($mid=null, $uid=null)
 	{
 		$mid = $mid ?: $this->mid;
 		$uid = $uid ?: $this->uid;
@@ -243,4 +243,3 @@ class Recipient extends \JTable
 		return true;
 	}
 }
-

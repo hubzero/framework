@@ -728,8 +728,6 @@ class Assets
 		}
 		catch (Exception $e)
 		{
-			echo "fatal error: " . $e->getMessage(); die();
-
 			// Anything passed?
 			if (!$elements)
 			{

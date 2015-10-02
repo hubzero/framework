@@ -84,12 +84,12 @@ class View extends AbstractView
 	}
 
 	/**
-	* Sets an entire array of search paths for templates or resources.
-	*
-	* @param   string  $type  The type of path to set, typically 'template'.
-	* @param   mixed   $path  The new set of search paths.  If null or false, resets to the current directory only.
-	* @return  void
-	*/
+  * Sets an entire array of search paths for templates or resources.
+  *
+  * @param   string  $type  The type of path to set, typically 'template'.
+  * @param   mixed   $path  The new set of search paths.  If null or false, resets to the current directory only.
+  * @return  void
+  */
 	protected function _setPath($type, $path)
 	{
 		// Clear out the prior search dirs

@@ -94,12 +94,12 @@ class ClientCredentials implements GrantTypeInterface, ClientAssertionTypeInterf
 	}
 
 	/**
-     * Validate request via client
-     * 
-     * @param   object  $request   Request object
-     * @param   object  $response  Response object
-     * @return  bool    Result of auth
-     */
+	 * Validate request via client
+	 * 
+	 * @param   object  $request   Request object
+	 * @param   object  $response  Response object
+	 * @return  bool    Result of auth
+	 */
 	public function validateRequest(RequestInterface $request, ResponseInterface $response)
 	{
 		// check HTTP basic auth headers for client id/secret

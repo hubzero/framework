@@ -45,14 +45,14 @@ class Processor extends Object
 	 *
 	 * @var  string
 	 */
-	private $source = NULL;
+	private $source = null;
 
 	/**
 	 * Manipulated image data
 	 *
 	 * @var  string
 	 */
-	private $resource = NULL;
+	private $resource = null;
 
 	/**
 	 * Image type (png, gif, jpg)
@@ -66,7 +66,7 @@ class Processor extends Object
 	 *
 	 * @var  string
 	 */
-	private $exif_data = NULL;
+	private $exif_data = null;
 
 	/**
 	 * Configuration options
@@ -228,15 +228,35 @@ class Processor extends Object
 			{
 				switch ($this->exif_data['Orientation'])
 				{
-					case 2: $this->flip(true, false); break;
-					case 3: $this->rotate(180);       break;
-					case 4: $this->flip(false, true); break;
-					case 5: $this->rotate(270);
-							$this->flip(true, false); break;
-					case 6: $this->rotate(270);       break;
-					case 7: $this-rotate(90);
-							$this->flip(true, false); break;
-					case 8: $this->rotate(90);        break;
+					case 2:
+						$this->flip(true, false);
+						break;
+
+					case 3:
+						$this->rotate(180);
+						break;
+
+					case 4:
+						$this->flip(false, true);
+						break;
+
+					case 5:
+						$this->rotate(270);
+						$this->flip(true, false);
+						break;
+
+					case 6:
+						$this->rotate(270);
+						break;
+
+					case 7:
+						$this-rotate(90);
+						$this->flip(true, false);
+						break;
+
+					case 8:
+						$this->rotate(90);
+						break;
 				}
 			}
 		}
@@ -278,9 +298,9 @@ class Processor extends Object
 		$height = imagesy($resource);
 		$new_resource = imagecreatetruecolor($width, $height);
 
-		for ($x=0 ; $x<$width ; $x++)
+		for ($x=0; $x<$width; $x++)
 		{
-			for ($y=0 ; $y<$height ; $y++)
+			for ($y=0; $y<$height; $y++)
 			{
 				if ($flip_horizontal && $flip_vertical)
 				{
@@ -412,12 +432,12 @@ class Processor extends Object
 			}
 		}
 
-		$resource = imagecreatetruecolor($new_w,$new_h);
+		$resource = imagecreatetruecolor($new_w, $new_h);
 
 		if ($this->image_type == IMAGETYPE_PNG)
 		{
 			imagealphablending($resource, false);
-			imagesavealpha($resource,true);
+			imagesavealpha($resource, true);
 			$transparent = imagecolorallocatealpha($resource, 255, 255, 255, 127);
 			imagefilledrectangle($resource, 0, 0, $new_w, $new_h, $transparent);
 		}
@@ -556,7 +576,7 @@ class Processor extends Object
 		$base64 = base64_encode($image_data);
 		$image_atts = getimagesize($this->source);
 
-		return 'data:' . $image_atts['mime'] . ';base64,' . $base64;;
+		return 'data:' . $image_atts['mime'] . ';base64,' . $base64;
 	}
 
 	/**
@@ -603,9 +623,17 @@ class Processor extends Object
 		{
 			switch ($this->image_type)
 			{
-				case IMAGETYPE_PNG:  imagepng($this->resource, $save_path);  break;
-				case IMAGETYPE_GIF:  imagegif($this->resource, $save_path);  break;
-				case IMAGETYPE_JPEG: imagejpeg($this->resource, $save_path); break;
+				case IMAGETYPE_PNG:
+					imagepng($this->resource, $save_path);
+					break;
+
+				case IMAGETYPE_GIF:
+					imagegif($this->resource, $save_path);
+					break;
+
+				case IMAGETYPE_JPEG:
+					imagejpeg($this->resource, $save_path);
+					break;
 			}
 		}
 	}

@@ -38,7 +38,7 @@ use Hubzero\Utility\String;
 
 /**
  * Group model
-*/
+ */
 class Group extends Object
 {
 	/**
@@ -222,7 +222,7 @@ class Group extends Object
 
 		$this->_updatedkeys = array();
 
-		foreach ($cvars as $key=>$value)
+		foreach ($cvars as $key => $value)
 		{
 			if ($key{0} != '_')
 			{
@@ -250,7 +250,7 @@ class Group extends Object
 	 * @param   mixed  $group  A string (cn) or integer (ID)
 	 * @return  mixed  Object if instance found, false if not
 	 */
-	static public function getInstance($group)
+	public static function getInstance($group)
 	{
 		static $instances;
 
@@ -426,7 +426,7 @@ class Group extends Object
 			return false;
 		}
 
-		foreach ($result as $key=>$value)
+		foreach ($result as $key => $value)
 		{
 			if (property_exists(__CLASS__, $key) && $key{0} != '_')
 			{
@@ -483,7 +483,7 @@ class Group extends Object
 		$first = true;
 		$affected = 0;
 
-		foreach ($classvars as $property=>$value)
+		foreach ($classvars as $property => $value)
 		{
 			if (($property{0} == '_') || in_array($property, self::$_list_keys))
 			{
@@ -731,7 +731,7 @@ class Group extends Object
 				{
 					$groups = array('applicants'=>array(), 'invitees'=>array(), 'members'=>array(), 'managers'=>array());
 
-					foreach ($groups as $key=>$data)
+					foreach ($groups as $key => $data)
 					{
 						$this->__set($key, $data);
 					}
@@ -756,7 +756,7 @@ class Group extends Object
 							}
 						}
 
-						foreach ($groups as $key=>$data)
+						foreach ($groups as $key => $data)
 						{
 							$this->__set($key, $data);
 						}
@@ -1043,7 +1043,7 @@ class Group extends Object
 	 * @param   boolean  $check_system  Boolean for checking against POSIX user.
 	 * @return  boolean  Returns false if group does not exist; true if group exists.
 	 */
-	static public function exists($group, $check_system = false)
+	public static function exists($group, $check_system = false)
 	{
 		$db = \App::get('db');
 

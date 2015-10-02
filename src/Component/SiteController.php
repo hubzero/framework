@@ -75,7 +75,7 @@ class SiteController extends Object implements ControllerInterface
 	 *
 	 * @var  string
 	 */
-	protected $_name = NULL;
+	protected $_name = null;
 
 	/**
 	 * Container for storing overloaded data
@@ -89,7 +89,7 @@ class SiteController extends Object implements ControllerInterface
 	 *
 	 * @var  string
 	 */
-	protected $_task = NULL;
+	protected $_task = null;
 
 	/**
 	 * A list of executable tasks
@@ -474,7 +474,7 @@ class SiteController extends Object implements ControllerInterface
 			$this->setRedirect($url, $msg, $type);
 		}
 
-		if ($this->_redirect != NULL)
+		if ($this->_redirect != null)
 		{
 			// Preserve component messages after redirect
 			if (count($this->componentMessageQueue))
@@ -554,7 +554,10 @@ class SiteController extends Object implements ControllerInterface
 		$componentMessage = $session->get('component.message.queue', array());
 		foreach ($componentMessage as $m)
 		{
-			if ($m['option'] != $this->_option) continue;
+			if ($m['option'] != $this->_option)
+			{
+				continue;
+			}
 
 			if ($m['message'] == $message && $m['type'] == $type)
 			{

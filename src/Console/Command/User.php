@@ -186,7 +186,7 @@ class User extends Base implements CommandInterface
 			$columns = $dbo->getTableColumns($table);
 
 			// Loop over columns and see if they're in our list from above
-			foreach ($columns as $column=>$type)
+			foreach ($columns as $column => $type)
 			{
 				if (in_array($table.'.'.$column, $unames) || in_array($column, $fields))
 				{

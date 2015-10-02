@@ -201,10 +201,9 @@ class Item extends Object
 	 *
 	 * @param   object  $enclosure  The Item to add to the feed.
 	 * @return  void
-	*/
+  */
 	public function setEnclosure($enclosure)
 	{
 		$this->enclosure = $enclosure;
 	}
 }
-

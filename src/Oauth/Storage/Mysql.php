@@ -50,13 +50,14 @@ require_once PATH_CORE . DS . 'components' . DS . 'com_developer' . DS . 'models
 /**
  * Custom Hubzero OAuth2 Storage Class
  */
-class Mysql implements AccessTokenInterface,
-			   ClientCredentialsInterface,
-			   UserCredentialsInterface,
-			   AuthorizationCodeInterface,
-			   RefreshTokenInterface,
-			   SessionTokenInterface,
-			   ToolSessionTokenInterface
+class Mysql
+	implements AccessTokenInterface,
+	           ClientCredentialsInterface,
+	           UserCredentialsInterface,
+	           AuthorizationCodeInterface,
+	           RefreshTokenInterface,
+	           SessionTokenInterface,
+	           ToolSessionTokenInterface
 {
 	/**
 	 * Get Access token data
@@ -357,7 +358,7 @@ class Mysql implements AccessTokenInterface,
 		}
 
 		// return details as associative array
-		return ['user_id' => $profile->get('uidNumber'), 'scope' => NULL];
+		return ['user_id' => $profile->get('uidNumber'), 'scope' => null];
 	}
 
 	/**

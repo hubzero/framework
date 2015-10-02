@@ -44,12 +44,12 @@ class Token
 	/**
 	 * Description for 'mailTokenTicket'
 	 */
-	const emailTokenTicket = 1;
+	const EMAIL_TOKEN_TICKET = 1;
 
 	/**
 	 * Description for 'mailTokenGroupThread'
 	 */
-	const emailTokenGroupThread = 2;
+	const EMAIL_TOKEN_GROUP_THREAD = 2;
 
 	/**
 	 * Description for '_currentVersion'
@@ -94,7 +94,7 @@ class Token
 			throw new RuntimeException(sprintf('File "%s" does not exist', $file));
 		}
 
-		include_once($file);
+		include_once $file;
 
 		if (!class_exists('HubmailConfig'))
 		{

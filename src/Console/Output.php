@@ -165,7 +165,7 @@ class Output
 		// Sanitize the given text of new lines, double spaces, and tabs
 		$paragraph = str_replace("\n", " ", $paragraph);
 		$paragraph = str_replace("  ", " ", $paragraph);
-		$paragraph = str_replace("\t", "",  $paragraph);
+		$paragraph = str_replace("\t", "", $paragraph);
 
 		// Now check if the paragraph is longer than 70 characters and subdivide as appropriate
 		do

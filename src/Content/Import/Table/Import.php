@@ -172,4 +172,3 @@ class Import extends \JTable
 		return $sql;
 	}
 }
-
