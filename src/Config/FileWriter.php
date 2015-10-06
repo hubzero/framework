@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -129,9 +128,10 @@ class FileWriter
 	 *
 	 * @param   string   $path
 	 * @param   string   $contents
+	 * @param   mixed    $mode
 	 * @return  boolean
 	 */
-	public function putContent($file, $contents)
+	public function putContent($file, $contents, $mode = '0640')
 	{
 		$path = dirname($file);
 
@@ -143,6 +143,13 @@ class FileWriter
 			}
 		}
 
-		return file_put_contents($file, $contents);
+		$result = file_put_contents($file, $contents);
+
+		if ($result)
+		{
+			@chmod($file, octdec($mode));
+		}
+
+		return $result;
 	}
 }
