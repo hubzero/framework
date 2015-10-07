@@ -53,7 +53,14 @@ class ArgumentsServiceProvider extends Middleware
 		{
 			global $argv;
 
-			return new \Hubzero\Console\Arguments($argv);
+			$arguments = new \Hubzero\Console\Arguments($argv);
+
+			// Register namespace for App commands and component commands
+			// @FIXME: neither of these work yet...
+			$arguments->registerNamespace('\App\Commands');
+			$arguments->registerNamespace('\Components\{$1}\Cli\Commands');
+
+			return $arguments;
 		};
 	}
 
