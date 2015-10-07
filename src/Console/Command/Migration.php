@@ -340,44 +340,32 @@ class Migration extends Base implements CommandInterface
 	{
 		$migration = new \Hubzero\Content\Migration();
 		$history   = $migration->history();
-		$output    = array();
+		$items     = [];
 		$maxFile   = 0;
 		$maxUser   = 0;
 		$maxScope  = 0;
 
+
 		if ($history && count($history) > 0)
 		{
-			foreach ($history as $entry)
-			{
-				if (strlen($entry->file) > $maxFile)
-				{
-					$maxFile = strlen($entry->file);
-				}
-				if (strlen($entry->action_by) > $maxUser)
-				{
-					$maxUser = strlen($entry->action_by);
-				}
-				if (strlen($entry->scope) > $maxScope)
-				{
-					$maxScope = strlen($entry->scope);
-				}
-			}
-
-			$width = $maxScope + $maxFile + $maxUser + 35;
-
-			$this->output->addLine(' ' . str_repeat('-', ($width)));
+			$items[] = [
+				'File',
+				'By',
+				'Direction',
+				'Date'
+			];
 
 			foreach ($history as $entry)
 			{
-				$padding1 = $maxFile - strlen($entry->file);
-				$padding2 = $maxUser - strlen($entry->action_by);
-				$this->output->addString('| ' . $entry->scope . DS . $entry->file . ' ' . str_repeat(' ', $padding1));
-				$this->output->addString('| ' . $entry->action_by . ' ' . str_repeat(' ', $padding2));
-				$this->output->addString('| ' . $entry->direction . ' ' . (($entry->direction == 'up') ? '  ': ''));
-				$this->output->addLine('| ' . $entry->date . ' |');
+				$items[] = [
+					$entry->scope . DS . $entry->file,
+					$entry->action_by,
+					$entry->direction,
+					$entry->date
+				];
 			}
 
-			$this->output->addLine(' ' . str_repeat('-', ($width)));
+			$this->output->addTable($items, true);
 		}
 		else
 		{

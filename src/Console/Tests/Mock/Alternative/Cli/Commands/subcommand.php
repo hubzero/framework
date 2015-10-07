@@ -24,69 +24,39 @@
  *
  * HUBzero is a registered trademark of Purdue University.
  *
- * @package   framework
+ * @package   hubzero-cms
  * @author    Sam Wilson <samwilson@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-namespace Hubzero\Console;
+namespace Hubzero\Console\Tests\Mock\Alternative\Cli\Commands;
 
-use Hubzero\Console\Exception\UnsupportedCommandException;
-use Hubzero\Console\Exception\UnsupportedTaskException;
-use Hubzero\Base\Middleware;
-use Hubzero\Http\Request;
+use Hubzero\Console\Command\Base;
+use Hubzero\Console\Command\CommandInterface;
+use Hubzero\Console\Output;
+use Hubzero\Console\Arguments;
 
 /**
- * Console arguments service provider
- */
-class ArgumentsServiceProvider extends Middleware
+ * Alternative command class
+ **/
+class Subcommand extends Base implements CommandInterface
 {
 	/**
-	 * Register the service provider
+	 * Default (required) command
 	 *
 	 * @return  void
-	 */
-	public function register()
+	 **/
+	public function execute()
 	{
-		$this->app['arguments'] = function($app)
-		{
-			global $argv;
-
-			$arguments = new \Hubzero\Console\Arguments($argv);
-
-			// Register namespace for App commands and component commands
-			// @FIXME: neither of these work yet...
-			$arguments->registerNamespace('\App\Commands');
-			$arguments->registerNamespace('\Components\{$1}\Cli\Commands');
-
-			return $arguments;
-		};
 	}
 
 	/**
-	 * Handle request in stack
-	 * 
-	 * @param   object  $request  Request
-	 * @return  mixed
-	 */
-	public function handle(Request $request)
+	 * Output help documentation
+	 *
+	 * @return  void
+	 **/
+	public function help()
 	{
-		$response = $this->next($request);
-
-		try
-		{
-			$this->app->get('arguments')->parse();
-		}
-		catch (UnsupportedCommandException $e)
-		{
-			$this->app->get('output')->error($e->getMessage());
-		}
-		catch (UnsupportedTaskException $e)
-		{
-			$this->app->get('output')->error($e->getMessage());
-		}
-
-		return $response;
 	}
 }

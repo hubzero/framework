@@ -13,7 +13,8 @@
         "satooshi/php-coveralls": "dev-master",
         "squizlabs/php_codesniffer": "2.*",
         "jakub-onderka/php-parallel-lint": "0.9.*",
-        "hubzero/standards": "dev-master"
+        "hubzero/standards": "dev-master",
+        "mockery/mockery": "dev-master"
     },
     "repositories": [
         {
