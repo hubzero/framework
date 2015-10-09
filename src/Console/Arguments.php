@@ -71,6 +71,13 @@ class Arguments
 	private $opts = null;
 
 	/**
+	 * Registered list of namespaces in which to search for commands
+	 *
+	 * @var  array
+	 **/
+	private $commandNamespaces = [];
+
+	/**
 	 * Constructor
 	 *
 	 * Set raw arguments
@@ -81,6 +88,7 @@ class Arguments
 	public function __construct($arguments)
 	{
 		$this->raw = $arguments;
+		$this->registerNamespace(__NAMESPACE__ . '\\Command');
 	}
 
 	/**
@@ -160,7 +168,7 @@ class Arguments
 			$class = isset($this->raw[1]) ? $this->raw[1] : 'help';
 			$task  = (isset($this->raw[2]) && substr($this->raw[2], 0, 1) != "-") ? $this->raw[2] : 'execute';
 
-			$this->class = self::routeCommand($class);
+			$this->class = self::routeCommand($class, $this->commandNamespaces);
 			$this->task  = self::routeTask($class, $this->class, $task);
 
 			// Parse the remaining args for command options/arguments
@@ -226,12 +234,24 @@ class Arguments
 	}
 
 	/**
+	 * Registers a location to look for commands
+	 *
+	 * @param   string  $namespace  The namespace location to use
+	 * @return  $this
+	 **/
+	public function registerNamespace($namespace)
+	{
+		$this->commandNamespaces[] = $namespace;
+	}
+
+	/**
 	 * Routes command to the proper file based on the input given
 	 *
-	 * @param   string  $command  The command to route
+	 * @param   string  $command     The command to route
+	 * @param   array   $namespaces  The potential command namespace locations
 	 * @return  void
 	 **/
-	public static function routeCommand($command = 'help')
+	public static function routeCommand($command = 'help', $namespaces = [])
 	{
 		// Aliases take precedence, so parse for them first
 		if ($aliases = Config::get('aliases'))
@@ -251,46 +271,49 @@ class Arguments
 			}
 		}
 
-		// Check if we're targeting a namespaced command
-		if (strpos($command, ':'))
+		foreach ($namespaces as $namespace)
 		{
-			$bits    = explode(':', $command);
-			$command = '';
-			foreach ($bits as $bit)
+			// Check if we're targeting a namespaced command
+			$bits = [];
+			if (strpos($command, ':'))
 			{
-				$command .= '\\' . ucfirst($bit);
+				$bits = explode(':', $command);
 			}
-		}
-		else
-		{
-			$command = '\\' . ucfirst($command);
-		}
-
-		$class = __NAMESPACE__ . '\\Command' . $command;
-
-		// Make sure class exists
-		if (!class_exists($class))
-		{
-			$notfound = true;
-
-			// Also check to see if a command is available in the component itself
-			$parts = explode('\\', ltrim($command, '\\'));
-
-			$comPath = PATH_CORE . DS . 'components' . DS . 'com_' . strtolower($parts[0]);
-			if (is_dir($comPath))
+			else
 			{
-				if (isset($parts[1]) && is_file($comPath . DS . 'cli' . DS . 'commands' . DS . strtolower($parts[1]) . '.php'))
+				$bits[] = $command;
+			}
+
+			$bits = array_map('ucfirst', $bits);
+
+			// Replace any inset placeholders
+			for ($i = 0; $i < count($bits); $i++)
+			{
+				$loc = $i + 1;
+				if (strpos($namespace, "{\$$loc}"))
 				{
-					require_once $comPath . DS . 'cli' . DS . 'commands' . DS . strtolower($parts[1]) . '.php';
-					$notfound    = false;
-					$class       = 'Components\\' . ucfirst($parts[0]) . '\\Cli\\Commands\\' . ucfirst($parts[1]);
+					$namespace = str_replace("{\$$loc}", $bits[$i], $namespace);
+					unset($bits[$i]);
 				}
 			}
 
-			if ($notfound)
+			// Add any remaining bits to the end of the command namespace
+			if (count($bits) > 0)
 			{
-				throw new UnsupportedCommandException("Unknown command: {$command}.");
+				$namespace .= '\\' . implode('\\', $bits);
 			}
+
+			// Check for existence
+			if (class_exists($namespace))
+			{
+				$class = $namespace;
+				break;
+			}
+		}
+
+		if (!isset($class))
+		{
+			throw new UnsupportedCommandException("Unknown command: {$command}.");
 		}
 
 		return $class;

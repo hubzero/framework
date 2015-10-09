@@ -5,6 +5,7 @@
     <testsuites>
         <testsuite name="HUBzero Framework Test Suite">
             <directory suffix="Test.php">./src/Database/Tests</directory>
+            <directory suffix="Test.php">./src/Console/Tests</directory>
         </testsuite>
     </testsuites>
     <logging>
