@@ -34,11 +34,12 @@
 namespace Hubzero\Database;
 
 use Iterator;
+use Countable;
 
 /**
  * Database Iterable class
  */
-class Rows implements Iterator
+class Rows implements Iterator, Countable
 {
 	/*
 	 * Errors trait for error handling
