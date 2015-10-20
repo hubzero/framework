@@ -244,6 +244,17 @@ class Rows implements Iterator, Countable
 	}
 
 	/**
+	 * Gets previous item in iterable list
+	 *
+	 * @return  mixed
+	 * @since   2.1.0
+	 **/
+	public function prev()
+	{
+		return prev($this->rows);
+	}
+
+	/**
 	 * Gets next item in iterable list
 	 *
 	 * @return  mixed
