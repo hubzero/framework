@@ -529,6 +529,16 @@ class RelationalTest extends Database
 	}
 
 	/**
+	 * Tests to make sure we can get relationships defined on a model
+	 *
+	 * @return  void
+	 **/
+	public function testCanIntrospectRelationships()
+	{
+		$this->assertEquals(['posts'], User::introspectRelationships(), 'User should have had one relationships of "posts"');
+	}
+
+	/**
 	 * Tests to make sure we can add a dynamic relationship at runtime
 	 *
 	 * @return  void
@@ -542,5 +552,16 @@ class RelationalTest extends Database
 
 		$this->assertEquals('This is my bio about me.', User::oneOrFail(1)->bio->text, 'Bio call should have returned the bio for user 1');
 		$this->assertEquals('This is my bio about me.', User::oneOrFail(1)->bio()->rows()->text, 'Bio call should have returned the bio for user 1');
+	}
+
+	/**
+	 * Tests to make sure we can get relationships defined on a model, including runtime relationships
+	 *
+	 * @return  void
+	 **/
+	public function testCanIntrospectRelationshipsIncludingRuntimeRelationships()
+	{
+		// Note that we're expecting the relationship registered in the previous test
+		$this->assertEquals(['posts', 'bio'], User::introspectRelationships(), 'User should have had two relationships of "posts" and "bio"');
 	}
 }

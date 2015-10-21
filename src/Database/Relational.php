@@ -2052,6 +2052,51 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 	}
 
 	/**
+	 * Identifies known relationships on the model
+	 *
+	 * @return  array
+	 * @since   2.1.0
+	 **/
+	public static function introspectRelationships()
+	{
+		$instance     = self::blank();
+		$methods      = [];
+		$reflection   = new \ReflectionClass($instance);
+		$relationship = __NAMESPACE__ . '\\Relationship\\Relationship';
+
+		foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method)
+		{
+			// If method exists on the base model, ignore it
+			if ($method->class == __CLASS__)
+			{
+				continue;
+			}
+
+			$result = null;
+
+			try
+			{
+				// Invoke method and get the result
+				$result = $method->invoke(new $reflection->name);
+			}
+			catch (\Exception $e)
+			{
+				// Ignore all errors - we'll assume that means we don't care about the method
+			}
+
+			// If the method returned a relationship, we'll keep track of it
+			if ($result instanceof $relationship)
+			{
+				$methods[] = $method->name;
+			}
+		}
+
+		$acquaintances = array_keys(self::$acquaintances);
+
+		return array_merge($methods, $acquaintances);
+	}
+
+	/**
 	 * Generates automatic created field value
 	 *
 	 * @return  string
