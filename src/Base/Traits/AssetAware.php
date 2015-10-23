@@ -50,36 +50,18 @@ trait AssetAware
 	 *
 	 * @param   string  $stylesheet  Stylesheet or styles to add
 	 * @param   string  $extension   Extension name, e.g.: com_example, mod_example, plg_example_test
-	 * @param   string  $element     Plugin element. Only used for plugins and if first argument is folder name.
+	 * @param   array   $attributes  Attributes
 	 * @return  object
 	 */
-	public function css($stylesheet = '', $extension = null, $element = null)
+	public function css($stylesheet = '', $extension = null, $attributes = array())
 	{
 		$extension = $extension ?: $this->detectExtensionName();
 
-		$attr = array(
+		$attr = array_merge(array(
 			'type'    => 'text/css',
 			'media'   => null,
 			'attribs' => array()
-		);
-
-		if ($element)
-		{
-			if (is_string($element))
-			{
-				$extension = 'plg_' . $extension . '_' . $element;
-			}
-			else if (is_array($element))
-			{
-				foreach ($element as $key => $val)
-				{
-					if (array_key_exists($key, $attr))
-					{
-						$attr[$key] = $val;
-					}
-				}
-			}
-		}
+		), $attributes);
 
 		$asset = new Stylesheet($extension, $stylesheet);
 
@@ -94,44 +76,27 @@ trait AssetAware
 				\App::get('document')->addStyleSheet($asset->link(), $attr['type'], $attr['media'], $attr['attribs']);
 			}
 		}
+
 		return $this;
 	}
 
 	/**
 	 * Push JS to the document
 	 *
-	 * @param   string  $asset      Script to add
-	 * @param   string  $extension  Extension name, e.g.: com_example, mod_example, plg_example_test
-	 * @param   string  $element    Plugin element. Only used for plugins and if first argument is folder name.
+	 * @param   string  $asset       Script to add
+	 * @param   string  $extension   Extension name, e.g.: com_example, mod_example, plg_example_test
+	 * @param   array   $attributes  Attributes
 	 * @return  object
 	 */
-	public function js($asset = '', $extension = null, $element = null)
+	public function js($asset = '', $extension = null, $attributes = array())
 	{
 		$extension = $extension ?: $this->detectExtensionName();
 
-		$attr = array(
+		$attr = array_merge(array(
 			'type'  => 'text/javascript',
 			'defer' => false,
 			'async' => false
-		);
-
-		if ($element)
-		{
-			if (is_string($element))
-			{
-				$extension = 'plg_' . $extension . '_' . $element;
-			}
-			else if (is_array($element))
-			{
-				foreach ($element as $key => $val)
-				{
-					if (array_key_exists($key, $attr))
-					{
-						$attr[$key] = $val;
-					}
-				}
-			}
-		}
+		), $attributes);
 
 		$asset = new Javascript($extension, $asset);
 
@@ -146,6 +111,7 @@ trait AssetAware
 				\App::get('document')->addScript($asset->link(), $attr['type'], $attr['defer'], $attr['async']);
 			}
 		}
+
 		return $this;
 	}
 
@@ -154,17 +120,11 @@ trait AssetAware
 	 *
 	 * @param   string  $asset      Image name
 	 * @param   string  $extension  Extension name, e.g.: com_example, mod_example, plg_example_test
-	 * @param   string  $element    Plugin element. Only used for plugins and if first argument is folder name.
 	 * @return  string
 	 */
-	public function img($asset, $extension = null, $element = null)
+	public function img($asset, $extension = null)
 	{
 		$extension = $extension ?: $this->detectExtensionName();
-
-		if ($element)
-		{
-			$extension = 'plg_' . $extension . '_' . $element;
-		}
 
 		$asset = new Image($extension, $asset);
 
