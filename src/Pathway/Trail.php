@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2009-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -88,9 +87,10 @@ class Trail implements \Iterator, \ArrayAccess, \Countable
 	public function names()
 	{
 		$names = array();
+
 		foreach ($this->items as $item)
 		{
-			$names[] = $item->text;
+			$names[] = $item->name;
 		}
 
 		return array_values($names);
