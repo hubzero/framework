@@ -127,6 +127,26 @@ class QueryTest extends Database
 	}
 
 	/**
+	 * Test to make sure we can build a query with aliased from statements
+	 *
+	 * @return  void
+	 **/
+	public function testBuildQueryWithAliasedFrom()
+	{
+		// Here's the query we're trying to write...
+		$expected = "SELECT * FROM `users` AS `u` WHERE `u`.`name` = 'awesome'";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users', 'u')
+		      ->whereEquals('u.name', 'awesome');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+	}
+
+	/**
 	 * Test to make sure we can build a query with where like statements
 	 *
 	 * @return  void
