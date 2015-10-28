@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2009-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -60,7 +59,7 @@ class Item
 	 */
 	public function __construct($name = '', $link = '')
 	{
-		$this->name = $name;
-		$this->link = $link;
+		$this->name = (string) $name;
+		$this->link = (string) $link;
 	}
 }
