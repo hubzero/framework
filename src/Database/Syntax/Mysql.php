@@ -174,12 +174,16 @@ class Mysql
 	 * Sets a from element on the query
 	 *
 	 * @param   string  $table  The table of interest
+	 * @param   string  $as     What to call the table
 	 * @return  void
 	 * @since   2.0.0
 	 **/
-	public function setFrom($table)
+	public function setFrom($table, $as = null)
 	{
-		$this->from[] = $table;
+		$this->from[] = [
+			'table' => $table,
+			'as'    => $as
+		];
 	}
 
 	/**
@@ -445,7 +449,15 @@ class Mysql
 
 		foreach ($this->from as $from)
 		{
-			$froms[] = $this->connection->quoteName($from);
+			$string = $this->connection->quoteName($from['table']);
+
+			// See if we're including an alias
+			if (isset($from['as']))
+			{
+				$string .= ' AS ' . $this->connection->quoteName($from['as']);
+			}
+
+			$froms[] = $string;
 		}
 
 		return 'FROM ' . implode(',', $froms);

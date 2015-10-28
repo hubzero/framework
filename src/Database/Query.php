@@ -232,11 +232,12 @@ class Query
 	 * Defines the table from which data should be retrieved
 	 *
 	 * @param   string  $table  The table of interest
+	 * @param   string  $as     What to call the table
 	 * @return  $this
 	 **/
-	public function from($table)
+	public function from($table, $as = null)
 	{
-		$this->syntax->setFrom($table);
+		$this->syntax->setFrom($table, $as);
 		return $this;
 	}
 
