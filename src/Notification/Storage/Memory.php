@@ -29,13 +29,32 @@
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-namespace Hubzero\Notification;
+namespace Hubzero\Notification\Storage;
+
+use Hubzero\Notification\MessageStore;
 
 /**
- * Message store
+ * Memory storage handler.
  */
-interface MessageStore
+class Memory implements MessageStore
 {
+	/**
+	 * Message bag
+	 *
+	 * @var  array
+	 */
+	private $messages = array();
+
+	/**
+	 * Constructor
+	 *
+	 * @return  void
+	 */
+	public function __construct()
+	{
+		$this->messages = array();
+	}
+
 	/**
 	 * Store a message
 	 *
@@ -43,7 +62,13 @@ interface MessageStore
 	 * @param   string  $domain
 	 * @return  void
 	 */
-	public function store($data, $domain);
+	public function store($data, $domain)
+	{
+		$messages   = (array) $this->retrieve($domain);
+		$messages[] = $data;
+
+		$this->messages[$this->key($domain)] = $messages;
+	}
 
 	/**
 	 * Return a list of messages
@@ -52,7 +77,19 @@ interface MessageStore
 	 * @param   string  $domain
 	 * @return  array
 	 */
-	public function retrieve($domain);
+	public function retrieve($domain)
+	{
+		$key = $this->key($domain);
+
+		$messages = isset($this->messages[$key]) ? $this->messages[$key] : array();
+
+		if (count($messages))
+		{
+			$this->clear($domain);
+		}
+
+		return $messages;
+	}
 
 	/**
 	 * Clear all messages
@@ -60,7 +97,12 @@ interface MessageStore
 	 * @param   string  $domain
 	 * @return  void
 	 */
-	public function clear($domain);
+	public function clear($domain)
+	{
+		$key = $this->key($domain);
+
+		$this->messages[$key] = array();
+	}
 
 	/**
 	 * Return a count of messages
@@ -68,5 +110,25 @@ interface MessageStore
 	 * @param   string  $domain
 	 * @return  integer
 	 */
-	public function total($domain);
+	public function total($domain)
+	{
+		$key = $this->key($domain);
+
+		$messages = isset($this->messages[$key]) ? $this->messages[$key] : array();
+
+		return count($messages);
+	}
+
+	/**
+	 * Get the storage key
+	 *
+	 * @param   string  $domain
+	 * @return  string
+	 */
+	private function key($domain)
+	{
+		$domain = (!$domain ? '' : $domain . '.');
+
+		return $domain . 'application.queue';
+	}
 }
