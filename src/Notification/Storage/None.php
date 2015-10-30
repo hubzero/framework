@@ -29,12 +29,14 @@
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-namespace Hubzero\Notification;
+namespace Hubzero\Notification\Storage;
+
+use Hubzero\Notification\MessageStore;
 
 /**
- * Message store
+ * Null storage handler.
  */
-interface MessageStore
+class None implements MessageStore
 {
 	/**
 	 * Store a message
@@ -43,7 +45,10 @@ interface MessageStore
 	 * @param   string  $domain
 	 * @return  void
 	 */
-	public function store($data, $domain);
+	public function store($data, $domain)
+	{
+		return;
+	}
 
 	/**
 	 * Return a list of messages
@@ -52,7 +57,10 @@ interface MessageStore
 	 * @param   string  $domain
 	 * @return  array
 	 */
-	public function retrieve($domain);
+	public function retrieve($domain)
+	{
+		return array();
+	}
 
 	/**
 	 * Clear all messages
@@ -60,7 +68,10 @@ interface MessageStore
 	 * @param   string  $domain
 	 * @return  void
 	 */
-	public function clear($domain);
+	public function clear($domain)
+	{
+		return;
+	}
 
 	/**
 	 * Return a count of messages
@@ -68,5 +79,8 @@ interface MessageStore
 	 * @param   string  $domain
 	 * @return  integer
 	 */
-	public function total($domain);
+	public function total($domain)
+	{
+		return 0;
+	}
 }
