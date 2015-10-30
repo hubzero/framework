@@ -98,6 +98,34 @@ $app['config'] = new \Hubzero\Config\Repository('test', new \Hubzero\Config\File
 
 /*
 |--------------------------------------------------------------------------
+| Register The Core Service Providers
+|--------------------------------------------------------------------------
+|
+| Register all of the core pieces of the framework including session, 
+| caching, and more. First, we'll load the core bootstrap list of services
+| and then we'll give the app a chance to modify that list.
+|
+*/
+
+$services = [
+	'Hubzero\Base\JoomlaServiceProvider',
+	'Hubzero\Events\EventServiceProvider',
+	'Hubzero\Language\TranslationServiceProvider',
+	'Hubzero\Database\DatabaseServiceProvider',
+	'Hubzero\Plugin\PluginServiceProvider',
+	'Hubzero\Debug\ProfilerServiceProvider',
+	'Hubzero\Log\LogServiceProvider',
+	'Hubzero\Routing\RouterServiceProvider',
+	'Hubzero\Filesystem\FilesystemServiceProvider',
+];
+
+foreach ($services as $service)
+{
+	$app->register($service);
+}
+
+/*
+|--------------------------------------------------------------------------
 | Load The Aliases
 |--------------------------------------------------------------------------
 |
@@ -106,4 +134,17 @@ $app['config'] = new \Hubzero\Config\Repository('test', new \Hubzero\Config\File
 |
 */
 
-$app->registerBaseFacades([]);
+$app->registerFacades([
+	'App'        => 'Hubzero\Facades\App',
+	'Config'     => 'Hubzero\Facades\Config',
+	'Request'    => 'Hubzero\Facades\Request',
+	'Response'   => 'Hubzero\Facades\Response',
+	'Event'      => 'Hubzero\Facades\Event',
+	'Route'      => 'Hubzero\Facades\Route',
+	'User'       => 'Hubzero\Facades\User',
+	'Lang'       => 'Hubzero\Facades\Lang',
+	'Log'        => 'Hubzero\Facades\Log',
+	'Date'       => 'Hubzero\Facades\Date',
+	'Plugin'     => 'Hubzero\Facades\Plugin',
+	'Filesystem' => 'Hubzero\Facades\Filesystem',
+]);
