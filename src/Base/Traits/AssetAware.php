@@ -65,6 +65,8 @@ trait AssetAware
 
 		$asset = new Stylesheet($extension, $stylesheet);
 
+		$asset = $this->isSuperGroupAsset($asset);
+
 		if ($asset->exists())
 		{
 			if ($asset->isDeclaration())
@@ -99,6 +101,8 @@ trait AssetAware
 		), $attributes);
 
 		$asset = new Javascript($extension, $asset);
+
+		$asset = $this->isSuperGroupAsset($asset);
 
 		if ($asset->exists())
 		{
@@ -152,5 +156,31 @@ trait AssetAware
 		}
 
 		return '';
+	}
+
+	/**
+	 * Modify paths if in a super group
+	 *
+	 * @param   object  $asset  Asset
+	 * @return  object
+	 */
+	protected function isSuperGroupAsset($asset)
+	{
+		if ($asset->extensionType() != 'components'
+		 || $asset->isDeclaration()
+		 || $asset->isExternal())
+		{
+			return $asset;
+		}
+
+		if (defined('JPATH_GROUPCOMPONENT'))
+		{
+			$base = JPATH_GROUPCOMPONENT;
+
+			$asset->setPath('source', $base . DS . 'assets' . DS . $asset->type() . DS . $asset->file());
+			//$asset->setPath('source', $base . DS . $asset->file());
+		}
+
+		return $asset;
 	}
 }
