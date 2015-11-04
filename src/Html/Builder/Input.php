@@ -235,6 +235,49 @@ class Input
 	}
 
 	/**
+	 * Displays a color picker control field
+	 *
+	 * @param   string  $name
+	 * @param   string  $value
+	 * @param   array   $options
+	 * @return  string  HTML markup for a calendar field
+	 */
+	public static function colorpicker($name, $value = null, $options = array())
+	{
+		static $done;
+
+		if ($done === null)
+		{
+			$done = array();
+		}
+
+		$readonly = isset($options['readonly']) && $options['readonly'] == 'readonly';
+		$disabled = isset($options['disabled']) && $options['disabled'] == 'disabled';
+
+		$options['class'] = 'input-colorpicker';
+
+		$value = $value ? '#' . ltrim($value, '#') : '';
+
+		if (!$readonly && !$disabled)
+		{
+			$id = self::getIdAttribute($name, $options);
+
+			// Only display the triggers once for each control.
+			if (!in_array($id, $done))
+			{
+				// Load the calendar behavior
+				Behavior::colorpicker();
+
+				$done[] = $id;
+			}
+
+			return '<span class="input-color">' . self::text($name, $value, $options) . '</span>';
+		}
+
+		return self::text($name . 'disabled', $value, $options) . self::hidden($name, $value, $options);
+	}
+
+	/**
 	 * Displays an input field that should be left empty by the
 	 * real users of the application but will most likely be
 	 * filled out by spam bots.
@@ -275,7 +318,7 @@ class Input
 	 */
 	protected static function transformKey($key)
 	{
-		return str_replace(array('.', '[]', '[', ']'), array('_', '', '.', ''), $key);
+		return str_replace(array('.', '[]', '[', ']'), array('_', '', '-', ''), $key);
 	}
 
 	/**
