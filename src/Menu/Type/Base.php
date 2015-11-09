@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -78,6 +77,8 @@ class Base extends Object
 	 */
 	public function __construct($options = array())
 	{
+		parent::__construct($options);
+
 		// Load the menu items
 		$this->load();
 
@@ -94,36 +95,6 @@ class Base extends Object
 	}
 
 	/**
-	 * Returns a Menu object
-	 *
-	 * @param   string  $client   The name of the client
-	 * @param   array   $options  An associative array of options
-	 * @return  object  A menu object.
-	 */
-	public static function getInstance($client, $options = array())
-	{
-		if (empty(self::$instances[$client]))
-		{
-			$info = JApplicationHelper::getClientInfo($client, true);
-
-			$path = $info->bootstrap . '/menu.php';
-
-			if (!file_exists($path))
-			{
-				throw new Exception('Unable to load menu: ' . $client, 500);
-			}
-
-			include_once $path;
-
-			$classname = 'JMenu' . ucfirst($client);
-
-			self::$instances[$client] = new $classname($options);
-		}
-
-		return self::$instances[$client];
-	}
-
-	/**
 	 * Get menu item by id
 	 *
 	 * @param   integer  $id  The item id
@@ -132,6 +103,7 @@ class Base extends Object
 	public function getItem($id)
 	{
 		$result = null;
+
 		if (isset($this->_items[$id]))
 		{
 			$result =& $this->_items[$id];
@@ -162,7 +134,7 @@ class Base extends Object
 	 * Get the default item by language code.
 	 *
 	 * @param   string  $language  The language code, default value of * means all.
-	 * @return  object  The item object
+	 * @return  mixed   The item object
 	 */
 	public function getDefault($language = '*')
 	{
@@ -170,7 +142,8 @@ class Base extends Object
 		{
 			return $this->_items[$this->_default[$language]];
 		}
-		elseif (array_key_exists('*', $this->_default))
+
+		if (array_key_exists('*', $this->_default))
 		{
 			return $this->_items[$this->_default['*']];
 		}
@@ -189,7 +162,9 @@ class Base extends Object
 		if (isset($this->_items[$id]))
 		{
 			$this->_active = $id;
-			$result = &$this->_items[$id];
+
+			$result =& $this->_items[$id];
+
 			return $result;
 		}
 
@@ -206,6 +181,7 @@ class Base extends Object
 		if ($this->_active)
 		{
 			$item =& $this->_items[$this->_active];
+
 			return $item;
 		}
 
@@ -308,7 +284,7 @@ class Base extends Object
 
 		if ($menu)
 		{
-			return in_array((int) $menu->access, User::getAuthorisedViewLevels());
+			return in_array((int) $menu->access, $this->get('access', array(0)));
 		}
 
 		return true;
@@ -317,10 +293,9 @@ class Base extends Object
 	/**
 	 * Loads the menu items
 	 *
-	 * @return  array
+	 * @return  void
 	 */
 	public function load()
 	{
-		return array();
 	}
 }

@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -54,7 +53,24 @@ class MenuServiceProvider extends ServiceProvider
 
 		$this->app['menu'] = function($app)
 		{
-			return $app['menu.manager']->menu($app['client']->name);
+			$options = [
+				'language_filter' => null,
+				'language'        => null,
+				'access'          => \User::getAuthorisedViewLevels()
+			];
+
+			if ($app->isSite())
+			{
+				$options['db'] = $app->get('db');
+
+				if ($app->has('language.filter'))
+				{
+					$options['language_filter'] = $app->get('language.filter');
+					$options['language']        = $app->get('language')->getTag();
+				}
+			}
+
+			return $app['menu.manager']->menu($app['client']->name, $options);
 		};
 
 		$this->app['menu.params'] = function($app)
