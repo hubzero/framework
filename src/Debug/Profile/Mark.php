@@ -68,16 +68,17 @@ class Mark
 	/**
 	 * Constructor.
 	 *
-	 * @param  string   $label  The label or identifier for a mark
-	 * @param  integer  $start  The relative time of the start of the period (in milliseconds)
-	 * @param  integer  $end    The relative time of the end of the period (in milliseconds)
+	 * @param  string   $label   The label or identifier for a mark
+	 * @param  integer  $start   The relative time of the start of the period (in milliseconds)
+	 * @param  integer  $end     The relative time of the end of the period (in milliseconds)
+	 * @param  integer  $memory  The memory usage (in bytes)
 	 */
-	public function __construct($label, $start, $end)
+	public function __construct($label, $start = 0.0, $end = 0.0, $memory = 0)
 	{
 		$this->label  = (string) $label;
 		$this->start  = (float) $start;
 		$this->end    = (float) $end;
-		$this->memory = memory_get_usage(true);
+		$this->memory = (int) $memory;
 	}
 
 	/**
@@ -131,12 +132,37 @@ class Mark
 	}
 
 	/**
-	 * Geta string output
+	 * Get string output
 	 *
 	 * @return  string
 	 */
 	public function __toString()
 	{
+		return $this->toString();
+	}
+
+	/**
+	 * Get string output
+	 *
+	 * @return  string
+	 */
+	public function toString()
+	{
 		return sprintf('%s: %.2F MiB - %d ms', $this->label(), $this->memory() / 1024 / 1024, $this->duration());
+	}
+
+	/**
+	 * Get array output
+	 *
+	 * @return  array
+	 */
+	public function toArray()
+	{
+		return array(
+			'label'  => $this->label(),
+			'start'  => $this->started(),
+			'end'    => $this->ended(),
+			'memory' => $this->memory()
+		);
 	}
 }

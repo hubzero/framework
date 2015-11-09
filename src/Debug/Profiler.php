@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -118,7 +117,7 @@ class Profiler extends Object
 	 */
 	public function mark($label)
 	{
-		$this->marks[] = new Mark($label, $this->ended(), $this->now());
+		$this->marks[] = new Mark($label, $this->ended(), $this->now(), memory_get_usage(true));
 
 		return $this;
 	}
