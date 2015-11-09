@@ -25,14 +25,11 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Menu\Type;
-
-use Exception;
 
 /**
  * Site Menu class
@@ -46,8 +43,13 @@ class Site extends Base
 	 */
 	public function load()
 	{
+		if (!($this->get('db') instanceof \Hubzero\Database\Driver))
+		{
+			return;
+		}
+
 		// Initialise variables.
-		$db    = \App::get('db');
+		$db    = $this->get('db');
 		$query = $db->getQuery(true);
 
 		$query->select('m.id, m.menutype, m.title, m.alias, m.note, m.path AS route, m.link, m.type, m.level, m.language');
@@ -63,16 +65,7 @@ class Site extends Base
 		// Set the query
 		$db->setQuery($query);
 
-		try
-		{
-			$this->_items = $db->loadObjectList('id');
-		}
-		catch (Exception $e)
-		{
-			\App::get('notification')->warning(\App::get('language')->txt('JERROR_LOADING_MENUS', $e->getMessage()));
-
-			return false;
-		}
+		$this->_items = $db->loadObjectList('id');
 
 		foreach ($this->_items as &$item)
 		{
@@ -108,34 +101,31 @@ class Site extends Base
 		$attributes = (array) $attributes;
 		$values     = (array) $values;
 
-		if (\App::isSite())
+		// Filter by language if not set
+		if (($key = array_search('language', $attributes)) === false)
 		{
-			// Filter by language if not set
-			if (($key = array_search('language', $attributes)) === false)
+			if ($this->get('language_filter'))
 			{
-				if (\App::get('language.filter'))
-				{
-					$attributes[] = 'language';
-					$values[]     = array(\App::get('language')->getTag(), '*');
-				}
+				$attributes[] = 'language';
+				$values[]     = array($this->get('language'), '*');
 			}
-			elseif ($values[$key] === null)
-			{
-				unset($attributes[$key]);
-				unset($values[$key]);
-			}
+		}
+		elseif ($values[$key] === null)
+		{
+			unset($attributes[$key]);
+			unset($values[$key]);
+		}
 
-			// Filter by access level if not set
-			if (($key = array_search('access', $attributes)) === false)
-			{
-				$attributes[] = 'access';
-				$values[] = \User::getAuthorisedViewLevels();
-			}
-			elseif ($values[$key] === null)
-			{
-				unset($attributes[$key]);
-				unset($values[$key]);
-			}
+		// Filter by access level if not set
+		if (($key = array_search('access', $attributes)) === false)
+		{
+			$attributes[] = 'access';
+			$values[]     = $this->get('access');
+		}
+		elseif ($values[$key] === null)
+		{
+			unset($attributes[$key]);
+			unset($values[$key]);
 		}
 
 		return parent::getItems($attributes, $values, $firstonly);
@@ -145,15 +135,16 @@ class Site extends Base
 	 * Get menu item by id
 	 *
 	 * @param   string  $language  The language code.
-	 * @return  object  The item object
+	 * @return  mixed   The item object
 	 */
 	public function getDefault($language = '*')
 	{
-		if (array_key_exists($language, $this->_default) && \App::get('language.filter'))
+		if (array_key_exists($language, $this->_default) && $this->get('language_filter'))
 		{
 			return $this->_items[$this->_default[$language]];
 		}
-		elseif (array_key_exists('*', $this->_default))
+
+		if (array_key_exists('*', $this->_default))
 		{
 			return $this->_items[$this->_default['*']];
 		}
