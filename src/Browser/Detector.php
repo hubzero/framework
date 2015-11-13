@@ -169,6 +169,249 @@ class Detector extends Object
 		'bmp'
 	);
 
+	protected $regexes = array(
+		array(
+			'regex'    => '|Opera[/ ]([0-9.]+)|',
+			'version'  => '|Version[/ ]([0-9.]+)|',
+			'name'     => 'Opera',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|OPR[/ ]([0-9.]+)|',
+			'name'     => 'Opera',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|OPiOS[/ ]([0-9.]+)|',
+			'name'     => 'Opera Mini',
+			'platform' => 'iOS',
+			'mobile'   => true,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|Edge[/ ]([0-9.]+)|',
+			'name'     => 'Edge',
+			'platform' => 'Windows',
+			'mobile'   => false,
+			'engine'   => 'Edge'
+		),
+		array(
+			'regex'    => '|Vivaldi[/ ]([0-9.]+)|',
+			'name'     => 'Vivaldi',
+			'platform' => 'Windows',
+			'mobile'   => false,
+			'engine'   => 'Blink'
+		),
+		array(
+			'regex'    => '|YaBrowser[/ ]([0-9.]+)|',
+			'name'     => 'Yandex',
+			'platform' => 'Mac OS',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|Yowser[/ ]([0-9.]+)|',
+			'name'     => 'Yandex',
+			'platform' => 'Mac OS',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|Chrome[/ ]([0-9.]+)|',
+			'name'     => 'Chrome',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|CrMo[/ ]([0-9.]+)|',
+			'name'     => 'Chrome',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => 'WebKit'
+		),
+		array(
+			'regex'    => '|CriOS[/ ]([0-9.]+)|',
+			'name'     => 'Chrome',
+			'platform' => '',
+			'mobile'   => true,
+			'engine'   => 'WebKit'
+		),
+		array(
+			'regex'    => '|MSIE ([0-9.]+)|',
+			'name'     => 'MSIE',
+			'platform' => 'Windows',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|Internet Explorer/([0-9.]+)|',
+			'name'     => 'MSIE',
+			'platform' => 'Windows',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|elaine/|',
+			'name'     => 'Palm',
+			'platform' => '',
+			'mobile'   => true,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|palmsource|',
+			'name'     => 'Palm',
+			'platform' => '',
+			'mobile'   => true,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|digital paths|',
+			'name'     => 'Palm',
+			'platform' => '',
+			'mobile'   => true,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|amaya/([0-9.]+)|',
+			'name'     => 'Amaya',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|ANTFresco/([0-9]+)|',
+			'name'     => 'Fresco',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|avantgo|',
+			'name'     => 'Avantgo',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|Android|',
+			'name'     => 'Android',
+			'platform' => 'Android',
+			'mobile'   => true,
+			'engine'   => 'WebKit'
+		),
+		array(
+			'regex'    => '|[Kk]onqueror/([0-9]+)|',
+			'name'     => 'Konqueror',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|Safari/([0-9]+)\.?([0-9]+)?|',
+			'version'  => '|Version[/ ]([0-9.]+)|',
+			'name'     => 'Safari',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => 'WebKit'
+		),
+		array(
+			'regex'    => '|Iceweasel/([0-9.]+)|',
+			'name'     => 'Iceweasel',
+			'platform' => 'Linux',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|Firefox/([0-9.]+)|',
+			'name'     => 'Firefox',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|Mozilla/([0-9.]+)|',
+			'name'     => 'Mozilla',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|Lynx/([0-9]+)|',
+			'name'     => 'Lynx',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|Links \(([0-9]+)|',
+			'name'     => 'Links',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|HotJava/([0-9]+)|',
+			'name'     => 'HotJava',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|UP[\/\.B\.L]|',
+			'name'     => 'Up',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|Xiino/|',
+			'name'     => 'Xiino',
+			'platform' => '',
+			'mobile'   => true,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|Nokia|',
+			'name'     => 'Nokia',
+			'platform' => '',
+			'mobile'   => true,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|Ericsson|',
+			'name'     => 'Ericsson',
+			'platform' => '',
+			'mobile'   => true,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '/BlackBerry|PlayBook|BB10/',
+			'name'     => 'BlackBerry',
+			'platform' => '',
+			'mobile'   => true,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '|MOT-|',
+			'name'     => 'Motorola',
+			'platform' => '',
+			'mobile'   => true,
+			'engine'   => ''
+		),
+		array(
+			'regex'    => '/docomo|portalmmm/',
+			'name'     => 'imode',
+			'platform' => '',
+			'mobile'   => false,
+			'engine'   => ''
+		)
+	);
+
 	/**
 	 * Browser instances container.
 	 *
@@ -250,213 +493,32 @@ class Detector extends Object
 		{
 			$this->_setPlatform();
 
-			if (strpos($this->lowerAgent, 'mobileexplorer') !== false
-				|| strpos($this->lowerAgent, 'openwave') !== false
-				|| strpos($this->lowerAgent, 'opera mini') !== false
-				|| strpos($this->lowerAgent, 'opera mobi') !== false
-				|| strpos($this->lowerAgent, 'operamini') !== false)
+			foreach ($this->regexes as $regex)
 			{
-				$this->mobile = true;
-			}
-			elseif (preg_match('|Opera[/ ]([0-9.]+)|', $this->agent, $version))
-			{
-				$this->setBrowser('opera');
-				list ($this->majorVersion, $this->minorVersion) = explode('.', $version[1]);
-
-				// Due to changes in Opera UA, we need to check Version/xx.yy,
-				// but only if version is > 9.80. See: http://dev.opera.com/articles/view/opera-ua-string-changes/ */
-				if ($this->majorVersion == 9 && $this->minorVersion >= 80)
+				if (preg_match($regex['regex'], $this->agent, $version))
 				{
-					$this->identifyBrowserVersion();
+					$this->browser  = strtolower($regex['name']);
+					$this->platform = ($regex['platform'] ? $regex['platform'] : $this->platform);
+					$this->mobile   = $regex['mobile'];
+
+					if (isset($regex['version']))
+					{
+						if (preg_match($regex['version'], $this->agent, $ver))
+						{
+							$version = $ver;
+						}
+					}
+
+					if (!empty($version) && isset($version[1]))
+					{
+						$bits = explode('.', $version[1]);
+
+						$this->majorVersion = $bits[0];
+						$this->minorVersion = (isset($bits[1]) ? $bits[1] : 0);
+					}
+
+					break;
 				}
-			}
-			elseif (preg_match('|Chrome[/ ]([0-9.]+)|', $this->agent, $version))
-			{
-				$this->setBrowser('chrome');
-				//list ($this->majorVersion, $this->minorVersion) = explode('.', $version[1]);
-
-				// [!] Changed to handle UAS that do not include the minor version (StatusCake)
-				$bits = explode('.', $version[1]);
-				$this->majorVersion = $bits[0];
-				$this->minorVersion = (isset($bits[1]) ? $bits[1] : 0);
-			}
-			elseif (preg_match('|CrMo[/ ]([0-9.]+)|', $this->agent, $version))
-			{
-				$this->setBrowser('chrome');
-				//list ($this->majorVersion, $this->minorVersion) = explode('.', $version[1]);
-
-				// [!] Changed to handle UAS that do not include the minor version (StatusCake)
-				$bits = explode('.', $version[1]);
-				$this->majorVersion = $bits[0];
-				$this->minorVersion = (isset($bits[1]) ? $bits[1] : 0);
-			}
-			elseif (preg_match('|CriOS[/ ]([0-9.]+)|', $this->agent, $version))
-			{
-				$this->setBrowser('chrome');
-				//list ($this->majorVersion, $this->minorVersion) = explode('.', $version[1]);
-				// [!] Changed to handle UAS that do not include the minor version (StatusCake)
-				$bits = explode('.', $version[1]);
-				$this->majorVersion = $bits[0];
-				$this->minorVersion = (isset($bits[1]) ? $bits[1] : 0);
-
-				$this->mobile = true;
-			}
-			elseif (strpos($this->lowerAgent, 'elaine/') !== false
-				|| strpos($this->lowerAgent, 'palmsource') !== false
-				|| strpos($this->lowerAgent, 'digital paths') !== false)
-			{
-				$this->setBrowser('palm');
-				$this->mobile = true;
-			}
-			elseif ((preg_match('|MSIE ([0-9.]+)|', $this->agent, $version)) || (preg_match('|Internet Explorer/([0-9.]+)|', $this->agent, $version)))
-			{
-				$this->setBrowser('msie');
-
-				if (strpos($version[1], '.') !== false)
-				{
-					list ($this->majorVersion, $this->minorVersion) = explode('.', $version[1]);
-				}
-				else
-				{
-					$this->majorVersion = $version[1];
-					$this->minorVersion = 0;
-				}
-
-				// Some Handhelds have their screen resolution in the
-				// user agent string, which we can use to look for
-				// mobile agents.
-				if (preg_match('/; (120x160|240x280|240x320|320x320)\)/', $this->agent))
-				{
-					$this->mobile = true;
-				}
-			}
-			elseif (preg_match('|amaya/([0-9.]+)|', $this->agent, $version))
-			{
-				$this->setBrowser('amaya');
-				$this->majorVersion = $version[1];
-
-				if (isset($version[2]))
-				{
-					$this->minorVersion = $version[2];
-				}
-			}
-			elseif (preg_match('|ANTFresco/([0-9]+)|', $this->agent, $version))
-			{
-				$this->setBrowser('fresco');
-			}
-			elseif (strpos($this->lowerAgent, 'avantgo') !== false)
-			{
-				$this->setBrowser('avantgo');
-				$this->mobile = true;
-			}
-			elseif (preg_match('|[Kk]onqueror/([0-9]+)|', $this->agent, $version) || preg_match('|Safari/([0-9]+)\.?([0-9]+)?|', $this->agent, $version))
-			{
-				// Konqueror and Apple's Safari both use the KHTML
-				// rendering engine.
-				$this->setBrowser('konqueror');
-				$this->majorVersion = $version[1];
-
-				if (isset($version[2]))
-				{
-					$this->minorVersion = $version[2];
-				}
-
-				if (strpos($this->agent, 'Safari') !== false && $this->majorVersion >= 60)
-				{
-					// Safari.
-					$this->setBrowser('safari');
-					$this->identifyBrowserVersion();
-				}
-
-				// Android WebView -> Chrome 30.0.0.0
-				if (strpos($this->agent, 'Android') !== false)
-				{
-					$this->setBrowser('chrome');
-					$this->majorVersion = 30;
-					$this->minorVersion = 0;
-				}
-			}
-			// Iceweasel needs to come before Firefox and Mozilla
-			elseif (preg_match('|Iceweasel/([0-9.]+)|', $this->agent, $version))
-			{
-				$this->setBrowser('iceweasel');
-
-				list($this->majorVersion, $this->minorVersion) = explode('.', $version[1]);
-			}
-			// Iceweasel needs to come before Mozilla
-			elseif (preg_match('|Firefox/([0-9.]+)|', $this->agent, $version))
-			{
-				$this->setBrowser('firefox');
-
-				list($this->majorVersion, $this->minorVersion) = explode('.', $version[1]);
-			}
-			elseif (preg_match('|Mozilla/([0-9.]+)|', $this->agent, $version))
-			{
-				$this->setBrowser('mozilla');
-
-				list($this->majorVersion, $this->minorVersion) = explode('.', $version[1]);
-			}
-			elseif (preg_match('|Lynx/([0-9]+)|', $this->agent, $version))
-			{
-				$this->setBrowser('lynx');
-			}
-			elseif (preg_match('|Links \(([0-9]+)|', $this->agent, $version))
-			{
-				$this->setBrowser('links');
-			}
-			elseif (preg_match('|HotJava/([0-9]+)|', $this->agent, $version))
-			{
-				$this->setBrowser('hotjava');
-			}
-			elseif (strpos($this->agent, 'UP/') !== false || strpos($this->agent, 'UP.B') !== false || strpos($this->agent, 'UP.L') !== false)
-			{
-				$this->setBrowser('up');
-				$this->mobile = true;
-			}
-			elseif (strpos($this->agent, 'Xiino/') !== false)
-			{
-				$this->setBrowser('xiino');
-				$this->mobile = true;
-			}
-			elseif (strpos($this->agent, 'Palmscape/') !== false)
-			{
-				$this->setBrowser('palmscape');
-				$this->mobile = true;
-			}
-			elseif (strpos($this->agent, 'Nokia') !== false)
-			{
-				$this->setBrowser('nokia');
-				$this->mobile = true;
-			}
-			elseif (strpos($this->agent, 'Ericsson') !== false)
-			{
-				$this->setBrowser('ericsson');
-				$this->mobile = true;
-			}
-			elseif (strpos($this->lowerAgent, 'wap') !== false)
-			{
-				$this->setBrowser('wap');
-				$this->mobile = true;
-			}
-			elseif (strpos($this->lowerAgent, 'docomo') !== false || strpos($this->lowerAgent, 'portalmmm') !== false)
-			{
-				$this->setBrowser('imode');
-				$this->mobile = true;
-			}
-			elseif (strpos($this->agent, 'BlackBerry') !== false)
-			{
-				$this->setBrowser('blackberry');
-				$this->mobile = true;
-			}
-			elseif (strpos($this->agent, 'MOT-') !== false)
-			{
-				$this->setBrowser('motorola');
-				$this->mobile = true;
-			}
-			elseif (strpos($this->lowerAgent, 'j-') !== false)
-			{
-				$this->setBrowser('mml');
-				$this->mobile = true;
 			}
 		}
 	}
@@ -546,17 +608,17 @@ class Detector extends Object
 						elseif (stristr($this->lowerAgent, '2000')) // windows 2000, for opera ID
 						{
 							$this->platformVersion = 5.0;
-							$this->platform .= ' NT';
+							//$this->platform .= ' NT';
 						}
 						elseif (stristr($this->lowerAgent, 'xp')) // windows 2000, for opera ID
 						{
 							$this->platformVersion = 5.1;
-							$this->platform .= ' NT';
+							//$this->platform .= ' NT';
 						}
 						elseif (stristr($this->lowerAgent, '2003')) // windows server 2003, for opera ID
 						{
 							$this->platformVersion = 5.2;
-							$this->platform .= ' NT';
+							//$this->platform .= ' NT';
 						}
 						elseif (stristr($this->lowerAgent, 'ce')) // windows CE
 						{
@@ -565,7 +627,7 @@ class Detector extends Object
 					break;
 
 					case 'nt':
-						$this->platform = 'Windows NT';
+						$this->platform = 'Windows';
 						if (stristr($this->lowerAgent, 'nt 5.2')) // windows server 2003
 						{
 							$this->platformVersion = 5.2;
@@ -701,26 +763,6 @@ class Detector extends Object
 	public function platformVersion()
 	{
 		return $this->platformVersion;
-	}
-
-	/**
-	 * Set browser version, not by engine version
-	 * Fallback to use when no other method identify the engine version
-	 *
-	 * @return  void
-	 */
-	protected function identifyBrowserVersion()
-	{
-		if (preg_match('|Version[/ ]([0-9.]+)|', $this->agent, $version))
-		{
-			list($this->majorVersion, $this->minorVersion) = explode('.', $version[1]);
-
-			return;
-		}
-
-		// Can't identify browser version
-		$this->majorVersion = 0;
-		$this->minorVersion = 0;
 	}
 
 	/**
