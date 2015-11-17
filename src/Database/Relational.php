@@ -923,7 +923,14 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 	 **/
 	public function total()
 	{
-		$total = $this->select($this->getQualifiedFieldName($this->getPrimaryKey()), 'count', true)->rows()->first()->count;
+		// Note that we do not need to parse includes at this stage, as includes do not effect
+		// the primary result set, and thus do not effect the count.  whereRelated could effect
+		// the count, but that method is not currently in use.
+		$total = $this->select($this->getQualifiedFieldName($this->getPrimaryKey()), 'count', true)
+		              ->rows(false)
+		              ->first()
+		              ->count;
+
 		$this->reset();
 
 		return $total;
@@ -952,14 +959,19 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 	/**
 	 * Gets the results of the established query
 	 *
+	 * @param   bool  $parseIncludes  Whether or not to parse the includes
 	 * @return  \Hubzero\Database\Rows
 	 * @since   2.0.0
 	 **/
-	public function rows()
+	public function rows($parseIncludes = true)
 	{
 		// Fetch the results
 		$rows = $this->rowsFromRaw($this->query->fetch('rows', $this->noCache));
-		$rows = $this->parseIncluding($rows);
+
+		if ($parseIncludes)
+		{
+			$rows = $this->parseIncluding($rows);
+		}
 
 		// Set a few things on the rows object that might be helpful
 		$rows->pagination = $this->pagination;

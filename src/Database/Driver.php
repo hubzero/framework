@@ -364,6 +364,7 @@ abstract class Driver
 		// Initialise some variables
 		$fields = [];
 		$values = [];
+		$binds  = [];
 
 		// Create the base insert statement
 		$statement = 'INSERT INTO ' . $this->quoteName($table) . ' (%s) VALUES (%s)';
