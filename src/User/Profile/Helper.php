@@ -235,14 +235,7 @@ class Helper
 						$pic = trim(str_replace($baseMemberPath, '', $path), DS);
 
 						// build serve link
-						if (\App::isAdmin())
-						{
-							$link = \Route::url('index.php?option=com_members&controller=members&task=picture&id=' . $member->get('uidNumber') . '&image=' . $pic);
-						}
-						else
-						{
-							$link = \Route::url('index.php?option=com_members&id=' . $member->get('uidNumber')) . DS . 'Image:' . $pic;
-						}
+						$link = with(new \Hubzero\Content\Moderator(PATH_ROOT . $path))->getUrl();
 						return $link;
 					}
 				}
