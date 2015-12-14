@@ -23,7 +23,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Christopher Smoak <csmoak@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
@@ -890,14 +889,8 @@ class Manager extends Object
 			}
 		}
 
-		// Record proxy forwarded for in the session in case we need it later
-		if (isset($_SERVER['HTTP_X_FORWARDED_FOR']))
-		{
-			$this->set('session.client.forwarded', $_SERVER['HTTP_X_FORWARDED_FOR']);
-		}
-
 		// Check for client address
-		if (in_array('fix_adress', $this->security) && isset($_SERVER['REMOTE_ADDR']))
+		if (in_array('fix_adress', $this->security) && isset($_SERVER['REMOTE_ADDR']) && filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP) !== false)
 		{
 			$ip = $this->get('session.client.address');
 
@@ -912,20 +905,10 @@ class Manager extends Object
 			}
 		}
 
-		// Check for clients browser
-		if (in_array('fix_browser', $this->security) && isset($_SERVER['HTTP_USER_AGENT']))
+		// Record proxy forwarded for in the session in case we need it later
+		if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && filter_var($_SERVER['HTTP_X_FORWARDED_FOR'], FILTER_VALIDATE_IP) !== false)
 		{
-			$browser = $this->get('session.client.browser');
-
-			if ($browser === null)
-			{
-				$this->set('session.client.browser', $_SERVER['HTTP_USER_AGENT']);
-			}
-			elseif ($_SERVER['HTTP_USER_AGENT'] !== $browser)
-			{
-				// @todo remove code: $this->state = 'error';
-				// @todo remove code: return false;
-			}
+			$this->set('session.client.forwarded', $_SERVER['HTTP_X_FORWARDED_FOR']);
 		}
 
 		return true;
