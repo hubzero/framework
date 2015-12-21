@@ -64,13 +64,6 @@ class SiteController extends Object implements ControllerInterface
 	use \Hubzero\Base\Traits\AssetAware;
 
 	/**
-	 * Container for component messages
-	 *
-	 * @var  array
-	 */
-	public $componentMessageQueue = array();
-
-	/**
 	 * The name of the component derived from the controller class name
 	 *
 	 * @var  string
@@ -139,7 +132,7 @@ class SiteController extends Object implements ControllerInterface
 	/**
 	 * The message to display
 	 *
-	 * @var string
+	 * @var  string
 	 * @deprecated
 	 */
 	protected $_message = null;
@@ -147,7 +140,7 @@ class SiteController extends Object implements ControllerInterface
 	/**
 	 * Message type
 	 *
-	 * @var string
+	 * @var  string
 	 * @deprecated
 	 */
 	protected $_messageType = 'message';
@@ -476,12 +469,6 @@ class SiteController extends Object implements ControllerInterface
 
 		if ($this->_redirect != null)
 		{
-			// Preserve component messages after redirect
-			if (count($this->componentMessageQueue))
-			{
-				\App::get('session')->set('component.message.queue', $this->componentMessageQueue);
-			}
-
 			\App::redirect($this->_redirect, $this->_message, $this->_messageType);
 		}
 	}
@@ -536,78 +523,6 @@ class SiteController extends Object implements ControllerInterface
 		// controller may have set this directly
 		$this->_message     = $msg;
 		$this->_messageType = $type;
-
-		return $this;
-	}
-
-	/**
-	 * Method to add a message to the component message que
-	 *
-	 * @param   string $message The message to add
-	 * @param   string $type    The type of message to add
-	 * @return  void
-	 * @deprecated
-	 */
-	public function addComponentMessage($message, $type='message')
-	{
-		$session = \App::get('session');
-		$componentMessage = $session->get('component.message.queue', array());
-		foreach ($componentMessage as $m)
-		{
-			if ($m['option'] != $this->_option)
-			{
-				continue;
-			}
-
-			if ($m['message'] == $message && $m['type'] == $type)
-			{
-				// Message already exists
-				return $this;
-			}
-		}
-
-		$componentMessage[] = array(
-			'message' => $message,
-			'type'    => strtolower($type),
-			'option'  => $this->_option
-		);
-		$session->set('component.message.queue', $componentMessage);
-
-		return $this;
-	}
-
-	/**
-	 * Method to get component messages
-	 *
-	 * @return  array
-	 * @deprecated
-	 */
-	public function getComponentMessage()
-	{
-		$session = \App::get('session');
-		$componentMessage = $session->get('component.message.queue', array());
-		$session->set('component.message.queue', null);
-
-		foreach ($componentMessage as $k => $cmq)
-		{
-			if ($cmq['option'] != $this->_option)
-			{
-				$componentMessage[$k] = array();
-			}
-		}
-
-		return $componentMessage;
-	}
-
-	/**
-	 * Clear the component message queue
-	 *
-	 * @return  object
-	 * @deprecated
-	 */
-	public function clearComponentMessage()
-	{
-		\App::get('session')->set('component.message.queue', null);
 
 		return $this;
 	}
