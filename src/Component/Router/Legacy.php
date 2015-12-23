@@ -78,19 +78,7 @@ class Legacy implements RouterInterface
 
 		if (function_exists($function))
 		{
-			$segments = $function($query);
-
-			if ($this->component == 'com_content')
-			{
-				$total = count($segments);
-
-				for ($i = 0; $i < $total; $i++)
-				{
-					$segments[$i] = str_replace(':', '-', $segments[$i]);
-				}
-			}
-
-			return $segments;
+			return $function($query);
 		}
 
 		return array();
@@ -108,16 +96,6 @@ class Legacy implements RouterInterface
 
 		if (function_exists($function))
 		{
-			if ($this->component == 'com_content')
-			{
-				$total = count($segments);
-
-				for ($i = 0; $i < $total; $i++)
-				{
-					$segments[$i] = preg_replace('/-/', ':', $segments[$i], 1);
-				}
-			}
-
 			return $function($segments);
 		}
 
