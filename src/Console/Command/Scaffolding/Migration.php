@@ -79,14 +79,22 @@ class Migration extends Scaffolding
 		}
 
 		// Determine our base path
-		$base = PATH_CORE;
-		if ($this->arguments->getOpt('install-dir') && strlen(($this->arguments->getOpt('install-dir'))) > 0)
+		$base       = $this->arguments->getOpt('app') ? PATH_APP : PATH_CORE;
+		$installDir = trim($this->arguments->getOpt('install-dir'));
+		if ($installDir && strlen($installDir) > 0)
 		{
-			$base = PATH_CORE . DS . trim($this->arguments->getOpt('install-dir'), DS);
+			if (substr($installDir, 0, 1) == DS)
+			{
+				$base = rtrim($installDir, DS);
+			}
+			else
+			{
+				$base .= DS . trim($installDir, DS);
+			}
 		}
 
 		// Install directory is migrations folder within base
-		$install_dir = $base . DS . 'migrations';
+		$installDir = $base . DS . 'migrations';
 
 		// Extension
 		$extension = null;
@@ -132,7 +140,7 @@ class Migration extends Scaffolding
 
 		// Craft file/classname
 		$classname   = 'Migration' . with(new Date('now'))->format("YmdHis") . $ext;
-		$destination = $install_dir . DS . $classname . '.php';
+		$destination = $installDir . DS . $classname . '.php';
 
 		$this->addTemplateFile("{$this->getType()}.tmpl", $destination)
 			 ->addReplacement('class_name', $classname)
@@ -227,6 +235,13 @@ class Migration extends Scaffolding
 				By default, this will be PATH_CORE. The command will then look for a 
 				directory named "migrations" within the provided installation directory.',
 				'Example: --install-dir=/www/myhub'
+			)
+			->addArgument(
+				'--app: use app as the base path, rather than core',
+				'Use the app, rather than the core directory.  This will effect both the
+				question of whether or not the provided extension appears to be valid,
+				as well as where the migration will be saved.',
+				'Example: --app'
 			)
 			->addArgument(
 				'--editor: editor',
