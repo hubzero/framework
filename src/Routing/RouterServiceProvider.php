@@ -33,6 +33,7 @@
 namespace Hubzero\Routing;
 
 use Hubzero\Base\Middleware;
+use Hubzero\Http\RedirectResponse;
 use Hubzero\Http\Request;
 
 /**
