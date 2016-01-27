@@ -636,4 +636,65 @@ class Request extends BaseRequest
 
 		return $this->$source->get($key, $default, true);
 	}
+
+	/**
+	 * Normalizes a query string.
+	 *
+	 * It builds a normalized query string, where keys/value pairs are alphabetized,
+	 * have consistent escaping and unneeded delimiters are removed.
+	 *
+	 * @param   string  $qs  Query string
+	 * @return  string  A normalized query string for the Request
+	 */
+	public static function normalizeQueryString($qs)
+	{
+		if ('' == $qs)
+		{
+			return '';
+		}
+
+		$parts = array();
+		$order = array();
+
+		foreach (explode('&', $qs) as $param)
+		{
+			if ('' === $param || '=' === $param[0])
+			{
+				// Ignore useless delimiters, e.g. "x=y&".
+				// Also ignore pairs with empty key, even if there was a value, e.g. "=value", as such nameless values cannot be retrieved anyway.
+				// PHP also does not include them when building _GET.
+				continue;
+			}
+
+			$keyValuePair = explode('=', $param, 2);
+
+			// GET parameters, that are submitted from a HTML form, encode spaces as "+" by default (as defined in enctype application/x-www-form-urlencoded).
+			// PHP also converts "+" to spaces when filling the global _GET or when using the function parse_str. This is why we use urldecode and then normalize to
+			// RFC 3986 with rawurlencode.
+			$parts[] = isset($keyValuePair[1]) ?
+				rawurlencode(urldecode($keyValuePair[0])) . '=' . rawurlencode(urldecode($keyValuePair[1])) :
+				rawurlencode(urldecode($keyValuePair[0]));
+			$order[] = urldecode($keyValuePair[0]);
+		}
+
+		// [!] Work around Symfony's HttpFoundation Request
+		// reordering incoming GET vars. The following:
+		//
+		// post[]=18&post[]=17&post[]=19&post[]=20&post[]=21&post[]=22
+		//
+		// ... would incorrectly result in this:
+		//
+		// Array
+		// (
+		//     [0] => 17  <- Wrong!
+		//     [1] => 18  <- Wrong!
+		//     [2] => 19
+		//     [3] => 20
+		//     [4] => 21
+		//     [5] => 22
+		// )
+		//array_multisort($order, SORT_ASC, $parts);
+
+		return implode('&', $parts);
+	}
 }
