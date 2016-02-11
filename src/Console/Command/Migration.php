@@ -213,6 +213,33 @@ class Migration extends Base implements CommandInterface
 		// Create migration object
 		$migration = new \Hubzero\Content\Migration($directory, $alternativeDatabase);
 
+		// Search vendor directories?
+		if ($this->arguments->getOpt('vendor'))
+		{
+			$vendorPath = PATH_APP . DS . 'vendor';
+
+			if (is_dir($vendorPath))
+			{
+				foreach (scandir($vendorPath) as $namespace)
+				{
+					if ($namespace != '.' && $namespace != '..' && is_dir($vendorPath . DS . $namespace))
+					{
+						foreach (scandir($vendorPath . DS . $namespace) as $package)
+						{
+							if ($package != '.' && $package != '..' && is_dir($vendorPath . DS . $namespace . DS . $package))
+							{
+								$migrationPath = $vendorPath . DS . $namespace . DS . $package . DS . 'src';
+								if (is_dir($migrationPath . DS . 'migrations'))
+								{
+									$migration->addSearchPath($migrationPath);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
 		// Make sure we got a migration object
 		if ($migration === false)
 		{
