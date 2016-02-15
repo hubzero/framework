@@ -40,38 +40,31 @@ namespace Hubzero\Content;
 class Migration
 {
 	/**
-	 * Document root in which to search for migration scripts
+	 * Paths in which to search for migration scripts
 	 *
-	 * @var string
+	 * @var array
 	 **/
-	private $docroot = '';
-
-	/**
-	 * Alternate document root in which to search for migration scripts
-	 *
-	 * @var string
-	 **/
-	private $altDocroot = null;
+	private $searchPaths = [];
 
 	/**
 	 * Array holding paths to migration scripts
 	 *
 	 * @var array
 	 **/
-	private $files = array();
+	private $files = [];
 
 	/**
 	 * Array holding files affected during this migration (i.e. those that are/would be run)
 	 *
 	 * @var array
 	 **/
-	private $affectedFiles = array();
+	private $affectedFiles = [];
 
 	/**
 	 * Variable holding database object
 	 *
 	 * If an alternate db is given, this db will hold the connection to the
-	 * primary joomla database where the extensions and logs tables are found
+	 * primary hub database where the extensions and logs tables are found
 	 *
 	 * @var string
 	 **/
@@ -82,21 +75,14 @@ class Migration
 	 *
 	 * @var string
 	 **/
-	private $altDb = null;
+	private $runDb = null;
 
 	/**
 	 * Log messages themselves (stored as array to return to browser, or other client)
 	 *
 	 * @var array
 	 **/
-	private $log = array();
-
-	/**
-	 * Date of last migrations run - implicit by last log entry
-	 *
-	 * @var array
-	 **/
-	private $last_run = array('up' => null, 'down' => null);
+	private $log = [];
 
 	/**
 	 * Array of callbacks
@@ -113,13 +99,6 @@ class Migration
 	private $tbl_name = '#__migrations';
 
 	/**
-	 * Keep track of query scope (just so we don't have to compute multiple times)
-	 *
-	 * @var string
-	 **/
-	private $queryScope = '';
-
-	/**
 	 * Whether or not to ignore callbacks
 	 *
 	 * @var bool
@@ -129,20 +108,22 @@ class Migration
 	/**
 	 * Constructor
 	 *
-	 * @param   object  $docroot  defaults to null, which should then resolve to hub docroot
+	 * @param   object  $docroot  Defaults to null, which should then resolve to the hub docroot
+	 * @param   object  $runDb    The db that migrations will actually run against
 	 * @return  void
 	 **/
-	public function __construct($docroot=null, $db=null)
+	public function __construct($docroot = null, $runDb = null)
 	{
 		// Try to determine the document root if none provided
 		if (is_null($docroot))
 		{
-			$this->docroot    = PATH_CORE;
-			$this->altDocroot = PATH_APP;
+			$this->addSearchPath(PATH_CORE)
+			     ->addSearchPath(PATH_APP);
 		}
 		else
 		{
-			$this->docroot = rtrim($docroot, '/');
+			$docroot = rtrim($docroot, DS);
+			$this->addSearchPath($docroot);
 		}
 
 		// Setup the database connection
@@ -152,58 +133,26 @@ class Migration
 			return false;
 		}
 
-		if (isset($db))
+		// This is the database that migrations will run against
+		// This is used for super group migrations, that don't run against
+		// the default database schema
+		if (isset($runDb))
 		{
-			$this->altDb = $db;
+			$this->runDb = $runDb;
 		}
+	}
 
-		// Try to figure out the date of the last file run
-		try
-		{
-			$scope = '';
+	/**
+	 * Adds a search path to the migration
+	 *
+	 * @param   string  $path  The path to add
+	 * @return  $this
+	 **/
+	public function addSearchPath($path)
+	{
+		$this->searchPaths[] = $path;
 
-			if ($this->db->tableHasField($this->get('tbl_name'), 'scope'))
-			{
-				// Scope could potentially be one of the following:
-				//  * migrations (this is legacy)
-				//  * core/migrations (this is current)
-				//  * /docroot/core/migrations
-				$scopes = array(
-					$this->db->quote('migrations'),
-					$this->db->quote($this->docroot . DS . 'migrations'),
-					$this->db->quote(str_replace(PATH_ROOT . DS, '', $this->docroot . DS . 'migrations'))
-				);
-
-				if (isset($this->altDocroot))
-				{
-					$scopes[] = $this->db->quote(str_replace(PATH_ROOT . DS, '', $this->altDocroot . DS . 'migrations'));
-				}
-
-				$scope = ' AND (`scope` = ' . implode(' OR `scope` = ', $scopes) . ')';
-			}
-
-			$this->queryScope = $scope;
-
-			$this->db->setQuery('SELECT `file` FROM `'.$this->get('tbl_name').'` WHERE `direction` = \'up\'' . $this->queryScope . ' ORDER BY `file` DESC LIMIT 1');
-			$rowup = $this->db->loadAssoc();
-
-			$this->db->setQuery('SELECT `file` FROM `'.$this->get('tbl_name').'` WHERE `direction` = \'down\'' . $this->queryScope . ' ORDER BY `file` DESC LIMIT 1');
-			$rowdown = $this->db->loadAssoc();
-
-			if (count($rowup) > 0)
-			{
-				$this->last_run['up'] = substr($rowup['file'], 9, 14);
-			}
-			if (count($rowdown) > 0)
-			{
-				$this->last_run['down'] = substr($rowdown['file'], 9, 14);
-			}
-		}
-		catch (\PDOException $e)
-		{
-			$this->log('Error: failed to look up last migrations log entry.', 'error');
-			return false;
-		}
+		return $this;
 	}
 
 	/**
@@ -266,24 +215,24 @@ class Migration
 	/**
 	 * Find all migration scripts
 	 *
-	 * @param   string  $extension  only look for migrations for this extension
-	 * @param   string  $file       the specific file to run
+	 * @param   string  $extension  Only look for migrations for this extension
+	 * @param   string  $file       The specific file to run
 	 * @return  array
 	 **/
-	public function find($extension=null, $file=null)
+	public function find($extension = null, $file = null)
 	{
 		// Exclude certain thiings from our search
 		$exclude = array(".", "..");
+		$files   = [];
+		$ext     = '';
 
-		$files = array_diff(scandir($this->docroot . DS . 'migrations'), $exclude);
-		$ext   = '';
-
-		if (isset($this->altDocroot))
+		foreach ($this->searchPaths as $path)
 		{
-			$altFiles = array_diff(scandir($this->altDocroot . DS . 'migrations'), $exclude);
-			$files    = array_merge($files, $altFiles);
-			sort($files);
+			$found = array_diff(scandir($path . DS . 'migrations'), $exclude);
+			$files = array_merge($files, $found);
 		}
+
+		sort($files);
 
 		if (!is_null($file))
 		{
@@ -327,14 +276,14 @@ class Migration
 	/**
 	 * Migrate up/down on all files gathered via 'find'
 	 *
-	 * @param   string  $direction    direction to migrate (up or down)
-	 * @param   bool    $force        run the update, even if the database says it's already been run
-	 * @param   bool    $dryrun       run the udpate, but only display what would be changed, wihthout actually doing anything
-	 * @param   bool    $ignoreDates  run the update on all files found lacking entries in the db, not just those after the last run date
-	 * @param   bool    $logOnly      run the update, and mark as run, but don't actually run sql (usefully to mark changes that had already been made manually)
+	 * @param   string  $direction  Direction to migrate (up or down)
+	 * @param   bool    $force      Run the update, even if the database says it's already been run
+	 * @param   bool    $dryrun     Run the udpate, but only display what would be changed, wihthout actually doing anything
+	 * @param   bool    $listAll    List all files found, not just those needing to be run
+	 * @param   bool    $logOnly    Run the update, and mark as run, but don't actually run sql (usefully to mark changes that had already been made manually)
 	 * @return  bool
 	 **/
-	public function migrate($direction='up', $force=false, $dryrun=false, $ignoreDates=false, $logOnly=false)
+	public function migrate($direction = 'up', $force = false, $dryrun = false, $listAll = false, $logOnly = false)
 	{
 		// Make sure we have files
 		if (empty($this->files))
@@ -349,10 +298,10 @@ class Migration
 			$this->log("Dry run: no changes will be made!");
 		}
 
-		// Notify if we're ignoring dates
-		if ($ignoreDates)
+		// Notify if we're listing all files
+		if ($listAll)
 		{
-			$this->log("Ignore dates: all eligible files will be included!");
+			$this->log("List all: all found files will be listed!");
 		}
 
 		// Now, fire hooks
@@ -361,109 +310,106 @@ class Migration
 			$this->fireHooks('onBeforeMigrate');
 		}
 
+		$hasStatus = $this->db->tableHasField($this->get('tbl_name'), 'status');
+
 		// Loop through files and run their '$direction' method
 		foreach ($this->files as $file)
 		{
 			// Create a hash of the file (not using this at the moment)
 			$hash = hash('md5', $file);
 
-			// Don't compare dates if we're doing a full scan
-			if (!$ignoreDates)
-			{
-				// Get date from file (would use last modified date, but git changes that)
-				// Running up, down, and up again won't do anything, because the file is now older than the last run.
-				// Currently, one should run $force or $ignoreDates and include an extension to override that behavior
-				$date = substr($file, 9, 14);
-				if (is_numeric($date))
-				{
-					if (is_numeric($this->last_run[$direction]) && $date <= $this->last_run[$direction] && !$force)
-					{
-						// This migration is older than the current, but let's see if we should inform that it should still be run
-						$this->db->setQuery("SELECT `direction` FROM `{$this->get('tbl_name')}` WHERE `file` = " . $this->db->quote($file) . "{$this->queryScope} ORDER BY `date` DESC LIMIT 1");
-						$row = $this->db->loadResult();
-
-						// Check if last run was either not in the current direction we're going,
-						// or if it hasn't been run at all and we're not going down
-						if ($row != $direction || (!$row && $direction != 'down'))
-						{
-							$this->log("Migration {$direction}() in {$file} has not been run and should be (by using the -i option)", 'warning');
-						}
-
-						continue;
-					}
-				}
-				else
-				{
-					// Filename did not contain a valid date
-					$this->log("File did not contain a valid date ({$file}).", 'warning');
-					continue;
-				}
-			}
-
-			// Initialize ignore
-			$ignore = false;
-
 			// Check to see if this file has already been run
 			try
 			{
 				// Look to the database log to see the last run on this file
-				$this->db->setQuery("SELECT `direction` FROM `{$this->get('tbl_name')}` WHERE `file` = " . $this->db->quote($file) . "{$this->queryScope} ORDER BY `date` DESC LIMIT 1");
-				$row = $this->db->loadResult();
+				$query = "SELECT `direction`";
 
-				// If the last migration for this file doesn't exist, or, it was the opposite of $direction, we can go ahead and run it.
-				// But, if the last run was the same direction as is currently being run, we shouldn't run it again
-				// Also, don't run down first...it's should come after up
-				if ($row == $direction || (!$row && $direction == 'down'))
+				if ($this->db->tableHasField($this->get('tbl_name'), 'status'))
 				{
-					$ignore = true;
+					$query .= ", `status`";
+				}
+
+				$query .= " FROM `{$this->get('tbl_name')}` WHERE `file` = " . $this->db->quote($file);
+				$query .= " ORDER BY `date` DESC LIMIT 1";
+
+				$this->db->setQuery($query);
+				$row = $this->db->loadObject();
+
+				// Decide whether or not we want to show the file at all
+				// If list all, then we just show everything
+				// If force, we assume we have to show it
+				if (!$listAll && !$force)
+				{
+					// If we have a row (meaning it's been run at least once before),
+					// and the direction is the same as is being run now, then it's already been run
+					if ($row && $row->direction == $direction)
+					{
+						// The last check is to make sure that the previous run we see was a success
+						// If we don't have a status line (which is an implicit success),
+						// or we do have a status and it was a success, then we can reasonably skip this entry
+						if (!$hasStatus || ($hasStatus && $row->status == 'success'))
+						{
+							continue;
+						}
+					}
+				}
+
+				// Now, if we are showing the file, should it actually be run?
+				if (!$force)
+				{
+					// If we have no row at all
+					if (!$row && $direction == 'down')
+					{
+						$this->log("Ignoring {$direction}() - you should run up first ({$file})");
+						continue;
+					}
+					// If the last run was the same direction as is currently being run, we shouldn't run it again
+					else if ($row && $row->direction == $direction)
+					{
+						// Lastly, check status as well
+						if (!$hasStatus || ($hasStatus && $row->status == 'success'))
+						{
+							if ($dryrun)
+							{
+								$this->log("Would ignore {$direction}() {$file}");
+								continue;
+							}
+							else
+							{
+								$this->log("Ignoring {$direction}() {$file}");
+								continue;
+							}
+						}
+					}
 				}
 			}
-			catch (\PDOException $e)
+			catch (\Hubzero\Database\Exception\QueryFailedException $e)
 			{
-				$ignore = false;
-			}
-
-			// Ignore this file, if we've already run it (unless it's being forced)
-			if ($ignore && !$force)
-			{
-				if ($dryrun)
-				{
-					$this->log("Would ignore {$direction}() {$file}");
-					continue;
-				}
-				elseif (!$row)
-				{
-					$this->log("Ignoring {$direction}() - you should run up first ({$file})");
-					continue;
-				}
-				else
-				{
-					$this->log("Ignoring {$direction}() {$file}");
-					continue;
-				}
+				// Our query failed altogether...that's not good
+				$this->log("Error: the check for preexisting migrations failed!", 'error');
+				return false;
 			}
 
 			// Get the file name
-			$info = pathinfo($file);
+			$info  = pathinfo($file);
+			$found = false;
 
-			$fullpath = $this->docroot . DS . 'migrations' . DS . $file;
-			$docroot  = $this->docroot;
-
-			// Include the file
-			if (!is_file($fullpath))
+			foreach ($this->searchPaths as $path)
 			{
-				$altPath = $this->altDocroot . DS . 'migrations' . DS . $file;
+				$fullpath = $path . DS . 'migrations' . DS . $file;
+				$docroot  = $path;
 
-				if (!is_file($altPath))
+				if (is_file($fullpath))
 				{
-					$this->log("{$fullpath} is not a valid file", 'warning');
-					continue;
+					$found = true;
+					break;
 				}
-				else
-				{
-					$fullpath = $altPath;
-					$docroot  = $this->altDocroot;
-				}
+			}
+
+			if (!$found)
+			{
+				$this->log("{$fullpath} is not a valid file", 'warning');
+				continue;
 			}
 
 			require_once $fullpath;
@@ -482,43 +428,20 @@ class Migration
 			$this->affectedFiles[] = $info['filename'];
 
 			// Instantiate our class
-			$class = new $classname($this->db, $this->callbacks, $this->altDb);
+			$class = new $classname($this->db, $this->callbacks, $this->runDb);
 
 			// Check if we're making a dry run, or only logging changes
-			if ($dryrun || $logOnly)
+			if ($dryrun)
 			{
-				if ($dryrun)
-				{
-					$this->log("Would run {$direction}() {$file}", 'success');
-				}
-				elseif ($logOnly)
-				{
-					$this->recordMigration($file, str_replace(PATH_ROOT . DS, '', $docroot . DS . 'migrations'), $hash, $direction);
-					$this->log("Marking as run: {$direction}() in {$file}", 'success');
-				}
+				$this->log("Would run {$direction}() {$file}", 'success');
+			}
+			else if ($logOnly)
+			{
+				$this->recordMigration($file, str_replace(PATH_ROOT . DS, '', $docroot . DS . 'migrations'), $hash, $direction);
+				$this->log("Marking as run: {$direction}() in {$file}", 'success');
 			}
 			else
 			{
-				// Check and run 'pre' if necessary
-				if (method_exists($class, 'pre'))
-				{
-					try
-					{
-						if ($class->pre() === false)
-						{
-							$this->log("Running pre() returned false {$file}", 'warning');
-							continue;
-						}
-
-						$this->log("Running pre() {$file}");
-					}
-					catch (\PDOException $e)
-					{
-						$this->log("Error: running pre() resulted in\n\n{$e}\n\nin {$file}", 'error');
-						return false;
-					}
-				}
-
 				// Try running the '$direction' SQL
 				if (method_exists($class, $direction))
 				{
@@ -526,26 +449,25 @@ class Migration
 					{
 						$result = $class->$direction();
 						$errors = $class->getErrors();
+						$status = 'success';
 
 						// Loop through errors if we have them
 						if ($errors && count($errors) > 0)
 						{
-							// Track whether we should log this as completed or continue to next file
-							$log = true;
 							foreach ($errors as $error)
 							{
 								if ($error['type'] == 'fatal')
 								{
-									// Completely failed...stop immediately
+									// Completely failed...log and stop immediately
 									$this->log("Error: running {$direction}() resulted in a fatal error in {$file}: {$error['message']}", 'error');
+									$this->recordMigration($file, str_replace(PATH_ROOT . DS, '', $docroot . DS . 'migrations'), $hash, $direction, 'fatal');
 									return false;
 								}
 								else if ($error['type'] == 'warning')
 								{
 									// Just a warning...display message and carry on (my wayward son)
 									$this->log("Warning: running {$direction}() resulted in a non-fatal error in {$file}: {$error['message']}", 'warning');
-									// Continue...i.e. don't log that this migration was run, so it shows up again on the next run
-									$log = false;
+									$status = 'warning';
 									continue;
 								}
 								else if ($error['type'] == 'info')
@@ -554,40 +476,19 @@ class Migration
 									$this->log("Info: running {$direction}() noted this in {$file}: {$error['message']}", 'info');
 								}
 							}
-
-							// Now check if we're logging this file
-							if (!$log)
-							{
-								continue;
-							}
 						}
 
-						$this->recordMigration($file, str_replace(PATH_ROOT . DS, '', $docroot . DS . 'migrations'), $hash, $direction);
+						$this->recordMigration($file, str_replace(PATH_ROOT . DS, '', $docroot . DS . 'migrations'), $hash, $direction, $status);
 						$this->log("Completed {$direction}() in {$file}", 'success');
 					}
-					catch (\PDOException $e)
+					catch (\Hubzero\Database\Exception\QueryFailedException $e)
 					{
-						$this->log("Error: running {$direction}() resulted in\n\n{$e}\n\nin {$file}", 'error');
+						$this->log("Error: running {$direction}() resulted in\n\n{$e->getMessage()}\n\nin {$file}", 'error');
 						return false;
 					}
-				}
-
-				// Check and run 'post'
-				if (method_exists($class, 'post'))
-				{
-					try
-					{
-						if ($class->post() === false)
-						{
-							$this->log("Running post() returned false {$file}", 'warning');
-							continue;
-						}
-
-						$this->log("Running post() {$file}");
-					}
 					catch (\PDOException $e)
 					{
-						$this->log("Error: running post() resulted in\n\n{$e}\n\nin {$file}", 'error');
+						$this->log("Error: running {$direction}() resulted in\n\n{$e->getMessage()}\n\nin {$file}", 'error');
 						return false;
 					}
 				}
@@ -606,29 +507,35 @@ class Migration
 	/**
 	 * Fire migration pre/post hooks
 	 *
-	 * @param   string  $timing  which hooks to fire
+	 * @param   string  $timing  Which hooks to fire
 	 * @return  void
 	 **/
 	private function fireHooks($timing)
 	{
-		$exclude   = array(".", "..");
-		$directory = $this->docroot . DS . 'migrations' . DS . 'hooks';
+		$exclude = array(".", "..");
+		$hooks   = [];
 
-		// Make sure we have a hooks directroy
-		if (!is_dir($directory))
+		foreach ($this->searchPaths as $path)
 		{
-			return;
-		}
+			// Make sure we have a hooks directroy
+			if (is_dir($path . DS . 'migrations' . DS . 'hooks'))
+			{
+				$found = [];
+				foreach (array_diff(scandir($path . DS . 'migrations' . DS . 'hooks'), $exclude) as $hook)
+				{
+					$found[] = ['base' => $path . DS . 'migrations' . DS . 'hooks', 'name' => $hook];
+				}
 
-		$hooks = array_diff(scandir($directory), $exclude);
+				$hooks = array_merge($hooks, $found);
+			}
+		}
 
 		if (count($hooks) > 0)
 		{
 			foreach ($hooks as $hook)
 			{
 				// Get the file name
-				$info     = pathinfo($hook);
-				$fullpath = $this->docroot . DS . 'migrations' . DS . 'hooks' . DS . $hook;
+				$fullpath = $hook['base'] . DS . $hook['name'];
 
 				// Include the file
 				if (is_file($fullpath))
@@ -641,6 +548,7 @@ class Migration
 				}
 
 				// Set classname
+				$info      = pathinfo($hook['name']);
 				$classname = $info['filename'];
 
 				// Instantiate our class
@@ -660,7 +568,7 @@ class Migration
 					{
 						// Just a warning...display message and carry on (my wayward son)
 						$message = (isset($result['message']) && !empty($result['message'])) ? $result['message'] : '[no message provided]';
-						$this->log("Warning: {$timing} hook '{$hook}' resulted in an error: {$message}", 'warning');
+						$this->log("Warning: {$timing} hook '{$hook['name']}' resulted in an error: {$message}", 'warning');
 					}
 				}
 			}
@@ -670,14 +578,22 @@ class Migration
 	/**
 	 * Record migration in migrations table
 	 *
-	 * @param   string  $file       the path to file being recorded
-	 * @param   string  $scope      the folder of migration
-	 * @param   string  $hash       the hash of file
-	 * @param   string  $direction  up or down
+	 * @param   string  $file       The path to file being recorded
+	 * @param   string  $scope      The folder of migration
+	 * @param   string  $hash       The hash of file
+	 * @param   string  $direction  Up or down
+	 * @param   string  $status     The status of the run
 	 * @return  bool
 	 **/
-	public function recordMigration($file, $scope, $hash, $direction)
+	public function recordMigration($file, $scope, $hash, $direction, $status = 'success')
 	{
+		// Catch instances where we don't have a status field yet
+		// and mimic prior behavior where these runs were not logged
+		if (!$this->db->tableHasField($this->get('tbl_name'), 'status') && $status != 'success')
+		{
+			return true;
+		}
+
 		// Try inserting a migration record into the database
 		try
 		{
@@ -697,11 +613,16 @@ class Migration
 				$obj->scope = $scope;
 			}
 
+			if ($this->db->tableHasField($this->get('tbl_name'), 'status'))
+			{
+				$obj->status = $status;
+			}
+
 			$this->db->insertObject($this->get('tbl_name'), $obj);
 		}
-		catch (\PDOException $e)
+		catch (\Hubzero\Database\Exception\QueryFailedException $e)
 		{
-			$this->log("Failed inserting migration record: {$e}", 'error');
+			$this->log("Failed inserting migration record: {$e->getMessage()}", 'error');
 			return false;
 		}
 	}
@@ -721,7 +642,7 @@ class Migration
 
 			return $results;
 		}
-		catch (\PDOException $e)
+		catch (\Hubzero\Database\Exception\QueryFailedException $e)
 		{
 			$this->log("Failed to retrieve history.", 'error');
 			return false;
@@ -751,11 +672,11 @@ class Migration
 	/**
 	 * Logging mechanism
 	 *
-	 * @param   string  $message  message to log
-	 * @param   string  $type     message type, can be one predefined values from output class (not specified will default to 'normal' text)
+	 * @param   string  $message  Message to log
+	 * @param   string  $type     Message type, can be one predefined values from output class (not specified will default to 'normal' text)
 	 * @return  void
 	 **/
-	public function log($message, $type=null)
+	public function log($message, $type = null)
 	{
 		$this->log[] = array('message' => $message, 'type' => $type);
 
@@ -768,7 +689,7 @@ class Migration
 	/**
 	 * Set the table name used for internal logging of migrations
 	 *
-	 * @param   string  $tbl_name
+	 * @param   string  $tbl_name  The table name to set
 	 * @return  void
 	 **/
 	public function setTableName($tbl_name)
@@ -779,8 +700,8 @@ class Migration
 	/**
 	 * Register a callback
 	 *
-	 * @param   string   $name      the callback name
-	 * @param   closure  $callback  the function to run
+	 * @param   string   $name      The callback name
+	 * @param   closure  $callback  The function to run
 	 * @return  void
 	 **/
 	public function registerCallback($name, $callback)
@@ -791,7 +712,7 @@ class Migration
 	/**
 	 * Attempt to create needed migrations table
 	 *
-	 * @param   object  $db  the database connection object
+	 * @param   object  $db  The database connection object
 	 * @return  bool
 	 **/
 	private function createMigrationsTable($db)
@@ -806,6 +727,7 @@ class Migration
 					`direction` varchar(10) NOT NULL DEFAULT '',
 					`date` datetime NOT NULL,
 					`action_by` varchar(255) NOT NULL DEFAULT '',
+					`status` varchar(255) NOT NULL DEFAULT '',
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
@@ -817,7 +739,7 @@ class Migration
 			$this->log('Migrations table successfully created');
 			return true;
 		}
-		catch (\PDOException $e)
+		catch (\Hubzero\Database\Exception\QueryFailedException $e)
 		{
 			$this->log('Unable to create needed migrations table', 'error');
 			return false;

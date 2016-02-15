@@ -152,10 +152,10 @@ class Migration extends Base implements CommandInterface
 		}
 
 		// Ignore dates
-		$ignoreDates = false;
-		if ($this->arguments->getOpt('i'))
+		$listAll = false;
+		if ($this->arguments->getOpt('a') || $this->arguments->getOpt('i'))
 		{
-			$ignoreDates = true;
+			$listAll = true;
 		}
 
 		// Specific extension
@@ -185,7 +185,7 @@ class Migration extends Base implements CommandInterface
 				$file = $this->arguments->getOpt('file');
 
 				// Also force "ignore dates mode", as that's somewhat implied by giving a specific filename
-				$ignoreDates = true;
+				$listAll = true;
 			}
 		}
 
@@ -212,6 +212,33 @@ class Migration extends Base implements CommandInterface
 
 		// Create migration object
 		$migration = new \Hubzero\Content\Migration($directory, $alternativeDatabase);
+
+		// Search vendor directories?
+		if ($this->arguments->getOpt('vendor'))
+		{
+			$vendorPath = PATH_APP . DS . 'vendor';
+
+			if (is_dir($vendorPath))
+			{
+				foreach (scandir($vendorPath) as $namespace)
+				{
+					if ($namespace != '.' && $namespace != '..' && is_dir($vendorPath . DS . $namespace))
+					{
+						foreach (scandir($vendorPath . DS . $namespace) as $package)
+						{
+							if ($package != '.' && $package != '..' && is_dir($vendorPath . DS . $namespace . DS . $package))
+							{
+								$migrationPath = $vendorPath . DS . $namespace . DS . $package . DS . 'src';
+								if (is_dir($migrationPath . DS . 'migrations'))
+								{
+									$migration->addSearchPath($migrationPath);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 
 		// Make sure we got a migration object
 		if ($migration === false)
@@ -243,7 +270,7 @@ class Migration extends Base implements CommandInterface
 		else // no errors during 'find', so continue
 		{
 			// Run migration itself
-			if (!$result = $migration->migrate($direction, $force, $dryrun, $ignoreDates, $logOnly))
+			if (!$result = $migration->migrate($direction, $force, $dryrun, $listAll, $logOnly))
 			{
 				$this->output->error('Migration failed! See log messages for details.');
 			}
@@ -410,8 +437,19 @@ class Migration extends Base implements CommandInterface
 				'Example: -e=com_courses, -e=plg_members_dashboard'
 			)
 			->addArgument(
+				'-a: list all',
+				'List all will display all migrations found, not just those needing
+				to be run. This allows you to see the files that need to be run in the
+				context of the other files that have already been run. This differs from
+				the prior -i argument which was needed because, by default, only new
+				files were considered for a run. Now, all files needing to be run are
+				included by default, irrespective of whether or not they are dated after
+				the last run migration.'
+			)
+			->addArgument(
 				'-i: ignore dates',
-				'Using this option will scan for and run all migrations that haven\'t
+				'DEPRECATED: Now functions as if the -a option were given.
+				Using this option will scan for and run all migrations that haven\'t
 				previously been run, irrespective of the date of the migration.
 				This differs from the default behavior in that normally, only files
 				dated after the last run date will be eligable to be included in the
