@@ -25,333 +25,259 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Christopher Smoak <csmoak@purdue.edu>
  * @copyright Copyright 2009-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Item;
 
-use Hubzero\Mail\View;
-use Hubzero\Mail\Message;
+use Hubzero\Database\Relational;
 use Hubzero\User\Profile;
-use Hubzero\User\Group;
-use Hubzero\Utility\Date;
+use Lang;
+use Date;
 
 /**
- * Hubzero Announcement Model Class
+ * Item Announcement
  */
-class Announcement extends \JTable
+class Announcement extends Relational
 {
-	/*
-	 * Define Announcement States
+	/**
+	 * Default order by for model
+	 *
+	 * @var  string
 	 */
-	const STATE_UNPUBLISHED = 0;
-	const STATE_PUBLISHED   = 1;
-	const STATE_DELETED     = 2;
+	public $orderBy = 'created';
 
 	/**
-	 * Constructor
+	 * Default order direction for select queries
 	 *
-	 * @param   object  $db
+	 * @var  string
+	 */
+	public $orderDir = 'desc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'content' => 'notempty'
+	);
+
+	/**
+	 * Automatic fields to populate every time a row is created
+	 *
+	 * @var  array
+	 */
+	public $initiate = array(
+		'created',
+		'created_by'
+	);
+
+	/**
+	 * Automatically fillable fields
+	 *
+	 * @var  array
+	 */
+	public $always = array(
+		'publish_up',
+		'publish_down'
+	);
+
+	/**
+	 * Fields to be parsed
+	 *
+	 * @var array
+	 */
+	protected $parsed = array(
+		'content'
+	);
+
+	/**
+	 * Sets up additional custom rules
+	 *
 	 * @return  void
 	 */
-	public function __construct($db)
+	public function setup()
 	{
-		parent::__construct('#__announcements', 'id', $db);
+		$this->addRule('publish_down', function($data)
+		{
+			if (!$data['publish_down'] || $data['publish_down'] == '0000-00-00 00:00:00')
+			{
+				return false;
+			}
+			return $data['publish_down'] >= $data['publish_up'] ? false : Lang::txt('The entry cannot end before it begins');
+		});
 	}
 
 	/**
-	 * Overloaded Check method. Verify we have all needed things to save
+	 * Generates automatic owned by field value
 	 *
-	 * @return  bool
+	 * @param   array   $data  the data being saved
+	 * @return  string
 	 */
-	public function check()
+	public function automaticPublishUp($data)
 	{
-		//make sure we have content
-		if (!isset($this->content) || $this->content == '')
+		if (!isset($data['publish_up']))
 		{
-			$this->setError(\Lang::txt('Announcement must contain some content.'));
+			$data['publish_up'] = null;
+		}
+
+		$publish_up = $data['publish_up'];
+
+		if (!$publish_up || $publish_up == '0000-00-00 00:00:00')
+		{
+			$publish_up = ($data['id'] ? $this->created : Date::of('now')->toSql());
+		}
+
+		return $publish_up;
+	}
+
+	/**
+	 * Generates automatic owned by field value
+	 *
+	 * @param   array   $data  the data being saved
+	 * @return  string
+	 */
+	public function automaticPublishDown($data)
+	{
+		if (!isset($data['publish_down']) || !$data['publish_down'])
+		{
+			$data['publish_down'] = '0000-00-00 00:00:00';
+		}
+		return $data['publish_down'];
+	}
+
+	/**
+	 * Defines a belongs to one relationship between article and user
+	 *
+	 * @return  object  \Hubzero\Database\Relationship\BelongsToOne
+	 */
+	public function creator()
+	{
+		if ($profile = Profile::getInstance($this->get('created_by')))
+		{
+			return $profile;
+		}
+		return new Profile;
+	}
+
+	/**
+	 * Check if the entry is available
+	 *
+	 * @return  boolean
+	 */
+	public function inPublishWindow()
+	{
+		if ($this->started() && !$this->ended())
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Has the publish window started?
+	 *
+	 * @return  boolean
+	 */
+	public function started()
+	{
+		// If it doesn't exist or isn't published
+		if ($this->isNew())
+		{
 			return false;
 		}
 
-		if (!$this->created)
+		if ($this->get('publish_up')
+		 && $this->get('publish_up') != '0000-00-00 00:00:00'
+		 && $this->get('publish_up') > Date::toSql())
 		{
-			$this->created = with(new Date('now'))->toSql();
+			return false;
 		}
 
 		return true;
 	}
 
 	/**
-	 * Mark item as archived
+	 * Has the publish window ended?
 	 *
-	 * @return  object
+	 * @return  boolean
 	 */
-	public function archive()
+	public function ended()
 	{
-		$this->state = self::STATE_DELETED;
+		// If it doesn't exist or isn't published
+		if ($this->isNew())
+		{
+			return true;
+		}
 
-		return $this;
+		if ($this->get('publish_down')
+		 && $this->get('publish_down') != '0000-00-00 00:00:00'
+		 && $this->get('publish_down') <= Date::toSql())
+		{
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
 	 * Method to check if announcement belongs to entity
 	 *
-	 * @param   string   $entity_scope
-	 * @param   integer  $entity_id
+	 * @param   string   $scope
+	 * @param   integer  $scope_id
 	 * @return  boolean
 	 */
-	public function belongsToObject($entity_scope, $entity_id)
+	public function belongsToObject($scope, $scope_id)
 	{
-		// make sure we have an id
-		if (!isset($this->id) || $this->id == null || $this->id == 0)
+		// Make sure we have an id
+		if ($this->isNew())
 		{
 			return true;
 		}
 
-		// make sure scope and id match
-		if ($this->scope == $entity_scope && $this->scope_id == $entity_id)
+		// Make sure scope and id match
+		if ($this->get('scope') == (string)$scope
+		 && $this->get('scope_id') == (int)$scope_id)
 		{
 			return true;
 		}
+
 		return false;
 	}
 
 	/**
-	 * Get Announcement Count
+	 * Return a formatted timestamp
 	 *
-	 * @param   array  $filters
-	 * @return  integer
-	 */
-	public function count($filters = array())
-	{
-		$query  = "SELECT COUNT(*)";
-		$query .= $this->_buildQuery($filters);
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadResult();
-	}
-
-	/**
-	 * Get Announcement Records
-	 *
-	 * @param   array  $filters
-	 * @return  array
-	 */
-	public function find($filters = array())
-	{
-		$query  = "SELECT a.*";
-		$query .= $this->_buildQuery($filters);
-
-		$query .= " ORDER BY a.created DESC";
-		if (isset($filters['limit']))
-		{
-			if (!isset($filters['start']))
-			{
-				$filters['start'] = 0;
-			}
-			$query .= " LIMIT " . intval($filters['start']) . "," . intval($filters['limit']);
-		}
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
-	}
-
-	/**
-	 * Build Query to get Announcements
-	 *
-	 * @param   array   $filters
+	 * @param   string  $as  What format to return
 	 * @return  string
 	 */
-	private function _buildQuery($filters = array())
+	public function published($as='')
 	{
-		//array to hold where statements
-		$where = array();
-
-		//start query
-		$query = " FROM $this->_tbl AS a";
-
-		//apply filters based on filters passed in
-		if (isset($filters['scope']) && $filters['scope'])
+		if (!$this->get('publish_up') || $this->get('publish_up') == '0000-00-00 00:00:00')
 		{
-			$where[] = "a.`scope` = " . $this->_db->quote($filters['scope']);
-		}
-		if (isset($filters['scope_id']) && $filters['scope_id'])
-		{
-			$where[] = "a.`scope_id` = " . $this->_db->quote(intval($filters['scope_id']));
-		}
-		if (isset($filters['state']) && $filters['state'])
-		{
-			$where[] = "a.`state` = " . $this->_db->quote(intval($filters['state']));
-		}
-		if (isset($filters['created_by']) && $filters['created_by'])
-		{
-			$where[] = "a.`created_by` = " . $this->_db->quote(intval($filters['created_by']));
-		}
-		if (isset($filters['priority']) && $filters['priority'])
-		{
-			$where[] = "a.`priority` = " . $this->_db->quote(intval($filters['priority']));
-		}
-		if (isset($filters['sticky']) && in_array($filters['sticky'], array(0,1)))
-		{
-			$where[] = "a.`sticky` = " . $this->_db->quote(intval($filters['sticky']));
-		}
-		if (isset($filters['email']) && in_array($filters['email'], array(0,1)))
-		{
-			$where[] = "a.`email` = " . $this->_db->quote(intval($filters['email']));
-		}
-		if (isset($filters['sent']) && in_array($filters['sent'], array(0,1)))
-		{
-			$where[] = "a.`sent` = " . $this->_db->quote(intval($filters['sent']));
+			$this->set('publish_up', $this->get('created'));
 		}
 
-		//published
-		if (isset($filters['published']))
-		{
-			$now = new Date('now');
-			$where[] = "(a.`publish_up` = '0000-00-00 00:00:00' OR a.`publish_up` <= " . $this->_db->quote($now->toSql()) . ")";
-			$where[] = "(a.`publish_down` = '0000-00-00 00:00:00' OR a.`publish_down` >= " . $this->_db->quote($now->toSql()) . ")";
-		}
+		$as = strtolower($as);
 
-		//search
-		if (isset($filters['search']) && $filters['search'])
+		if ($as)
 		{
-			if (is_numeric($filters['search']))
+			if ($as == 'date')
 			{
-				$where[] = "a.`id`=" . $this->_db->quote(intval($filters['search']));
+				return Date::of($this->get('publish_up'))->toLocal(Lang::txt('DATE_FORMAT_HZ1'));
 			}
-			else
+
+			if ($as == 'time')
 			{
-				$where[] = "(LOWER(a.content) LIKE " . $this->_db->quote('%' . strtolower($filters['search']) . '%') . ")";
+				return Date::of($this->get('publish_up'))->toLocal(Lang::txt('TIME_FORMAT_HZ1'));
 			}
+
+			return Date::of($this->get('publish_up'))->toLocal($as);
 		}
 
-		//if we have an wheres append them
-		if (count($where) > 0)
-		{
-			$query .= " WHERE " . implode(' AND ', $where);
-		}
-
-		return $query;
-	}
-
-	/**
-	 * Check if date is within announcement publish up/down
-	 *
-	 * @param   object  $announcement
-	 * @param   string  $date
-	 * @return  boolean
-	 */
-	public function announcementPublishedForDate($announcement = null, $date = null)
-	{
-		// var to hold if announcment is published
-		$published = false;
-
-		// make sure we have an announcement
-		if ($announcement === null)
-		{
-			$announcement = $this;
-		}
-
-		// make sure we have a date
-		if ($date === null)
-		{
-			$date = time();
-		}
-
-		//get up and down times
-		$up = $down = null;
-		if ($announcement->publish_up != '' && $announcement->publish_up != $this->_db->getNullDate())
-		{
-			$up = with(new Date($announcement->publish_up))->toUnix();
-		}
-		if ($announcement->publish_down != '' && $announcement->publish_down != $this->_db->getNullDate())
-		{
-			$down = with(new Date($announcement->publish_down))->toUnix();
-		}
-
-		// if we have a null uptime or uptime less then our date
-		// and if down is null or downtime is greater then our date
-		if (($up == null || $date >= $up) && ($down == null || $date <= $down))
-		{
-			$published = true;
-		}
-
-		return $published;
-	}
-
-	/**
-	 * Email Announcement
-	 *
-	 * @param   object  $announcement
-	 * @return  boolean
-	 */
-	public function emailAnnouncement($announcement = null)
-	{
-		// make sure we have an announcement
-		if ($announcement === null)
-		{
-			$announcement = $this;
-		}
-
-		// load group
-		$group = Group::getInstance($announcement->scope_id);
-
-		// get all group members
-		$groupMembers = array();
-		foreach ($group->get('members') as $member)
-		{
-			if ($profile = Profile::getInstance($member))
-			{
-				$groupMembers[$profile->get('email')] = $profile->get('name');
-			}
-		}
-
-		// create view object
-		$eview = new View(
-			array(
-				'base_path' => PATH_CORE . DS . 'plugins' . DS . 'groups' . DS . 'announcements',
-				'name'      => 'email',
-				'layout'    => 'announcement_plain'
-			)
-		);
-
-		// plain text
-		$eview->announcement = $announcement;
-		$plain = $eview->loadTemplate();
-		$plain = str_replace("\n", "\r\n", $plain);
-
-		// HTML
-		$eview->setLayout('announcement_html');
-		$html = $eview->loadTemplate();
-		$html = str_replace("\n", "\r\n", $html);
-
-		// set from address
-		$from = array(
-			'name'  => \Config::get('sitename') . ' Groups',
-			'email' => \Config::get('mailfrom')
-		);
-
-		// define subject
-		$subject = $group->get('description') . ' Group Announcement';
-
-		foreach ($groupMembers as $email => $name)
-		{
-			// create message object
-			$message = new Message();
-
-			// set message details and send
-			$message->setSubject($subject)
-					->addReplyTo($from['email'], $from['name'])
-					->addFrom($from['email'], $from['name'])
-					->setTo($email, $name)
-					->addPart($plain, 'text/plain')
-					->addPart($html, 'text/html')
-					->send();
-		}
-
-		// all good
-		return true;
+		return $this->get('publish_up');
 	}
 }
