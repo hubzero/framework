@@ -25,265 +25,182 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Item;
 
+use Hubzero\Database\Relational;
+use Hubzero\User\Profile;
+use User;
+
 /**
- * Table class for item watch
+ * Item Announcement
  */
-class Watch extends \JTable
+class Watch extends Relational
 {
 	/**
-	 * Constructor
+	 * The table namespace
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
+	 * @var  string
 	 */
-	public function __construct(&$db)
-	{
-		parent::__construct('#__item_watch', 'id', $db);
-	}
+	protected $namespace = 'item';
 
 	/**
-	 * Validate data
+	 * The table to which the class pertains
 	 *
-	 * @return  boolean  True if data is valid
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
 	 */
-	public function check()
-	{
-		$this->item_id = intval($this->item_id);
-		if (!$this->item_id)
-		{
-			$this->setError(\Lang::txt('Missing item ID.'));
-			return false;
-		}
-
-		$this->item_type = strtolower(preg_replace("/[^a-zA-Z0-9\-]/", '', trim($this->item_type)));
-		if (!$this->item_type)
-		{
-			$this->setError(\Lang::txt('Missing item type.'));
-			return false;
-		}
-
-		if (!$this->created_by)
-		{
-			$this->created_by = \User::get('id');
-		}
-		if (!$this->email)
-		{
-			$this->email = \User::get('email');
-		}
-
-		if (!$this->id)
-		{
-			$this->created = \Date::toSql();
-		}
-
-		return true;
-	}
+	protected $table = '#__item_watch';
 
 	/**
-	 * Build SQL statement based on passed filters
+	 * Default order by for model
 	 *
-	 * @param   array   $filters
+	 * @var  string
+	 */
+	public $orderBy = 'created';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'desc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'item_id'   => 'positive|nonzero',
+		'item_type' => 'notempty'
+	);
+
+	/**
+	 * Automatic fields to populate every time a row is created
+	 *
+	 * @var  array
+	 */
+	public $initiate = array(
+		'created',
+		'created_by'
+	);
+
+	/**
+	 * Automatically fillable fields
+	 *
+	 * @var  array
+	 */
+	public $always = array(
+		'email',
+		'item_type'
+	);
+
+	/**
+	 * Generates automatic email field value
+	 *
+	 * @param   array   $data  the data being saved
 	 * @return  string
 	 */
-	public function buildQuery($filters=array())
+	public function automaticEmail($data)
 	{
-		$query  = "FROM $this->_tbl AS c";
-
-		$where = array();
-
-		if (isset($filters['state']))
+		if (!isset($data['email']))
 		{
-			if (is_array($filters['state']))
-			{
-				$filters['state'] = array_map('intval', $filters['state']);
-				$where[] = "c.state IN (" . implode(',', $filters['state']) . ")";
-			}
-			else if ($filters['state'] >= 0)
-			{
-				$where[] = "c.state=" . $this->_db->quote(intval($filters['state']));
-			}
+			$data['email'] = User::get('email');
 		}
 
-		if (isset($filters['item_type']) && $filters['item_type'] >= 0)
-		{
-			$where[] = "c.item_type=" . $this->_db->quote($filters['item_type']);
-		}
-
-		if (isset($filters['item_id']) && $filters['item_id'] >= 0)
-		{
-			$where[] = "c.item_id=" . $this->_db->quote($filters['item_id']);
-		}
-
-		if (isset($filters['email']) && trim($filters['email']) != '')
-		{
-			$where[] = "c.email=" . $this->_db->quote($filters['email']);
-		}
-		elseif (isset($filters['created_by']) && $filters['created_by'] >= 0)
-		{
-			$where[] = "c.created_by=" . $this->_db->quote($filters['created_by']);
-		}
-
-		if (isset($filters['area']) && trim($filters['area']) != '')
-		{
-			$where[] = "c.params LIKE " . $this->_db->quote('%' . trim($filters['area']) . '=1%');
-		}
-
-		if (isset($filters['frequency']) && trim($filters['frequency']) != '')
-		{
-			switch ($filters['frequency'])
-			{
-				case 'immediate':
-				default:
-					$where[] = "(c.params LIKE '%frequency=immediate%' OR c.params NOT LIKE '%frequency=%')";
-				break;
-
-				case 'weekly':
-					$where[] = "(c.params LIKE '%frequency=weekly%')";
-				break;
-
-				case 'daily':
-					$where[] = "(c.params LIKE '%frequency=daily%')";
-				break;
-			}
-		}
-		else
-		{
-			$where[] = "(c.params IS NULL OR c.params LIKE '%frequency=immediate%' OR c.params NOT LIKE '%frequency=%')";
-		}
-
-		if (count($where) > 0)
-		{
-			$query .= " WHERE ";
-			$query .= implode(" AND ", $where);
-		}
-
-		return $query;
+		return $data['email'];
 	}
 
 	/**
-	 * Get a record count
+	 * Generates automatic email field value
 	 *
-	 * @param   array    $filters  Filters to build query off of
-	 * @return  integer
+	 * @param   array   $data  the data being saved
+	 * @return  string
 	 */
-	public function getCount($filters=array())
+	public function automaticItemType($data)
 	{
-		$filters['limit'] = 0;
+		if (isset($data['item_type']))
+		{
+			$data['item_type'] = strtolower(preg_replace("/[^a-zA-Z0-9\-]/", '', trim($data['item_type'])));
+		}
 
-		$query = "SELECT COUNT(*) " . $this->buildQuery($filters);
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadResult();
+		return $data['item_type'];
 	}
 
 	/**
-	 * Get an array of records
+	 * Defines a belongs to one relationship between article and user
 	 *
-	 * @param   array  $filters  Filters to build query off of
-	 * @return  array
+	 * @return  object
 	 */
-	public function getRecords($filters=array())
+	public function creator()
 	{
-		$query  = "SELECT c.*";
-		$query .= " " . $this->buildQuery($filters);
-
-		if (!isset($filters['sort']) || !$filters['sort'])
+		if ($profile = Profile::getInstance($this->get('created_by')))
 		{
-			$filters['sort'] = 'created';
+			return $profile;
 		}
-		if (!isset($filters['sort_Dir']) || !$filters['sort_Dir'])
-		{
-			$filters['sort_Dir'] = 'DESC';
-		}
-		$query .= " ORDER BY " . $filters['sort'] . " " . $filters['sort_Dir'];
-
-		if (isset($filters['limit']) && $filters['limit'] != 0)
-		{
-			$query .= ' LIMIT ' . $filters['start'] . ',' . $filters['limit'];
-		}
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
+		return new Profile;
 	}
 
 	/**
 	 * Is user watching item?
 	 *
 	 * @param   integer  $item_id
-	 * @param   integer  $item_type
+	 * @param   string   $item_type
 	 * @param   integer  $created_by
-	 * @return  object   Return boolean
+	 * @return  boolean
 	 */
-	public function isWatching($item_id, $item_type, $created_by)
+	public static function isWatching($item_id, $item_type, $created_by)
 	{
-		if (!$item_id || !$item_type || !$created_by)
+		if ($item_id && $item_type && $created_by)
 		{
-			return false;
-		}
+			$total = self::all()
+				->whereEquals('state', 1)
+				->whereEquals('created_by', (int)$created_by)
+				->whereEquals('item_id', (int)$item_id)
+				->whereEquals('item_type', (string)$item_type)
+				->total();
 
-		$filters = array(
-			'state'      => 1,
-			'created_by' => $created_by,
-			'item_id'    => $item_id,
-			'item_type'  => $item_type
-		);
-
-		$query  = "SELECT COUNT(*) ";
-		$query .= $this->buildQuery($filters);
-
-		$this->_db->setQuery($query);
-		if (($total = $this->_db->loadResult()))
-		{
-			return true;
+			if ($total)
+			{
+				return true;
+			}
 		}
 
 		return false;
 	}
 
 	/**
-	 * Load record
+	 * Load a record by scope and scope ID
 	 *
 	 * @param   integer  $item_id
-	 * @param   integer  $item_type
+	 * @param   string   $item_type
 	 * @param   integer  $created_by
-	 * @return  object   Return boolean
+	 * @param   string   $email
+	 * @return  object
 	 */
-	public function loadRecord($item_id, $item_type, $created_by, $email = null)
+	public static function oneByScope($item_id, $item_type, $created_by = 0, $email = null)
 	{
-		if (!$item_id || !$item_type || (!$created_by && !$email))
-		{
-			return false;
-		}
+		$model = self::all()
+			->whereEquals('item_id', (int)$item_id)
+			->whereEquals('item_type', (string)$item_type);
 
-		$filters = array(
-			'item_id'    => $item_id,
-			'item_type'  => $item_type
-		);
 		if ($created_by)
 		{
-			$filters['created_by'] = $created_by;
+			$model->whereEquals('created_by', (int)$created_by);
 		}
-		else
+
+		if ($email)
 		{
-			$filters['email'] = $email;
+			$model->whereEquals('email', (string)$email);
 		}
 
-		$query  = "SELECT c.* ";
-		$query .= $this->buildQuery($filters);
-
-		$this->_db->setQuery($query);
-		if ($result = $this->_db->loadAssoc())
-		{
-			return $this->bind($result);
-		}
-
-		return false;
+		return $model->row();
 	}
 }
