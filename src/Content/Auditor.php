@@ -64,7 +64,7 @@ class Auditor
 	/**
 	 * Log data?
 	 *
-	 * @var  boolean
+	 * @var  object
 	 */
 	protected $log = null;
 
@@ -72,7 +72,7 @@ class Auditor
 	 * Constructor
 	 *
 	 * @param   string  $scope
-	 * @param   object  $log
+	 * @param   object  $logger
 	 * @return  void
 	 */
 	public function __construct($scope, $logger = null)
@@ -88,12 +88,12 @@ class Auditor
 	/**
 	 * Set logging
 	 *
-	 * @param   bool  $log
+	 * @param   object  $logger
 	 * @return  void
 	 */
-	public function setLogger($log)
+	public function setLogger($logger)
 	{
-		$this->log = $log;
+		$this->log = $logger;
 	}
 
 	/**
@@ -139,9 +139,9 @@ class Auditor
 			$result = $tester->examine($datum);
 			$result->set('scope', $this->scope);
 			$result->set('test_id', $key);
-			$result->save();
+			//$result->save();
 
-			$results[$tester->name()] = $result->get('status');
+			$results[$tester->name()] = $result; //->get('status');
 		}
 
 		return $results;
