@@ -125,6 +125,8 @@ class Database extends \PHPUnit_Extensions_Database_TestCase
 			            ->setMethods(null)
 			            ->getMock();
 
+			$this->getConnection();
+
 			$dbo->setConnection(self::$pdo)
 			    ->setPrefix('');
 		}
