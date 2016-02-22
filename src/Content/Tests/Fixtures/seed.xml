@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<dataset>
+	<table name="audit_results">
+		<column>id</column>
+		<column>scope</column>
+		<column>scope_id</column>
+		<column>processed</column>
+		<column>status</column>
+		<column>notes</column>
+		<column>test_id</column>
+		<row>
+			<value>1</value>
+			<value>tests</value>
+			<value>1</value>
+			<value>2016-02-22 12:01:01</value>
+			<value>0</value>
+			<value>[]</value>
+			<value>Hubzero_Content_Tests_Mock_Checker</value>
+		</row>
+	</table>
+</dataset>
