@@ -32,63 +32,64 @@
 
 namespace Hubzero\Bank;
 
+use Hubzero\Database\Relational;
+
 /**
  * Table class for bak transactions
  */
-class Transaction extends \JTable
+class Transaction extends Relational
 {
 	/**
-	 * Constructor
+	 * The table namespace
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
+	 * @var string
 	 */
-	public function __construct(&$db)
-	{
-		parent::__construct('#__users_transactions', 'id', $db);
-	}
+	protected $namespace = 'users';
 
 	/**
-	 * Validate data
+	 * The table to which the class pertains
 	 *
-	 * @return  boolean  True if data is valid
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
 	 */
-	public function check()
-	{
-		$this->uid = intval($this->uid);
-		if (!$this->uid)
-		{
-			$this->setError(\Lang::txt('Entry must have a user ID.'));
-		}
+	protected $table = '#__users_transactions';
 
-		$this->type = trim($this->type);
-		if (!$this->type)
-		{
-			$this->setError(\Lang::txt('Entry must have a type (e.g., deposit, withdraw).'));
-		}
+	/**
+	 * Default order by for model
+	 *
+	 * @var  string
+	 */
+	public $orderBy = 'created';
 
-		$this->category = trim($this->category);
-		if (!$this->category)
-		{
-			$this->setError(\Lang::txt('Entry must have a category.'));
-		}
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'desc';
 
-		if ($this->getError())
-		{
-			return false;
-		}
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'uid'      => 'positive|nonzero',
+		'type'     => 'notempty',
+		'category' => 'notempty'
+	);
 
-		$this->referenceid = intval($this->referenceid);
-		$this->amount      = intval($this->amount);
-		$this->balance     = intval($this->balance);
-
-		if (!$this->created)
-		{
-			$this->created = \Date::toSql();
-		}
-
-		return true;
-	}
+	/**
+	 * Automatic fields to populate every time a row is created
+	 *
+	 * @var  array
+	 */
+	public $initiate = array(
+		'created'
+	);
 
 	/**
 	 * Get a history of transactions for a user
@@ -97,24 +98,21 @@ class Transaction extends \JTable
 	 * @param   integer  $uid    User ID
 	 * @return  mixed    False if errors, array on success
 	 */
-	public function history($limit=50, $uid=null)
+	public static function history($limit=50, $uid=null)
 	{
-		if ($uid == null)
+		$model = self::all();
+
+		if ($limit)
 		{
-			$uid = $this->uid;
-		}
-		if ($uid == null)
-		{
-			return false;
+			$model->limit((int)$limit);
 		}
 
-		$lmt = "";
-		if ($limit > 0)
+		if ($uid)
 		{
-			$lmt .= " LIMIT " . $limit;
+			$model->whereEquals('uid', $uid);
 		}
-		$this->_db->setQuery("SELECT * FROM $this->_tbl WHERE uid=" . $this->_db->quote($uid) . " ORDER BY created DESC, id DESC" . $lmt);
-		return $this->_db->loadObjectList();
+
+		return $model->rows();
 	}
 
 	/**
@@ -123,74 +121,42 @@ class Transaction extends \JTable
 	 * @param   string   $category     Transaction category (royalties, etc)
 	 * @param   string   $type         Transaction type (deposit, withdraw, etc)
 	 * @param   integer  $referenceid  Reference ID (resource ID, etc)
+	 * @param   integer  $uid          User ID
 	 * @return  boolean  False if errors, True on success
 	 */
-	public function deleteRecords($category=null, $type=null, $referenceid=null)
+	public static function deleteRecords($category=null, $type=null, $referenceid=null, $uid=null)
 	{
-		if ($referenceid == null)
+		$model = self::all();
+
+		if ($category)
 		{
-			$referenceid = $this->referenceid;
-		}
-		if ($referenceid == null)
-		{
-			return false;
-		}
-		if ($type == null)
-		{
-			$type = $this->type;
-		}
-		if ($category == null)
-		{
-			$category = $this->category;
+			$model->whereEquals('category', $category);
 		}
 
-		$query = "DELETE FROM $this->_tbl WHERE category=" . $this->_db->quote($category) . " AND type=" . $this->_db->quote($type) . " AND referenceid=" . $this->_db->quote($referenceid);
+		if ($type)
+		{
+			$model->whereEquals('type', $type);
+		}
 
-		$this->_db->setQuery($query);
-		if (!$this->_db->query())
+		if ($referenceid)
 		{
-			$this->setError($this->_db->getErrorMsg());
-			return false;
+			$model->whereEquals('referenceid', $referenceid);
 		}
-		return true;
-	}
 
-	/**
-	 * Get a list of transactions of a certain type for a reference item and, optionally, user
-	 *
-	 * @param   string   $category     Transaction category (royalties, etc)
-	 * @param   string   $type         Transaction type (deposit, withdraw, etc)
-	 * @param   integer  $referenceid  Reference ID (resource ID, etc)
-	 * @param   integer  $uid          User ID
-	 * @return  mixed    False if errors, array on success
-	 */
-	public function getTransactions($category=null, $type=null, $referenceid=null, $uid=null)
-	{
-		if ($referenceid == null)
-		{
-			$referenceid = $this->referenceid;
-		}
-		if ($referenceid == null)
-		{
-			return false;
-		}
-		if ($type == null)
-		{
-			$type = $this->type;
-		}
-		if ($category == null)
-		{
-			$category = $this->category;
-		}
-		$query = "SELECT amount, SUM(amount) as sum, count(*) as total FROM $this->_tbl WHERE category=" . $this->_db->quote($category) . " AND type=" . $this->_db->quote($type) . " AND referenceid=" . $this->_db->quote($referenceid);
 		if ($uid)
 		{
-			$query .= " AND uid=" . $this->_db->quote($uid);
+			$model->whereEquals('uid', $uid);
 		}
-		$query .= " GROUP BY referenceid";
 
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
+		foreach ($model->rows() as $row)
+		{
+			if (!$row->destroy())
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -200,34 +166,36 @@ class Transaction extends \JTable
 	 * @param   string   $type         Transaction type (deposit, withdraw, etc)
 	 * @param   integer  $referenceid  Reference ID (resource ID, etc)
 	 * @param   integer  $uid          User ID
-	 * @return  mixed    False if errors, integer on success
+	 * @return  integer
 	 */
-	public function getAmount($category=null, $type=null, $referenceid=null, $uid=null)
+	public static function getAmount($category=null, $type=null, $referenceid=null, $uid=null)
 	{
-		if ($referenceid == null)
+		$model = self::all()
+			->select('amount');
+
+		if ($category)
 		{
-			$referenceid = $this->referenceid;
-		}
-		if ($referenceid == null)
-		{
-			return false;
-		}
-		if ($type == null)
-		{
-			$type = $this->type;
-		}
-		if ($category == null)
-		{
-			$category = $this->category;
+			$model->whereEquals('category', $category);
 		}
 
-		$query = "SELECT amount FROM $this->_tbl WHERE category=" . $this->_db->quote($category) . " AND type=" . $this->_db->quote($type) . " AND referenceid=" . $this->_db->quote($referenceid);
+		if ($type)
+		{
+			$model->whereEquals('type', $type);
+		}
+
+		if ($referenceid)
+		{
+			$model->whereEquals('referenceid', $referenceid);
+		}
+
 		if ($uid)
 		{
-			$query .= " AND uid=" . $this->_db->quote($uid);
+			$model->whereEquals('uid', $uid);
 		}
-		$this->_db->setQuery($query);
-		return $this->_db->loadResult();
+
+		$row = $model->row();
+
+		return $row->amount;
 	}
 
 	/**
@@ -244,78 +212,76 @@ class Transaction extends \JTable
 	 * @param   integer  $calc         How total is calculated (record sum, avg, record count)
 	 * @return  integer
 	 */
-	public function getTotals($category=null, $type=null, $referenceid=null, $royalty=0, $action=null, $uid=null, $allusers = 0, $when=null, $calc=0)
+	public static function getTotals($category=null, $type=null, $referenceid=null, $royalty=0, $action=null, $uid=null, $allusers = 0, $when=null, $calc=0)
 	{
-		if ($referenceid == null)
-		{
-			$referenceid = $this->referenceid;
-		}
-		if ($type == null)
-		{
-			$type = $this->type;
-		}
-		if ($category == null)
-		{
-			$category = $this->category;
-		}
+		$model = self::all();
 
-		if ($uid == null)
-		{
-			$uid = \User::get('id');
-		}
-
-		$query = "SELECT ";
 		if ($calc == 0)
 		{
-			$query .= " SUM(amount)";
+			$model->select("SUM(amount) AS total");
 		}
 		else if ($calc == 1)
 		{
 			// average
-			$query .= " AVG(amount)";
+			$model->select("AVG(amount) AS total");
 		}
 		else if ($calc == 2)
 		{
 			// num of transactions
-			$query .= " COUNT(*)";
+			$model->select("COUNT(*) AS total");
 		}
-		$query .= " FROM $this->_tbl WHERE type=" . $this->_db->quote($type) . " ";
+
 		if ($category)
 		{
-			$query .= " AND category=" . $this->_db->quote($category) . " ";
+			$model->whereEquals('category', $category);
 		}
+
+		if ($type)
+		{
+			$model->whereEquals('type', $type);
+		}
+
 		if ($referenceid)
 		{
-			$query .= " AND referenceid=" . $this->_db->quote($referenceid);
+			$model->whereEquals('referenceid', $referenceid);
 		}
+
 		if ($royalty)
 		{
-			$query .= " AND description like 'Royalty payment%' ";
+			$model->whereLike('description', 'Royalty payment%');
 		}
+
 		if ($action == 'asked')
 		{
-			$query .= " AND description like '%posting question%' ";
+			$model->whereLike('description', '%posting question%');
 		}
 		else if ($action == 'answered')
 		{
-			$query .= " AND (description like '%answering question%' OR description like 'Answer for question%' OR description like 'Answered question%') ";
+			$model->whereLike('description', '%answering question%');// OR description like 'Answer for question%' OR description like 'Answered question%') ";
 		}
 		else if ($action == 'misc')
 		{
-			$query .= " AND (description NOT LIKE '%posting question%' AND description NOT LIKE '%answering question%'
-							AND description NOT LIKE 'Answer for question%' AND description NOT LIKE 'Answered question%') ";
-		}
-		if (!$allusers)
-		{
-			$query .= " AND uid=$uid ";
-		}
-		if ($when)
-		{
-			$query .= " AND created LIKE '" . $when . "%' ";
+			$model->where('description', 'NOT LIKE', '%posting question%');
+			$model->where('description', 'NOT LIKE', '%answering question%');
+			$model->where('description', 'NOT LIKE', 'Answer for question%');
+			$model->where('description', 'NOT LIKE', 'Answered question%');
 		}
 
-		$this->_db->setQuery($query);
-		$total = $this->_db->loadResult();
-		return $total ? $total : 0;
+		if (!$allusers)
+		{
+			if ($uid)
+			{
+				$model->whereEquals('uid', $uid);
+			}
+		}
+
+		if ($when)
+		{
+			$model->whereLike('created', $when . '%');
+		}
+
+		$row = $model->row();
+
+		return $row->get('total', 0);
 	}
 }

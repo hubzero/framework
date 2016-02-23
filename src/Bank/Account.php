@@ -32,60 +32,64 @@
 
 namespace Hubzero\Bank;
 
+use Hubzero\Database\Relational;
+
 /**
  * Table class for bank accounts
  */
-class Account extends \JTable
+class Account extends Relational
 {
 	/**
-	 * Constructor
+	 * The table namespace
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
+	 * @var string
 	 */
-	public function __construct(&$db)
-	{
-		parent::__construct('#__users_points', 'id', $db);
-	}
+	protected $namespace = 'users';
 
 	/**
-	 * Validate data
+	 * The table to which the class pertains
 	 *
-	 * @return  boolean  True if data is valid
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
 	 */
-	public function check()
-	{
-		if (trim($this->uid) == '')
-		{
-			$this->setError(\Lang::txt('Entry must have a user ID.'));
-			return false;
-		}
-
-		return true;
-	}
+	protected $table = '#__users_points';
 
 	/**
-	 * Load a record based on user ID and bind results to $this
+	 * Default order by for model
 	 *
-	 * @param   integer  $oid  User ID
-	 * @return  boolean  True on success
+	 * @var  string
 	 */
-	public function load_uid($oid=null)
-	{
-		if ($oid === null)
-		{
-			return false;
-		}
+	public $orderBy = 'id';
 
-		$this->_db->setQuery("SELECT * FROM $this->_tbl WHERE uid='$oid'");
-		if ($result = $this->_db->loadAssoc())
-		{
-			return $this->bind($result);
-		}
-		else
-		{
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'uid' => 'positive|nonzero'
+	);
+
+	/**
+	 * Load a record by user ID
+	 *
+	 * @param   integer  $user_id  User ID
+	 * @return  object
+	 */
+	public static function oneByUserId($user_id)
+	{
+		return self::all()
+			->whereEquals('uid', (int)$user_id)
+			->row();
 	}
 }

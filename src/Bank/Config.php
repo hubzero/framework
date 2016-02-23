@@ -32,36 +32,63 @@
 
 namespace Hubzero\Bank;
 
+use Hubzero\Database\Relational;
 use Hubzero\Base\Object;
 
 /**
  * Class for getting and setting user point configuration
  */
-class Config extends Object
+class Config extends Relational
 {
 	/**
-	 * Database
+	 * The table namespace
 	 *
-	 * @var  object
+	 * @var string
 	 */
-	protected $_db = null;
+	protected $namespace = 'users_points';
+
+	/**
+	 * The table to which the class pertains
+	 *
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
+	 */
+	protected $table = '#__users_points_config';
+
+	/**
+	 * Default order by for model
+	 *
+	 * @var  string
+	 */
+	public $orderBy = 'id';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
 
 	/**
 	 * Constructor
 	 * Loads points configuration
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
+	 * @return  object
 	 */
-	public function __construct(&$db)
+	public static function values()
 	{
-		$this->_db = $db;
+		$pc = self::all()->rows();
 
-		$this->_db->setQuery("SELECT * FROM `#__users_points_config`");
-		$pc = $this->_db->loadObjectList();
+		$config = new Object;
+
 		foreach ($pc as $p)
 		{
-			$this->set($p->alias, $p->points);
+			$config->set($p->get('alias'), $p->get('points'));
 		}
+
+		return $config;
 	}
 }
