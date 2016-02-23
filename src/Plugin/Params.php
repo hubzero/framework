@@ -25,60 +25,62 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Plugin;
 
+use Hubzero\Database\Relational;
 use Hubzero\Config\Registry;
 
 /**
- * Table class for custom plugin parameters
+ * Class for custom plugin parameters
  */
-class Params extends \JTable
+class Params extends Relational
 {
 	/**
-	 * Constructor
+	 * The table namespace
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
+	 * @var  string
 	 */
-	public function __construct(&$db)
-	{
-		parent::__construct('#__plugin_params', 'id', $db);
-	}
+	protected $namespace = 'plugin';
 
 	/**
-	 * Validate data
+	 * The table to which the class pertains
 	 *
-	 * @return  boolean  True if data is valid
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
 	 */
-	public function check()
-	{
-		$this->object_id = intval($this->object_id);
-		if (!$this->object_id)
-		{
-			$this->setError(\Lang::txt('Entry must have an object ID'));
-			return false;
-		}
+	protected $table = '#__plugin_params';
 
-		$this->folder = trim($this->folder);
-		if (!$this->folder)
-		{
-			$this->setError(\Lang::txt('Entry must have a folder'));
-			return false;
-		}
+	/**
+	 * Default order by for model
+	 *
+	 * @var  string
+	 */
+	public $orderBy = 'folder';
 
-		$this->element = trim($this->element);
-		if (!$this->element)
-		{
-			$this->setError(\Lang::txt('Entry must have an element'));
-			return false;
-		}
-		return true;
-	}
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'object_id' => 'positive|nonzero',
+		'folder'    => 'notempty',
+		'element'   => 'notempty'
+	);
 
 	/**
 	 * Load a record and binf to $this
@@ -88,22 +90,13 @@ class Params extends \JTable
 	 * @param   string   $element  Plugin name
 	 * @return  boolean  True on success
 	 */
-	public function loadPlugin($oid=null, $folder=null, $element=null)
+	public static function oneByPlugin($oid=null, $folder=null, $element=null)
 	{
-		$oid     = $oid     ?: $this->object_id;
-		$folder  = $folder  ?: $this->folder;
-		$element = $element ?: $this->element;
-
-		if (!$oid || !$element || !$folder)
-		{
-			return false;
-		}
-
-		return parent::load(array(
-			'object_id' => (int) $oid,
-			'folder'    => (string) $folder,
-			'element'   => (string) $element
-		));
+		return self::all()
+			->whereEquals('object_id', (int) $oid)
+			->whereEquals('folder', (int) $folder)
+			->whereEquals('element', (int) $element)
+			->row();
 	}
 
 	/**
@@ -114,21 +107,11 @@ class Params extends \JTable
 	 * @param   string   $element  Plugin name
 	 * @return  object
 	 */
-	public function getCustomParams($oid=null, $folder=null, $element=null)
+	public static function getCustomParams($oid=null, $folder=null, $element=null)
 	{
-		$oid     = $oid     ?: $this->object_id;
-		$folder  = $folder  ?: $this->folder;
-		$element = $element ?: $this->element;
+		$result = self::oneByPlugin($oid, $folder, $element);
 
-		if (!$oid || !$folder || !$element)
-		{
-			return null;
-		}
-
-		$this->_db->setQuery("SELECT params FROM $this->_tbl WHERE object_id=" . $this->_db->quote($oid) . " AND folder=" . $this->_db->quote($folder) . " AND element=" . $this->_db->quote($element) . " LIMIT 1");
-		$result = $this->_db->loadResult();
-
-		return new Registry($result);
+		return new Registry($result->get('params'));
 	}
 
 	/**
@@ -138,16 +121,8 @@ class Params extends \JTable
 	 * @param   string  $element  Plugin name
 	 * @return  object
 	 */
-	public function getDefaultParams($folder=null, $element=null)
+	public static function getDefaultParams($folder=null, $element=null)
 	{
-		$folder  = $folder  ?: $this->folder;
-		$element = $element ?: $this->element;
-
-		if (!$folder || !$element)
-		{
-			return null;
-		}
-
 		$plugin = \Plugin::byType($folder, $element);
 
 		return new Registry($plugin->params);
@@ -162,12 +137,12 @@ class Params extends \JTable
 	 * @param   string   $element  Plugin name
 	 * @return  object
 	 */
-	public function getParams($oid=null, $folder=null, $element=null)
+	public static function getParams($oid=null, $folder=null, $element=null)
 	{
-		$rparams = $this->getCustomParams($oid, $folder, $element);
+		$custom = self::getCustomParams($oid, $folder, $element);
 
-		$params = $this->getDefaultParams($folder, $element);
-		$params->merge($rparams);
+		$params = self::getDefaultParams($folder, $element);
+		$params->merge($custom);
 
 		return $params;
 	}
