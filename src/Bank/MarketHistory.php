@@ -32,53 +32,81 @@
 
 namespace Hubzero\Bank;
 
+use Hubzero\Database\Relational;
+
 /**
  * Market History class:
  * Logs batch transactions, royalty distributions and other big transactions
  */
-class MarketHistory extends \JTable
+class MarketHistory extends Relational
 {
 	/**
-	 * Constructor
+	 * The table namespace
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
+	 * @var string
 	 */
-	public function __construct(&$db)
-	{
-		parent::__construct('#__market_history', 'id', $db);
-	}
+	protected $namespace = 'market';
 
 	/**
-	 * Validate data
+	 * The table to which the class pertains
 	 *
-	 * @return  boolean  True if data is valid
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
 	 */
-	public function check()
+	protected $table = '#__market_history';
+
+	/**
+	 * Default order by for model
+	 *
+	 * @var  string
+	 */
+	public $orderBy = 'id';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'itemid'   => 'positive|nonzero',
+		'category' => 'notempty'
+	);
+
+	/**
+	 * Automatic fields to populate every time a row is created
+	 *
+	 * @var  array
+	 */
+	public $initiate = array(
+		'date'
+	);
+
+	/**
+	 * Generates automatic date value
+	 *
+	 * @param   array   $data  the data being saved
+	 * @return  string
+	 */
+	public function automaticDate($data)
 	{
-		$this->itemid = intval($this->itemid);
-		if (!$this->itemid)
+		if (!isset($data['date']))
 		{
-			$this->setError(\Lang::txt('Entry must have an item ID.'));
+			$dt = new \Hubzero\Utility\Date('now');
+
+			$data['date'] = $dt->toSql();
 		}
 
-		$this->category = trim($this->category);
-		if (!$this->category)
-		{
-			$this->setError(\Lang::txt('Entry must have a category.'));
-		}
-
-		if ($this->getError())
-		{
-			return false;
-		}
-
-		if (!$this->date)
-		{
-			$this->date = \Date::toSql();
-		}
-
-		return true;
+		return $data['date'];
 	}
 
 	/**
@@ -91,52 +119,38 @@ class MarketHistory extends \JTable
 	 * @param   string   $log       Transaction log
 	 * @return  integer
 	 */
-	public function getRecord($itemid=0, $action='', $category='', $created='', $log = '')
+	public static function getRecord($itemid=0, $action='', $category='', $created='', $log = '')
 	{
-		if ($itemid === null)
-		{
-			$itemid = $this->itemid;
-		}
-		if ($action === null)
-		{
-			$action = $this->action;
-		}
-		if ($category === null)
-		{
-			$category = $this->category;
-		}
+		$model = self::all()
+			->select('id');
 
-		$sql = "SELECT id FROM $this->_tbl";
-
-		$where = array();
-		if ($itemid)
-		{
-			$where[] = "itemid=" . $this->_db->quote($itemid);
-		}
-		if ($action)
-		{
-			$where[] = "action=" . $this->_db->quote($action);
-		}
 		if ($category)
 		{
-			$where[] = "category=" . $this->_db->quote($category);
+			$model->whereEquals('category', $category);
 		}
+
+		if ($itemid)
+		{
+			$model->whereEquals('itemid', $itemid);
+		}
+
+		if ($action)
+		{
+			$model->whereEquals('action', $action);
+		}
+
 		if ($created)
 		{
-			$where[] = "`date` LIKE '" . $created . "%'";
+			$model->whereLike('date', $created . '%');
 		}
+
 		if ($log)
 		{
-			$where[] = "log=" . $this->_db->quote($log);
-		}
-		if (count($where) > 0)
-		{
-			$sql .= " WHERE " . implode(" AND ", $where);
+			$model->whereEquals('log', $log);
 		}
 
-		$sql .= " LIMIT 1";
+		$row = $model->row();
 
-		$this->_db->setQuery($sql);
-		return $this->_db->loadResult();
+		return $row->get('id');
 	}
 }
