@@ -41,68 +41,59 @@ use Hubzero\Utility\Date;
 class Teller extends Object
 {
 	/**
-	 * Database
-	 *
-	 * @var  object
-	 */
-	protected $_db   = null;
-
-	/**
 	 * User ID
 	 *
-	 * @var  string
+	 * @var  integer
 	 */
-	public $uid      = null;
+	public $uid = null;
 
 	/**
 	 * Current point balance
 	 *
-	 * @var  mixed
+	 * @var  integer
 	 */
-	public $balance  = null;
+	public $balance = null;
 
 	/**
 	 * Lifetime point earnings
 	 *
-	 * @var  mixed
+	 * @var  integer
 	 */
 	public $earnings = null;
 
 	/**
 	 * Credit point balance
 	 *
-	 * @var  mixed
+	 * @var  integer
 	 */
-	public $credit   = null;
+	public $credit = null;
 
 	/**
 	 * Constructor
 	 * Find the balance from the most recent transaction.
 	 * If no balance is found, create an initial transaction.
 	 *
-	 * @param   object   &$db  Database
-	 * @param   integer  $uid  User ID
+	 * @param   integer  $user_id  User ID
 	 * @return  void
 	 */
-	public function __construct(&$db, $uid)
+	public function __construct($user_id)
 	{
-		$this->_db = $db;
-		$this->uid = $uid;
+		$this->uid      = $user_id;
+		$this->balance  = 0;
+		$this->earnings = 0;
+		$this->credit   = 0;
 
-		$BA = new Account($this->_db);
+		$BA = Account::oneByUserId($this->uid);
 
-		if ($BA->load_uid($this->uid))
+		if ($BA->get('id'))
 		{
-			$this->balance  = $BA->balance;
-			$this->earnings = $BA->earnings;
-			$this->credit   = $BA->credit;
+			$this->balance  = $BA->get('balance');
+			$this->earnings = $BA->get('earnings');
+			$this->credit   = $BA->get('credit');
 		}
 		else
 		{
 			// no points are given initially
-			$this->balance  = 0;
-			$this->earnings = 0;
-			$this->credit   = 0;
 			$this->_saveBalance('creation');
 		}
 	}
@@ -238,8 +229,10 @@ class Teller extends Object
 	 */
 	public function credit_adjustment($amount)
 	{
-		$amount = (intval($amount) > 0) ? intval($amount) : 0;
-		$this->credit = $amount;
+		$amount = intval($amount);
+
+		$this->credit = ($amount > 0 ? $amount : 0);
+
 		$this->_saveBalance('update');
 	}
 
@@ -251,13 +244,7 @@ class Teller extends Object
 	 */
 	public function history($limit=20)
 	{
-		$lmt = "";
-		if ($limit > 0)
-		{
-			$lmt .= " LIMIT " . $limit;
-		}
-		$this->_db->setQuery("SELECT * FROM `#__users_transactions` WHERE uid=" . $this->uid . " ORDER BY created DESC, id DESC" . $lmt);
-		return $this->_db->loadObjectList();
+		return Transaction::history($limit, $this->uid);
 	}
 
 	/**
@@ -277,11 +264,9 @@ class Teller extends Object
 		{
 			return true;
 		}
-		else
-		{
-			$this->setError('Not enough points in user account to process transaction.');
-			return false;
-		}
+
+		$this->setError('Not enough points in user account to process transaction.');
+		return false;
 	}
 
 	/**
@@ -293,10 +278,12 @@ class Teller extends Object
 	public function _amountCheck($amount)
 	{
 		$amount = intval($amount);
+
 		if ($amount == 0)
 		{
 			$this->setError('Cannot process transaction with 0 points.');
 		}
+
 		return $amount;
 	}
 
@@ -316,6 +303,7 @@ class Teller extends Object
 		{
 			return false;
 		}
+
 		if (!$this->_saveTransaction($type, $amount, $desc, $cat, $ref))
 		{
 			return false;
@@ -334,22 +322,27 @@ class Teller extends Object
 	{
 		if ($type == 'creation')
 		{
-			$query = "INSERT INTO `#__users_points` (uid, balance, earnings, credit) VALUES('" . $this->uid . "','" . $this->balance . "','" . $this->earnings . "','" . $this->credit . "')";
+			$model = Account::blank();
 		}
 		else
 		{
-			$query = "UPDATE `#__users_points` SET balance='" . $this->balance . "', earnings='" . $this->earnings . "', credit='" . $this->credit . "' WHERE uid=" . $this->uid;
+			$model = Account::oneByUserId($this->uid);
 		}
-		$this->_db->setQuery($query);
-		if ($this->_db->query())
+
+		$model->set([
+			'uid'      => $this->uid,
+			'balance'  => $this->balance,
+			'earnings' => $this->earnings,
+			'credit'   => $this->credit
+		]);
+
+		if (!$model->save())
 		{
-			return true;
-		}
-		else
-		{
-			$this->setError($this->_db->getErrorMsg());
+			$this->setError($model->getError());
+
 			return false;
 		}
+
 		return true;
 	}
 
@@ -365,32 +358,23 @@ class Teller extends Object
 	 */
 	public function _saveTransaction($type, $amount, $desc, $cat, $ref)
 	{
-		$data = array();
-		$data['uid']         = $this->uid;
-		$data['type']        = $type;
-		$data['amount']      = $amount;
-		$data['description'] = $desc;
-		$data['category']    = $cat;
-		$data['referenceid'] = $ref;
-		$data['created']     = with(new Date('now'))->toSql();
-		$data['balance']     = $this->balance;
+		$transaction = Transaction::blank()->set(array(
+			'uid'         => $this->uid,
+			'type'        => $type,
+			'amount'      => $amount,
+			'description' => $desc,
+			'category'    => $cat,
+			'referenceid' => $ref,
+			'balance'     => $this->balance
+		));
 
-		$BT = new Transaction($this->_db);
-		if (!$BT->bind($data))
+		if (!$transaction->save())
 		{
-			$this->setError($BT->getError());
+			$this->setError($transaction->getError());
+
 			return false;
 		}
-		if (!$BT->check())
-		{
-			$this->setError($BT->getError());
-			return false;
-		}
-		if (!$BT->store())
-		{
-			$this->setError($BT->getError());
-			return false;
-		}
+
 		return true;
 	}
 }
