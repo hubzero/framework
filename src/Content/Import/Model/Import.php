@@ -25,43 +25,98 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Christopher Smoak <csmoak@purdue.edu>
+ * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Content\Import\Model;
 
-use Hubzero\Content\Import\Table;
-use Hubzero\Base\Model;
-use Hubzero\Base\ItemList;
+use Hubzero\Database\Relational;
 use Exception;
+use User;
+use Date;
+use Lang;
 
 /**
- * Content Import Model
+ * Class for an import
  */
-class Import extends Model
+class Import extends Relational
 {
 	/**
-	 * Table name
+	 * The table namespace
+	 *
+	 * @var string
+	 */
+	protected $namespace = 'import';
+
+	/**
+	 * The table to which the class pertains
+	 *
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
 	 *
 	 * @var  string
 	 */
-	protected $_tbl_name = '\Hubzero\Content\Import\Table\Import';
+	protected $table = '#__imports';
 
 	/**
-	 * List of import runs
+	 * Default order by for model
 	 *
-	 * @var  object
+	 * @var  string
 	 */
-	protected $_runs;
+	public $orderBy = 'name';
 
 	/**
-	 * Count  of import runs
+	 * Default order direction for select queries
 	 *
-	 * @var  integer
+	 * @var  string
 	 */
-	protected $_runs_total;
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'name' => 'notempty',
+		'type' => 'notempty'
+	);
+
+	/**
+	 * Automatic fields to populate every time a row is created
+	 *
+	 * @var  array
+	 **/
+	public $initiate = array(
+		'created',
+		'created_by'
+	);
+
+	/**
+	 * Get a list of runs
+	 *
+	 * @return  object
+	 */
+	public function runs()
+	{
+		return $this->oneToMany('Hubzero\Content\Import\Model\Run', 'import_id');
+	}
+
+	/**
+	 * Get most current run
+	 *
+	 * @return  object
+	 */
+	public function currentRun()
+	{
+		return $this->runs()
+			->whereEquals('import_id', $this->get('id'))
+			->ordered()
+			->row();
+	}
 
 	/**
 	 * Return raw import data
@@ -83,7 +138,7 @@ class Import extends Model
 		// make sure we have file
 		if (!$file = $this->get('file'))
 		{
-			throw new Exception(__METHOD__ . '(); ' . \Lang::txt('Missing required data file.'));
+			throw new Exception(__METHOD__ . '(); ' . Lang::txt('Missing required data file.'));
 		}
 
 		// build path to file
@@ -92,13 +147,13 @@ class Import extends Model
 		// make sure file exists
 		if (!file_exists($filePath))
 		{
-			throw new Exception(__METHOD__ . '(); ' . \Lang::txt('Data file does not exist at path: %s.', $filePath));
+			throw new Exception(__METHOD__ . '(); ' . Lang::txt('Data file does not exist at path: %s.', $filePath));
 		}
 
 		// make sure we can read the file
 		if (!is_readable($filePath))
 		{
-			throw new Exception(__METHOD__ . '(); ' . \Lang::txt('Data file not readable.'));
+			throw new Exception(__METHOD__ . '(); ' . Lang::txt('Data file not readable.'));
 		}
 
 		return $filePath;
@@ -119,51 +174,6 @@ class Import extends Model
 	}
 
 	/**
-	 * Return import runs
-	 *
-	 * @return  string
-	 */
-	public function runs($rtrn = 'list', $filters = array(), $clear = false)
-	{
-		switch (strtolower($rtrn))
-		{
-			case 'count':
-				if (is_null($this->_runs_total) || $clear)
-				{
-					$tbl = new Table\Run($this->_db);
-
-					$this->_runs_total = $tbl->find('count', $filters);
-				}
-				return $this->_runs_total;
-			break;
-
-			case 'current':
-				if (!($this->_runs instanceof ItemList) || $clear)
-				{
-					$this->_runs = $this->runs('list', $filters, $clear);
-				}
-				return $this->_runs->first();
-			break;
-
-			case 'list':
-			default:
-				if (!($this->_runs instanceof ItemList) || $clear)
-				{
-					$tbl = new Table\Run($this->_db);
-					if ($results = $tbl->find('list', $filters))
-					{
-						foreach ($results as $key => $result)
-						{
-							$results[$key] = new Run($result);
-						}
-					}
-					$this->_runs = new ItemList($results);
-				}
-				return $this->_runs;
-		}
-	}
-
-	/**
 	 * Mark Import Run
 	 *
 	 * @param   integer  $dryRun  Dry run mode
@@ -171,12 +181,12 @@ class Import extends Model
 	 */
 	public function markRun($dryRun = 1)
 	{
-		$importRun = new Run();
-		$importRun->set('import_id', $this->get('id'))
-				->set('count', $this->get('count'))
-				->set('ran_by', \User::get('id'))
-				->set('ran_at', \Date::toSql())
-				->set('dry_run', $dryRun)
-				->store();
+		$run = Run::blank();
+		$run->set('import_id', $this->get('id'))
+			->set('count', $this->get('count'))
+			->set('ran_by', User::get('id'))
+			->set('ran_at', Date::toSql())
+			->set('dry_run', $dryRun)
+			->save();
 	}
 }

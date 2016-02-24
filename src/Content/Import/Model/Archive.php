@@ -32,8 +32,6 @@
 
 namespace Hubzero\Content\Import\Model;
 
-use Hubzero\Content\Import\Table;
-use Hubzero\Base\Model\ItemList;
 use Hubzero\Base\Object;
 
 /**
@@ -42,25 +40,11 @@ use Hubzero\Base\Object;
 class Archive extends Object
 {
 	/**
-	 * Database
+	 * Type
 	 *
-	 * @var  object
+	 * @var  string
 	 */
-	private $_db = null;
-
-	/**
-	 * Import list
-	 *
-	 * @var  object
-	 */
-	private $_imports = null;
-
-	/**
-	 * Import count
-	 *
-	 * @var  integer
-	 */
-	private $_imports_total = null;
+	private $type = null;
 
 	/**
 	 * Constructor
@@ -68,13 +52,9 @@ class Archive extends Object
 	 * @param   object  $db
 	 * @return  void
 	 */
-	public function __construct($db = null)
+	public function __construct($type = null)
 	{
-		if (!$db)
-		{
-			$db = \App::get('db');
-		}
-		$this->_db = $db;
+		$this->type = $type;
 	}
 
 	/**
@@ -94,7 +74,7 @@ class Archive extends Object
 
 		if (!isset($instances[$key]))
 		{
-			$instances[$key] = new static();
+			$instances[$key] = new static($key);
 		}
 
 		return $instances[$key];
@@ -110,34 +90,41 @@ class Archive extends Object
 	 */
 	public function imports($rtrn = 'list', $filters = array(), $clear = false)
 	{
-		switch (strtolower($rtrn))
+		$model = Import::all();
+
+		if (isset($filters['state']) && $filters['state'])
 		{
-			case 'count':
-				if (is_null($this->_imports_total) || $clear)
-				{
-					$tbl = new Table\Import($this->_db);
+			if (!is_array($filters['state']))
+			{
+				$filters['state'] = array($filters['state']);
+			}
+			$filters['state'] = array_map('intval', $filters['state']);
 
-					$this->_imports_total = $tbl->find('count', $filters);
-				}
-				return $this->_imports_total;
-			break;
-
-			case 'list':
-			default:
-				if (!($this->_imports instanceof ItemList) || $clear)
-				{
-					$tbl = new Table\Import($this->_db);
-					if ($results = $tbl->find('list', $filters))
-					{
-						foreach ($results as $key => $result)
-						{
-							$results[$key] = new Import($result);
-						}
-					}
-					$this->_imports = new ItemList($results);
-				}
-				return $this->_imports;
-			break;
+			$model->whereIn('state', $filters['state']);
 		}
+
+		if (!isset($filters['type']))
+		{
+			$filters['type'] = $this->type;
+		}
+
+		if (isset($filters['type']) && $filters['type'])
+		{
+			$model->whereEquals('type', $filters['type']);
+		}
+
+		if (isset($filters['created_by']) && $filters['created_by'] >= 0)
+		{
+			$model->whereEquals('created_by', $filters['created_by']);
+		}
+
+		if (strtolower($rtrn) == 'count')
+		{
+			return $model->total();
+		}
+
+		return $model->ordered()
+			->paginated()
+			->rows();
 	}
 }

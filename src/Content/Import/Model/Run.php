@@ -25,26 +25,94 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Christopher Smoak <csmoak@purdue.edu>
+ * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Content\Import\Model;
 
-use Hubzero\Base\Model;
+use Hubzero\Database\Relational;
+use Hubzero\Utility\Date;
+use User;
 
 /**
- * Import Runs Model
+ * Class for an import run
  */
-class Run extends Model
+class Run extends Relational
 {
 	/**
-	 * Table name
+	 * The table namespace
+	 *
+	 * @var string
+	 */
+	protected $namespace = 'import';
+
+	/**
+	 * Default order by for model
 	 *
 	 * @var  string
 	 */
-	protected $_tbl_name = '\Hubzero\Content\Import\Table\Run';
+	public $orderBy = 'ran_at';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'desc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'import_id' => 'positive|nonzero'
+	);
+
+	/**
+	 * Automatic fields to populate every time a row is created
+	 *
+	 * @var  array
+	 **/
+	public $initiate = array(
+		'ran_at',
+		'ran_by'
+	);
+
+	/**
+	 * Generates automatic created field value
+	 *
+	 * @return  string
+	 * @since   2.0.0
+	 **/
+	public function automaticRanAt()
+	{
+		$dt = new Date('now');
+		return $dt->toSql();
+	}
+
+	/**
+	 * Generates automatic created by field value
+	 *
+	 * @return  int
+	 * @since   2.0.0
+	 **/
+	public function automaticRanBy()
+	{
+		return User::get('id');
+	}
+
+	/**
+	 * Get parent import record
+	 *
+	 * @return  object
+	 */
+	public function import()
+	{
+		return $this->belongsToOne('Hubzero\Content\Import\Model\Import', 'import_id');
+	}
 
 	/**
 	 * Add to the processed number on this run
@@ -54,7 +122,7 @@ class Run extends Model
 	 */
 	public function processed($number = 1)
 	{
-		$this->set('processed', $this->get('processed') + $number);
-		$this->store();
+		$this->set('processed', (int)$this->get('processed', 0) + $number);
+		$this->save();
 	}
 }
