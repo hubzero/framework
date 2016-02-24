@@ -32,10 +32,8 @@
 
 namespace Hubzero\Content\Import\Model\Hook;
 
-use Hubzero\Base\Model\ItemList;
 use Hubzero\Base\Object;
 use Hubzero\Content\Import\Model\Hook;
-use Hubzero\Content\Import\Table;
 
 /**
  * Import Hook archive model
@@ -43,39 +41,21 @@ use Hubzero\Content\Import\Table;
 class Archive extends Object
 {
 	/**
-	 * Database
+	 * Type
 	 *
-	 * @var  object
+	 * @var  string
 	 */
-	private $_db = null;
-
-	/**
-	 * Record list
-	 *
-	 * @var  object
-	 */
-	private $_hooks = null;
-
-	/**
-	 * Record total
-	 *
-	 * @var  integer
-	 */
-	private $_hooks_total = null;
+	private $type = null;
 
 	/**
 	 * Constructor
 	 *
-	 * @param   object  $db
+	 * @param   string  $type
 	 * @return  void
 	 */
-	public function __construct($db = null)
+	public function __construct($type = null)
 	{
-		if (!$db)
-		{
-			$db = \App::get('db');
-		}
-		$this->_db = $db;
+		$this->type = $type;
 	}
 
 	/**
@@ -95,7 +75,7 @@ class Archive extends Object
 
 		if (!isset($instances[$key]))
 		{
-			$instances[$key] = new static();
+			$instances[$key] = new static($key);
 		}
 
 		return $instances[$key];
@@ -111,34 +91,46 @@ class Archive extends Object
 	 */
 	public function hooks($rtrn = 'list', $filters = array(), $clear = false)
 	{
-		switch (strtolower($rtrn))
+		$model = Hook::all();
+
+		if (isset($filters['state']) && $filters['state'])
 		{
-			case 'count':
-				if (is_null($this->_hooks_total) || $clear)
-				{
-					$tbl = new Table\Hook($this->_db);
+			if (!is_array($filters['state']))
+			{
+				$filters['state'] = array($filters['state']);
+			}
+			$filters['state'] = array_map('intval', $filters['state']);
 
-					$this->_hooks_total = $tbl->find('count', $filters);
-				}
-				return $this->_hooks_total;
-			break;
-
-			case 'list':
-			default:
-				if (!($this->_hooks instanceof ItemList) || $clear)
-				{
-					$tbl = new Table\Hook($this->_db);
-					if ($results = $tbl->find('list', $filters))
-					{
-						foreach ($results as $key => $result)
-						{
-							$results[$key] = new Hook($result);
-						}
-					}
-					$this->_hooks = new ItemList($results);
-				}
-				return $this->_hooks;
-			break;
+			$model->whereIn('state', $filters['state']);
 		}
+
+		if (!isset($filters['type']))
+		{
+			$filters['type'] = $this->type;
+		}
+
+		if (isset($filters['type']) && $filters['type'])
+		{
+			$model->whereEquals('type', $filters['type']);
+		}
+
+		if (isset($filters['event']) && $filters['event'])
+		{
+			$model->whereEquals('event', $filters['event']);
+		}
+
+		if (isset($filters['created_by']) && $filters['created_by'] >= 0)
+		{
+			$model->whereEquals('created_by', $filters['created_by']);
+		}
+
+		if (strtolower($rtrn) == 'count')
+		{
+			return $model->total();
+		}
+
+		return $model->ordered()
+			->paginated()
+			->rows();
 	}
 }

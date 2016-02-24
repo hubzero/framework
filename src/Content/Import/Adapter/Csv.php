@@ -33,7 +33,6 @@ namespace Hubzero\Content\Import\Adapter;
 
 use Hubzero\Content\Import\Adapter;
 use Hubzero\Content\Import\Model\Import;
-use Hubzero\Content\Import\Model\Import\Record;
 use Hubzero\Content\Import\Adapter\Csv\Reader;
 use Hubzero\Html\Parameter;
 
@@ -165,7 +164,7 @@ class Csv implements Adapter
 			array_push($this->data, $entry);
 
 			// mark record processed
-			$import->runs('current')->processed(1);
+			$import->currentRun()->processed(1);
 		}
 
 		return $this->data;

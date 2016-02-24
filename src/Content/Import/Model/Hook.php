@@ -25,26 +25,60 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Christopher Smoak <csmoak@purdue.edu>
+ * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Content\Import\Model;
 
-use Hubzero\Base\Model;
+use Hubzero\Database\Relational;
 
 /**
- * Import Hook Model
+ * Class for an import hook
  */
-class Hook extends Model
+class Hook extends Relational
 {
 	/**
-	 * Table name
+	 * The table namespace
+	 *
+	 * @var string
+	 */
+	protected $namespace = 'import';
+
+	/**
+	 * Default order by for model
 	 *
 	 * @var  string
 	 */
-	protected $_tbl_name = '\Hubzero\Content\Import\Table\Hook';
+	public $orderBy = 'name';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'type' => 'notempty',
+		'name' => 'notempty'
+	);
+
+	/**
+	 * Automatic fields to populate every time a row is created
+	 *
+	 * @var  array
+	 **/
+	public $initiate = array(
+		'created',
+		'created_by'
+	);
 
 	/**
 	 * Return imports filespace path

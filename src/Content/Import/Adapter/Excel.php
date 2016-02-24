@@ -159,7 +159,7 @@ class Excel implements Adapter
 			array_push($this->data, $entry);
 
 			// mark record processed
-			$import->runs('current')->processed(1);
+			$import->currentRun()->processed(1);
 		}
 
 		return $this->data;
