@@ -25,27 +25,70 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Christopher Smoak <csmoak@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\User\Group;
 
+use Hubzero\Database\Relational;
+
 /**
  * Group email invite table class
  */
-class InviteEmail extends \JTable
+class InviteEmail extends Relational
 {
 	/**
-	 * Constructor
+	 * The table namespace
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
+	 * @var  string
 	 */
-	public function __construct(&$db)
+	protected $namespace = 'xgroups';
+
+	/**
+	 * The table to which the class pertains
+	 *
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
+	 */
+	protected $table = '#__xgroups_inviteemails';
+
+	/**
+	 * Default order by for model
+	 *
+	 * @var  string
+	 */
+	public $orderBy = 'email';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'gidNumber' => 'positive|nonzero',
+		'email'     => 'notempty',
+		'token'     => 'notempty'
+	);
+
+	/**
+	 * Get parent group
+	 *
+	 * @return  object
+	 */
+	public function group()
 	{
-		parent::__construct('#__xgroups_inviteemails', 'id', $db);
+		return \Hubzero\User\Group::getInstance($this->get('gidNumber'));
 	}
 
 	/**
@@ -59,15 +102,16 @@ class InviteEmail extends \JTable
 	{
 		$final = array();
 
-		$sql = "SELECT * FROM $this->_tbl WHERE gidNumber=" . $this->_db->quote($gid);
-		$this->_db->setQuery($sql);
-		$invitees = $this->_db->loadAssocList();
+		$invitees = self::all()
+			->whereEquals('gidNumber', $gid)
+			->ordered()
+			->rows();
 
 		if ($email_only)
 		{
 			foreach ($invitees as $invitee)
 			{
-				$final[] = $invitee['email'];
+				$final[] = $invitee->get('email');
 			}
 		}
 		else
@@ -106,15 +150,16 @@ class InviteEmail extends \JTable
 
 		if (count($added) > 0)
 		{
-			$sql = "INSERT INTO {$this->_tbl}(`email`,`gidNumber`,`token`) VALUES ";
 			foreach ($added as $a)
 			{
-				$sql_values[] = "(" . $this->_db->quote($a) . "," . $this->_db->quote($gid) . "," . $this->_db->quote(md5($a)) . ")";
+				$model = self::blank();
+				$model->set([
+					'email'     => $a,
+					'gidNumber' => $gid,
+					'token'     => md5($a)
+				]);
+				$model->save();
 			}
-			$sql = $sql . implode(',', $sql_values);
-
-			$this->_db->setQuery($sql);
-			$this->_db->query();
 		}
 
 		$return['exists'] = $exists;
@@ -134,9 +179,15 @@ class InviteEmail extends \JTable
 	{
 		foreach ($emails as $email)
 		{
-			$sql = "DELETE FROM {$this->_tbl} WHERE gidNumber=" . $this->_db->quote($gid) . " AND email=" . $this->_db->quote($email);
-			$this->_db->setQuery($sql);
-			$this->_db->query();
+			$model = self::all()
+				->whereEquals('gidNumber', $gid)
+				->whereEquals('email', $email)
+				->row();
+
+			if ($model->get('id'))
+			{
+				$model->destroy();
+			}
 		}
 	}
 }
