@@ -25,712 +25,458 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Item;
 
-use Hubzero\Item\Comment\File;
+use Hubzero\Database\Relational;
+use Hubzero\User\Profile;
+use Request;
 use Lang;
 use Date;
 use User;
 
 /**
- * Table class for comments
+ * Comment model
  */
-class Comment extends \JTable
+class Comment extends Relational
 {
 	/**
-	 * Constructor
+	 * The table namespace
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
+	 * @var string
 	 */
-	public function __construct(&$db)
+	protected $namespace = 'item';
+
+	/**
+	 * Default order by for model
+	 *
+	 * @var string
+	 */
+	public $orderBy = 'created';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields to be parsed
+	 *
+	 * @var  array
+	 */
+	protected $parsed = array(
+		'content'
+	);
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'content'   => 'notempty',
+		'item_id'   => 'positive|nonzero',
+		'item_type' => 'notempty'
+	);
+
+	/**
+	 * Automatic fields to populate every time a row is created
+	 *
+	 * @var  array
+	 **/
+	public $initiate = array(
+		'created',
+		'created_by'
+	);
+
+	/**
+	 * Automatic fields to populate every time a row is created
+	 *
+	 * @var  array
+	 **/
+	public $always = array(
+		'modified',
+		'modified_by',
+		'item_type'
+	);
+
+	/**
+	 * Return a formatted Created timestamp
+	 *
+	 * @param   string  $as  What data to return
+	 * @return  string
+	 */
+	public function created($as='')
 	{
-		parent::__construct('#__item_comments', 'id', $db);
+		$as = strtolower($as);
+
+		if ($as == 'date')
+		{
+			return Date::of($this->get('created'))->toLocal(Lang::txt('DATE_FORMAT_HZ1'));
+		}
+
+		if ($as == 'time')
+		{
+			return Date::of($this->get('created'))->toLocal(Lang::txt('TIME_FORMAT_HZ1'));
+		}
+
+		return $this->get('created');
 	}
 
 	/**
-	 * Validate data
+	 * Defines a belongs to one relationship between comment and user
 	 *
-	 * @return  boolean True if data is valid
+	 * @return  object
 	 */
-	public function check()
+	public function creator()
 	{
-		$this->content = trim($this->content);
-		if (!$this->content || $this->content == Lang::txt('Enter your comments...'))
+		if ($profile = Profile::getInstance($this->get('created_by')))
 		{
-			$this->setError(Lang::txt('Please provide a comment'));
-			return false;
+			return $profile;
 		}
 
-		$this->item_id = intval($this->item_id);
-		if (!$this->item_id)
-		{
-			$this->setError(Lang::txt('Missing entry ID.'));
-			return false;
-		}
-
-		$this->item_type = strtolower(preg_replace("/[^a-zA-Z0-9\-]/", '', trim($this->item_type)));
-		if (!$this->item_type)
-		{
-			$this->setError(Lang::txt('Missing entry type.'));
-			return false;
-		}
-
-		if (!$this->created_by)
-		{
-			$this->created_by = User::get('id');
-		}
-
-		if (!$this->id)
-		{
-			$this->created = Date::toSql();
-			$this->state   = 1;
-		}
-		else
-		{
-			$this->modified_by = User::get('id');
-			$this->modified    = Date::toSql();
-		}
-
-		// Check file attachment
-		$fieldName = 'commentFile';
-		if (!empty($_FILES[$fieldName]))
-		{
-			//any errors the server registered on uploading
-			$fileError = $_FILES[$fieldName]['error'];
-			if ($fileError > 0)
-			{
-				switch ($fileError)
-				{
-					case 1:
-						$this->setError(Lang::txt('FILE TO LARGE THAN PHP INI ALLOWS'));
-						return false;
-					break;
-
-					case 2:
-						$this->setError(Lang::txt('FILE TO LARGE THAN HTML FORM ALLOWS'));
-						return false;
-					break;
-
-					case 3:
-						$this->setError(Lang::txt('ERROR PARTIAL UPLOAD'));
-						return false;
-					break;
-
-					case 4:
-						return true;
-					break;
-				}
-			}
-
-			//check for filesize
-			$fileSize = $_FILES[$fieldName]['size'];
-			if ($fileSize > 2000000)
-			{
-				$this->setError(Lang::txt('FILE BIGGER THAN 2MB'));
-				return false;
-			}
-
-			//check the file extension is ok
-			$fileName = $_FILES[$fieldName]['name'];
-			$uploadedFileNameParts = explode('.', $fileName);
-			$uploadedFileExtension = array_pop($uploadedFileNameParts);
-
-			$validFileExts = $this->getAllowedExtensions();
-
-			//assume the extension is false until we know its ok
-			$extOk = false;
-
-			//go through every ok extension, if the ok extension matches the file extension (case insensitive)
-			//then the file extension is ok
-			foreach ($validFileExts as $key => $value)
-			{
-				if (preg_match("/$value/i", $uploadedFileExtension))
-				{
-					$extOk = true;
-				}
-			}
-
-			if ($extOk == false)
-			{
-				$this->setError(Lang::txt('Invalid Extension. Only these file types allowed: ' . implode(', ', $this->getAllowedExtensions())));
-				return false;
-			}
-
-			//the name of the file in PHP's temp directory that we are going to move to our folder
-			$fileTemp = $_FILES[$fieldName]['tmp_name'];
-
-			//lose any special characters in the filename
-			$fileName = preg_replace("/[^A-Za-z0-9.]/i", "-", $fileName);
-
-			//always use constants when making file paths, to avoid the possibilty of remote file inclusion
-			$uploadDir = $this->getUploadDir();
-
-			// check if file exists -- rename if needed
-			$fileName = $this->checkFileName($uploadDir, $fileName);
-
-			$uploadPath = $uploadDir . DS . $fileName;
-
-			if (!\Filesystem::upload($fileTemp, $uploadPath))
-			{
-				$this->setError(Lang::txt('ERROR MOVING FILE'));
-				return false;
-			}
-
-			$this->attachmentNames = array($fileName);
-		}
-
-		return true;
+		return new Profile;
 	}
 
 	/**
-	 * Set the upload path
-	 *
-	 * @param   string  $path  Path to set to
-	 * @return  void
-	 */
-	public function setUploadDir($path)
-	{
-		$path = trim($path);
-
-		$path = \Hubzero\Filesystem\Util::normalizePath($path);
-		$path = str_replace(' ', '_', $path);
-
-		$this->_uploadDir = ($path) ? $path : $this->_uploadDir;
-	}
-
-	/**
-	 * Get the upload path
+	 * Generates automatic created field value
 	 *
 	 * @return  string
 	 */
-	private function getUploadDir()
+	public function automaticModified()
 	{
-		return PATH_APP . DS . ltrim($this->_uploadDir, DS);
+		return Date::of('now')->toSql();
 	}
 
 	/**
-	 * Get allowed file extensions
+	 * Generates automatic created by field value
 	 *
-	 * @return  array
+	 * @return  int
 	 */
-	public function getAllowedExtensions()
+	public function automaticModifiedBy()
 	{
-		return $this->_extensions;
+		return User::get('id');
 	}
 
 	/**
-	 * Set allowed file extensions
+	 * Generates automatic created field value
 	 *
-	 * @param   $exts  array  Array of file extensions
-	 * @return  void
-	 */
-	public function setAllowedExtensions($exts = array())
-	{
-		if (is_array($exts) && !empty($exts))
-		{
-			$this->_extensions = $exts;
-		}
-	}
-
-	/**
-	 * Check File Name
-	 *
-	 * @param   string  $uploadDir  Upload Directory
-	 * @param   string  $fileName   File Name
-	 * @return  void
-	 */
-	private function checkFileName($uploadDir, $fileName)
-	{
-		$ext    = strrchr($fileName, '.');
-		$prefix = substr($fileName, 0, -strlen($ext));
-
-		// rename file if exists
-		$i = 1;
-		while (is_file($uploadDir . DS . $fileName))
-		{
-			$fileName = $prefix . ++$i . $ext;
-		}
-		return $fileName;
-	}
-
-	/**
-	 * Store attachments
-	 *
-	 * @param   boolean  $updateNulls
-	 * @return  void
-	 */
-	public function store($updateNulls = false)
-	{
-		$result = parent::store($updateNulls);
-
-		if (!$result)
-		{
-			return false;
-		}
-
-		if (isset($this->attachmentNames) && count($this->attachmentNames) > 0)
-		{
-			// save the attachments
-			foreach ($this->attachmentNames as $nm)
-			{
-				// delete old attachment
-				// find old file and remove it from file system
-				$file = new File($this->_db);
-				$file->loadByComment($this->id);
-				if ($file->id)
-				{
-					if (!$file->deleteFile())
-					{
-						$this->setError($file->getError());
-						continue;
-					}
-				}
-				$file->filename = $nm;
-				$file->comment_id = $this->id;
-				if (!$file->store())
-				{
-					$this->setError($file->getError());
-					continue;
-				}
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Get all the comments on an entry
-	 *
-	 * @param   string   $item_type  Type of entry these comments are attached to
-	 * @param   integer  $item_id    ID of entry these comments are attached to
-	 * @param   integer  $parent     ID of parent comment
-	 * @return  mixed    False if error otherwise array of records
-	 */
-	public function getComments($item_type=null, $item_id=0, $parent=0, $limit=25, $start=0)
-	{
-		if (!$item_type)
-		{
-			$item_type = $this->item_type;
-		}
-		if (!$item_id)
-		{
-			$item_id = $this->item_id;
-		}
-		if (!$parent)
-		{
-			$parent = 0;
-		}
-
-		if (!$item_type || !$item_id)
-		{
-			$this->setError(Lang::txt('Missing parameter(s). item_type:' . $item_type . ', item_id:' . $item_id));
-			return false;
-		}
-
-		if (!User::isGuest())
-		{
-			$sql  = "SELECT c.*, u.name, v.vote, (c.positive - c.negative) AS votes, f.filename FROM $this->_tbl AS c ";
-			$sql .= "LEFT JOIN #__item_comment_files AS f ON f.comment_id=c.id ";
-			$sql .= "LEFT JOIN #__users AS u ON u.id=c.created_by ";
-			$sql .= "LEFT JOIN #__item_votes AS v ON v.item_id=c.id AND v.created_by=" . $this->_db->quote(\User::get('id')) . " AND v.item_type='comment' ";
-		}
-		else
-		{
-			$sql  = "SELECT c.*, u.name, NULL as vote, (c.positive - c.negative) AS votes, f.filename FROM $this->_tbl AS c ";
-			$sql .= "LEFT JOIN #__item_comment_files AS f ON f.comment_id=c.id ";
-			$sql .= "LEFT JOIN #__users AS u ON u.id=c.created_by ";
-		}
-		$sql .= "WHERE c.item_type=" . $this->_db->quote($item_type) . " AND c.item_id=" . $this->_db->quote($item_id) . " AND c.parent=" . $this->_db->quote($parent) . " AND c.state IN (1, 3) ORDER BY created ASC LIMIT $start,$limit";
-
-		$this->_db->setQuery($sql);
-
-		$rows = $this->_db->loadObjectList();
-		if ($rows && count($rows) > 0)
-		{
-			foreach ($rows as $k => $row)
-			{
-				$rows[$k]->replies = $this->getComments($item_type, $item_id, $row->id, $limit, $start);
-			}
-		}
-		return $rows;
-	}
-
-	/**
-	 * Delete a comment and any chldren
-	 *
-	 * @param   integer  $id  ID of parent comment
-	 * @return  boolean  True if successful otherwise returns and error message
-	 */
-	public function delete($oid=null)
-	{
-		if (!$oid)
-		{
-			$oid = $this->id;
-		}
-
-		if (!$this->deleteDescendants($oid, 2))
-		{
-			return false;
-		}
-
-		return parent::delete($oid);
-	}
-
-	/**
-	 * Delete descendants of a comment
-	 *
-	 * @param   integer  $id  ID of parent comment
-	 * @return  boolean  True if successful otherwise returns and error message
-	 */
-	public function deleteDescendants($id=null)
-	{
-		if (is_array($id))
-		{
-			$id = array_map('intval', $id);
-			$id = implode(',', $id);
-		}
-		else
-		{
-			$id = intval($id);
-		}
-
-		$this->_db->setQuery("SELECT id FROM $this->_tbl WHERE parent IN ($id)");
-		$rows = $this->_db->loadColumn();
-		if ($rows && count($rows) > 0)
-		{
-			$state = intval($state);
-			$rows  = array_map('intval', $rows);
-			$ids   = implode(',', $rows);
-
-			$this->_db->setQuery("DELETE FROM $this->_tbl WHERE id IN ($ids)");
-			if (!$this->_db->query())
-			{
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
-			return $this->deleteDescendants($rows, $state);
-		}
-		return true;
-	}
-
-	/**
-	 * Set the state of a comment and all descendants
-	 *
-	 * @param   integer  $id     ID of parent comment
-	 * @param   integer  $state  State to set (0=unpublished, 1=published, 2=trashed)
-	 * @return  boolean  True if successful otherwise returns and error message
-	 */
-	public function setState($oid=null, $state=0)
-	{
-		if (!$oid)
-		{
-			$oid = $this->id;
-		}
-		$oid = intval($oid);
-
-		if (!$this->setDescendantState($oid, $state))
-		{
-			return false;
-		}
-
-		$this->_db->setQuery("UPDATE $this->_tbl SET state=" . $this->_db->quote($state) . " WHERE id=" . $this->_db->quote($oid));
-		if (!$this->_db->query())
-		{
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Set the state of descendants of a comment
-	 *
-	 * @param   integer  $id     ID of parent comment
-	 * @param   integer  $state  State to set (0=unpublished, 1=published, 2=trashed)
-	 * @return  boolean  True if successful otherwise returns and error message
-	 */
-	public function setDescendantState($id=null, $state=0)
-	{
-		if (is_array($id))
-		{
-			$id = array_map('intval', $id);
-			$id = implode(',', $id);
-		}
-		else
-		{
-			$id = intval($id);
-		}
-
-		$this->_db->setQuery("SELECT id FROM $this->_tbl WHERE parent IN ($id)");
-		$rows = $this->_db->loadColumn();
-		if ($rows && count($rows) > 0)
-		{
-			$state = intval($state);
-			$rows  = array_map('intval', $rows);
-			$id    = implode(',', $rows);
-
-			$this->_db->setQuery("UPDATE $this->_tbl SET state=" . $this->_db->quote($state) . " WHERE parent IN ($id)");
-			if (!$this->_db->query())
-			{
-				$this->setError($this->_db->getErrorMsg());
-				return false;
-			}
-			return $this->setDescendantState($rows, $state);
-		}
-		return true;
-	}
-
-	/**
-	 * Build a query based on a list of filters
-	 *
-	 * @param   array   $filters
+	 * @param   array   $data
 	 * @return  string
 	 */
-	public function buildQuery($filters=array())
+	public function automaticItemType($data)
 	{
-		$query  = "FROM $this->_tbl AS c";
-		$query .= " LEFT JOIN #__viewlevels AS a ON c.access=a.id";
-
-		$where = array();
-
-		if (isset($filters['state']))
-		{
-			if (is_array($filters['state']))
-			{
-				$filters['state'] = array_map('intval', $filters['state']);
-				$where[] = "c.state IN (" . implode(',', $filters['state']) . ")";
-			}
-			else if ($filters['state'] >= 0)
-			{
-				$where[] = "c.state=" . $this->_db->quote(intval($filters['state']));
-			}
-		}
-
-		if (isset($filters['item_type']) && $filters['item_type'] >= 0)
-		{
-			$where[] = "c.item_type=" . $this->_db->quote($filters['item_type']);
-		}
-
-		if (isset($filters['item_id']) && $filters['item_id'] >= 0)
-		{
-			$where[] = "c.item_id=" . $this->_db->quote($filters['item_id']);
-		}
-
-		if (isset($filters['search']) && $filters['search'] != '')
-		{
-			$where[] = "LOWER(c.content) LIKE " . $this->_db->quote('%' . strtolower($filters['search']) . '%');
-		}
-
-		if (count($where) > 0)
-		{
-			$query .= " WHERE ";
-			$query .= implode(" AND ", $where);
-		}
-
-		return $query;
+		return strtolower(preg_replace("/[^a-zA-Z0-9\-]/", '', trim($data['item_type'])));
 	}
 
 	/**
-	 * Get a record count
-	 *
-	 * @param   array   $filters  Filters to build query off of
-	 * @return  integer
+	 * Determine if record was modified
+	 * 
+	 * @return  boolean  True if modified, false if not
 	 */
-	public function getCount($filters=array())
+	public function wasModified()
 	{
-		$filters['limit'] = 0;
-
-		$query = "SELECT COUNT(*) " . $this->buildQuery($filters);
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadResult();
-	}
-
-	/**
-	 * Get an array of records
-	 *
-	 * @param   array  $filters  Filters to build query off of
-	 * @return  array
-	 */
-	public function getRecords($filters=array())
-	{
-		$query  = "SELECT c.*";
-		$query .= ", a.title AS access_level";
-		$query .= " " . $this->buildQuery($filters);
-
-		if (!isset($filters['sort']) || !$filters['sort'])
-		{
-			$filters['sort'] = 'created';
-		}
-		if (!isset($filters['sort_Dir']) || !$filters['sort_Dir'])
-		{
-			$filters['sort_Dir'] = 'DESC';
-		}
-		$query .= " ORDER BY " . $filters['sort'] . " " . $filters['sort_Dir'];
-
-		if (isset($filters['limit']) && $filters['limit'] != 0)
-		{
-			$query .= ' LIMIT ' . $filters['start'] . ',' . $filters['limit'];
-		}
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
-	}
-
-	/**
-	 * Build query method
-	 *
-	 * @param   array   $filters
-	 * @return  string  Database query
-	 */
-	private function _buildQuery($filters=array())
-	{
-		$query = " FROM $this->_tbl AS r LEFT JOIN #__users AS u ON u.id=r.created_by";
-		$query .= " LEFT JOIN #__viewlevels AS a ON r.access=a.id";
-
-		$where = array();
-		if (isset($filters['item_id']))
-		{
-			$where[] = "r.`item_id`=" . $this->_db->quote($filters['item_id']);
-		}
-		if (isset($filters['item_type']))
-		{
-			$where[] = "r.`item_type`=" . $this->_db->quote($filters['item_type']);
-		}
-		if (isset($filters['state']))
-		{
-			if (is_array($filters['state']))
-			{
-				$filters['state'] = array_map('intval', $filters['state']);
-				$where[] = "r.`state` IN (" . implode(',', $filters['state']) . ")";
-			}
-			else
-			{
-				$where[] = "r.`state`=" . $this->_db->quote($filters['state']);
-			}
-		}
-		if (isset($filters['access']))
-		{
-			$where[] = "r.`access`=" . $this->_db->quote($filters['access']);
-		}
-		if (isset($filters['parent']))
-		{
-			$where[] = "r.`parent`=" . $this->_db->quote($filters['parent']);
-		}
-		if (isset($filters['created_by']))
-		{
-			$where[] = "r.`created_by`=" . $this->_db->quote($filters['created_by']);
-		}
-		if (isset($filters['search']) && $filters['search'])
-		{
-			$where[] = "LOWER(r.`content`) LIKE " . $this->_db->quote('%' . strtolower($filters['search']) . '%');
-		}
-
-		if (count($where) > 0)
-		{
-			$query .= " WHERE " . implode(" AND ", $where);
-		}
-
-		return $query;
-	}
-
-	/**
-	 * Get a count of records
-	 *
-	 * @param   array   $filters
-	 * @return  object  Return course units
-	 */
-	public function count($filters=array())
-	{
-		$query  = "SELECT COUNT(*) ";
-		$query .= $this->_buildquery($filters);
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadResult();
-	}
-
-	/**
-	 * Get a list of records
-	 *
-	 * @param   array   $filters
-	 * @return  object  Return course units
-	 */
-	public function find($filters=array())
-	{
-		$query  = "SELECT r.*, u.name";
-		$query .= ", a.title AS access_level";
-		$query .= $this->_buildquery($filters);
-
-		if (!isset($filters['sort']) || !$filters['sort'])
-		{
-			$filters['sort'] = 'created';
-		}
-		if (!isset($filters['sort_Dir']) || !in_array(strtoupper($filters['sort_Dir']), array('ASC', 'DESC')))
-		{
-			$filters['sort_Dir'] = 'ASC';
-		}
-		$query .= " ORDER BY " . $filters['sort'] . " " . $filters['sort_Dir'];
-		if (isset($filters['start']) && isset($filters['limit']))
-		{
-			$query .= " LIMIT " . $filters['start'] . "," . $filters['limit'];
-		}
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
-	}
-
-	/**
-	 * Get a list of ratings
-	 *
-	 * @param   array   $filters
-	 * @return  object  Return course units
-	 */
-	public function ratings($filters=array())
-	{
-		$query  = "SELECT r.rating";
-		$query .= $this->_buildquery($filters);
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
-	}
-
-	/**
-	 * Check if an item has been rated
-	 *
-	 * @param   integer  $item_id
-	 * @param   string   $item_type
-	 * @param   integer  $created_by
-	 * @return  boolean
-	 */
-	public function hasRated($item_id, $item_type, $created_by)
-	{
-		if (!$item_id || !$item_type || !$created_by)
-		{
-			return false;
-		}
-
-		$filters = array(
-			'state'      => 1,
-			'created_by' => $created_by,
-			'parent'     => 0,
-			'item_id'    => $item_id,
-			'item_type'  => $item_type
-		);
-
-		$query  = "SELECT COUNT(*) ";
-		$query .= $this->_buildquery($filters);
-
-		$this->_db->setQuery($query);
-		if (($total = $this->_db->loadResult()))
+		if ($this->get('modified') && $this->get('modified') != '0000-00-00 00:00:00')
 		{
 			return true;
 		}
+
 		return false;
+	}
+
+	/**
+	 * Return a formatted Modified timestamp
+	 *
+	 * @param   string  $as  What data to return
+	 * @return  string
+	 */
+	public function modified($as='')
+	{
+		$as = strtolower($as);
+
+		if ($as == 'date')
+		{
+			return Date::of($this->get('created'))->toLocal(Lang::txt('DATE_FORMAT_HZ1'));
+		}
+
+		if ($as == 'time')
+		{
+			return Date::of($this->get('created'))->toLocal(Lang::txt('TIME_FORMAT_HZ1'));
+		}
+
+		return $this->get('created');
+	}
+
+	/**
+	 * Was the entry reported?
+	 *
+	 * @return  boolean  True if reported, False if not
+	 */
+	public function isReported()
+	{
+		return ($this->get('state') == 3);
+	}
+
+	/**
+	 * Get either a count of or list of replies
+	 *
+	 * @param   array   $filters  Filters to apply to query
+	 * @return  object
+	 */
+	public function replies($filters = array())
+	{
+		if (!isset($filters['item_id']))
+		{
+			$filters['item_id'] = $this->get('item_id');
+		}
+
+		if (!isset($filters['item_type']))
+		{
+			$filters['item_type'] = $this->get('item_type');
+		}
+
+		$entries = self::all()
+			->whereEquals('parent', (int) $this->get('id'))
+			->whereEquals('item_type', $filters['item_type'])
+			->whereEquals('item_id', (int) $filters['item_id']);
+
+		if (isset($filters['state']))
+		{
+			$entries->whereIn('state', (array) $filters['state']);
+		}
+
+		return $entries;
+	}
+
+	/**
+	 * Get parent comment
+	 *
+	 * @return  object
+	 */
+	public function parent()
+	{
+		return self::oneOrFail($this->get('parent', 0));
+	}
+
+	/**
+	 * Get a list of votes
+	 *
+	 * @return  object
+	 */
+	public function votes()
+	{
+		return $this->oneShiftsToMany('Hubzero\Item\Vote', 'item_id', 'item_type');
+	}
+
+	/**
+	 * Get a list of files
+	 *
+	 * @return  object
+	 */
+	public function files()
+	{
+		return $this->oneToMany('Hubzero\Item\Comment\File', 'comment_id');
+	}
+
+	/**
+	 * Check if a user has voted for this entry
+	 *
+	 * @param   integer  $user_id  Optinal user ID to set as voter
+	 * @param   string   $ip       IP Address
+	 * @return  integer
+	 */
+	public function ballot($user_id = 0, $ip = null)
+	{
+		if (User::isGuest())
+		{
+			$vote = new Vote();
+			$vote->set('item_type', 'comment');
+			$vote->set('item_id', $this->get('id'));
+			$vote->set('created_by', $user_id);
+			$vote->set('ip', $ip);
+
+			return $vote;
+		}
+
+		$user = $user_id ? User::getInstance($user_id) : User::getRoot();
+		$ip   = $ip ?: Request::ip();
+
+		// See if a person from this IP has already voted in the last week
+		$votes = $this->votes();
+
+		if ($user->get('id'))
+		{
+			$votes->whereEquals('created_by', $user->get('id'));
+		}
+		elseif ($ip)
+		{
+			$votes->whereEquals('ip', $ip);
+		}
+
+		$vote = $votes
+			->ordered()
+			->limit(1)
+			->row();
+
+		if (!$vote || !$vote->get('id'))
+		{
+			$vote = new Vote();
+			$vote->set('item_type', 'comment');
+			$vote->set('item_id', $this->get('id'));
+			$vote->set('created_by', $user_id);
+			$vote->set('ip', $ip);
+		}
+
+		return $vote;
+	}
+
+	/**
+	 * Vote for the entry
+	 *
+	 * @param   integer  $vote     The vote [0, 1]
+	 * @param   integer  $user_id  Optinal user ID to set as voter
+	 * @param   string   $ip       Optional IP address
+	 * @return  boolean  False if error, True on success
+	 */
+	public function vote($vote = 0, $user_id = 0, $ip = null)
+	{
+		if (!$this->get('id'))
+		{
+			$this->setError(Lang::txt('No record found'));
+			return false;
+		}
+
+		if (!$vote)
+		{
+			$this->setError(Lang::txt('No vote provided'));
+			return false;
+		}
+
+		$al = $this->ballot($user_id, $ip);
+		$al->set('item_type', 'comment');
+		$al->set('item_id', $this->get('id'));
+		$al->set('created_by', $user_id);
+		$al->set('ip', $ip);
+
+		$vote = $al->automaticVote(['vote' => $vote]);
+
+		if ($this->get('created_by') == $user_id)
+		{
+			$this->setError(Lang::txt('Cannot vote for your own entry'));
+			return false;
+		}
+
+		if ($vote != $al->get('vote', 0))
+		{
+			if ($vote > 0)
+			{
+				$this->set('positive', (int) $this->get('positive') + 1);
+				if ($al->get('id'))
+				{
+					$this->set('negative', (int) $this->get('negative') - 1);
+				}
+			}
+			else
+			{
+				if ($al->get('id'))
+				{
+					$this->set('positive', (int) $this->get('positive') - 1);
+				}
+				$this->set('negative', (int) $this->get('negative') + 1);
+			}
+
+			if (!$this->save())
+			{
+				return false;
+			}
+
+			$al->set('vote', $vote);
+
+			if (!$al->save())
+			{
+				$this->setError($al->getError());
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Saves the current model to the database
+	 *
+	 * @return  bool
+	 */
+	public function save()
+	{
+		// Make sure children inherit states
+		if ($this->get('state') == self::STATE_DELETED
+		 || $this->get('state') == self::STATE_UNPUBLISHED)
+		{
+			foreach ($this->replies() as $comment)
+			{
+				$comment->set('state', $this->get('state'));
+
+				if (!$comment->save())
+				{
+					$this->setError($comment->getError());
+
+					return false;
+				}
+			}
+		}
+
+		return parent::save();
+	}
+
+	/**
+	 * Delete the record and all associated data
+	 *
+	 * @return  bool  False if error, True on success
+	 */
+	public function destroy()
+	{
+		// Can't delete what doesn't exist
+		if ($this->isNew())
+		{
+			return true;
+		}
+
+		// Remove comments
+		foreach ($this->replies() as $comment)
+		{
+			if (!$comment->destroy())
+			{
+				$this->setError($comment->getError());
+				return false;
+			}
+		}
+
+		// Remove votes
+		foreach ($this->votes() as $vote)
+		{
+			if (!$vote->destroy())
+			{
+				$this->setError($vote->getError());
+				return false;
+			}
+		}
+
+		// Remove files
+		foreach ($this->files() as $file)
+		{
+			if (!$file->destroy())
+			{
+				$this->setError($file->getError());
+				return false;
+			}
+		}
+
+		return parent::destroy();
 	}
 }

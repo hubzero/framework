@@ -25,76 +25,81 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Item\Comment;
 
+use Hubzero\Database\Relational;
+use Hubzero\Filesystem\Util;
+
 /**
- * Table class for comments
+ * Class for comment files (attachments)
  */
-class File extends \JTable
+class File extends Relational
 {
+	/**
+	 * The table namespace
+	 *
+	 * @var string
+	 */
+	protected $namespace = 'item_comment';
+
 	/**
 	 * Upload path
 	 *
 	 * @var  string
 	 */
-	protected $_uploadDir    = '/sites/comments';
+	protected $uploadDir = '/site/comments';
 
 	/**
-	 * Constructor
+	 * File size
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
+	 * @var  string
 	 */
-	public function __construct(&$db)
-	{
-		parent::__construct('#__item_comment_files', 'id', $db);
-	}
+	protected $size = null;
 
 	/**
-	 * Validate data
+	 * Diemnsions for file (must be an image)
 	 *
-	 * @return  boolean  True if data is valid
+	 * @var  array
 	 */
-	public function check()
-	{
-		$this->filename = trim($this->filename);
-		if (!$this->filename)
-		{
-			$this->setError(\Lang::txt('Please provide a file name'));
-			return false;
-		}
+	protected $dimensions = null;
 
-		$this->filename = $this->_checkFileName($this->_getUploadDir(), $this->filename);
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'comment_id' => 'positive|nonzero',
+		'file'       => 'notempty'
+	);
 
-		$this->comment_id = intval($this->comment_id);
-		if (!$this->comment_id)
-		{
-			$this->setError(\Lang::txt('Missing comment ID.'));
-			return false;
-		}
-
-		return true;
-	}
+	/**
+	 * Automatic fields to populate every time a row is created
+	 *
+	 * @var  array
+	 **/
+	public $always = array(
+		'filename'
+	);
 
 	/**
 	 * Set the upload path
 	 *
 	 * @param   string  $path  Path to set to
-	 * @return  void
+	 * @return  object
 	 */
 	public function setUploadDir($path)
 	{
-		$path = trim($path);
+		$path = str_replace(' ', '_', trim($path));
+		$path = Util::normalizePath($path);
 
-		$path = \Hubzero\Filesystem\Util::normalizePath($path);
-		$path = str_replace(' ', '_', $path);
+		$this->uploadDir = ($path ? $path : $this->uploadDir);
 
-		$this->_uploadDir = ($path) ? $path : $this->_uploadDir;
+		return $this;
 	}
 
 	/**
@@ -102,191 +107,183 @@ class File extends \JTable
 	 *
 	 * @return  string
 	 */
-	private function _getUploadDir()
+	public function getUploadDir()
 	{
-		return PATH_APP . DS . ltrim($this->_uploadDir, DS);
+		return PATH_APP . $this->uploadDir;
 	}
 
 	/**
-	 * Ensure no conflicting file names
+	 * Ensure no conflicting file names by
+	 * renaming the incoming file if the name
+	 * already exists
 	 *
-	 * @param   string  $uploadDir  Upload path
-	 * @param   string  $fileName   File name
+	 * @param   array  $data
 	 * @return  string
 	 */
-	private function _checkFileName($uploadDir, $fileName)
+	public function automaticFilename($data)
 	{
-		$ext = strrchr($fileName, '.');
-		$prefix = substr($fileName, 0, -strlen($ext));
+		$filename = $data['filename'];
 
-		// rename file if exists
+		$ext = strrchr($filename, '.');
+		$prefix = substr($filename, 0, -strlen($ext));
+
 		$i = 1;
-		while (is_file($uploadDir . DS . $fileName))
+
+		while (is_file($this->getUploadDir() . DS . $data['comment_id'] . DS . $filename))
 		{
-			$fileName = $prefix . ++$i . $ext;
+			$filename = $prefix . ++$i . $ext;
 		}
-		return $fileName;
+
+		$data['filename'] = preg_replace("/[^A-Za-z0-9.]/i", '-', $filename);
+
+		return $data['filename'];
 	}
 
 	/**
-	 * Build query method
+	 * Delete record
 	 *
-	 * @param   array   $filters
-	 * @return  string  database query
+	 * @return  boolean  True if successful, False if not
 	 */
-	private function _buildQuery($filters=array())
+	public function destroy()
 	{
-		$query = " FROM $this->_tbl AS f";
+		$path = $this->path();
 
-		$where = array();
-		if (isset($filters['comment_id']))
+		if (file_exists($path))
 		{
-			$where[] = "f.`comment_id`=" . $this->_db->quote($filters['comment_id']);
-		}
-		if (isset($filters['filename']))
-		{
-			$where[] = "f.`filename`=" . $this->_db->quote($filters['filename']);
-		}
-		if (isset($filters['search']) && $filters['search'])
-		{
-			$where[] = "LOWER(f.`filename`) LIKE " . $this->_db->quote('%' . strtolower($filters['search']) . '%');
-		}
-
-		if (count($where) > 0)
-		{
-			$query .= " WHERE " . implode(" AND ", $where);
-		}
-
-		return $query;
-	}
-
-	/**
-	 * Get an object list of course units
-	 *
-	 * @param   array   $filters
-	 * @return  object  Return course units
-	 */
-	public function count($filters=array())
-	{
-		$query  = "SELECT COUNT(*)" . $this->_buildquery($filters);
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadResult();
-	}
-
-	/**
-	 * Get an object list of course units
-	 *
-	 * @param   array   $filters
-	 * @return  object  Return course units
-	 */
-	public function find($filters=array())
-	{
-		$query  = "SELECT f.*" . $this->_buildquery($filters);
-
-		if (!isset($filters['sort']) || !$filters['sort'])
-		{
-			$filters['sort'] = 'filename';
-		}
-		if (!isset($filters['sort_Dir']) || !in_array(strtoupper($filters['sort_Dir']), array('ASC', 'DESC')))
-		{
-			$filters['sort_Dir'] = 'ASC';
-		}
-		$query .= " ORDER BY " . $filters['sort'] . " " . $filters['sort_Dir'];
-		if (!empty($filters['start']) && !empty($filters['limit']))
-		{
-			$query .= " LIMIT " . $filters['start'] . "," . $filters['limit'];
-		}
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
-	}
-
-
-	/**
-	 * Get Attachment by Comment ID
-	 *
-	 * @param   integer  $comment_id  ID of parent comment
-	 * @return  boolean  true if successful otherwise returns and error message
-	 */
-	public function loadByComment($comment_id=null)
-	{
-		$this->_db->setQuery("SELECT * FROM $this->_tbl WHERE comment_id=" . $this->_db->quote((int) $comment_id));
-		return $this->_db->loadObject();
-	}
-
-
-	/**
-	 * Delete records by comment ID
-	 *
-	 * @param   integer  $comment_id  ID of parent comment
-	 * @return  boolean  true if successful otherwise returns and error message
-	 */
-	public function deleteByComment($comment_id=null)
-	{
-		if ($comment_id === null)
-		{
-			$this->setError(\Lang::txt('Missing argument: comment ID'));
-			return false;
-		}
-
-		$this->_db->setQuery("DELETE FROM $this->_tbl WHERE comment_id=" . $this->_db->quote((int) $comment_id));
-		if (!$this->_db->query())
-		{
-			$this->setError($this->_db->getErrorMsg());
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Delete a file
-	 *
-	 * @param   integer  $id   ID of parent comment
-	 * @return  boolean  true if successful otherwise returns and error message
-	 */
-	public function delete($oid=null)
-	{
-		if (!$oid)
-		{
-			$oid = $this->id;
-		}
-
-		if (!$this->deleteFile($oid))
-		{
-			return false;
-		}
-
-		return parent::delete($oid);
-	}
-
-	/**
-	 * Delete records by comment ID
-	 *
-	 * @param   integer  $comment_id  ID of parent comment
-	 * @return  boolean  true  if successful otherwise returns and error message
-	 */
-	public function deleteFile($filename=null)
-	{
-		if ($filename === null)
-		{
-			$filename = $this->filename;
-		}
-		else if (is_numeric($filename) && $filename != $this->id)
-		{
-			$tbl = new self($this->_db);
-			$tbl->load($filename);
-			$filename = $tbl->filename;
-		}
-
-		if (file_exists($this->_getUploadDir() . DS . $filename))
-		{
-			if (!\Filesystem::delete($this->_getUploadDir() . DS . $filename))
+			if (!\Filesystem::delete($path))
 			{
-				$this->setError(\Lang::txt('Unable to delete file.'));
+				$this->setError('Unable to delete file.');
+
 				return false;
 			}
 		}
+
+		return parent::destroy();
+	}
+
+	/**
+	 * Upload file
+	 *
+	 * @param   string  $name
+	 * @param   string  $temp
+	 * @return  bool
+	 */
+	public function upload($name, $temp)
+	{
+		$destination = $this->getUploadDir() . DS . $this->get('comment_id');
+
+		if (!is_dir($destination))
+		{
+			if (!\Filesystem::makeDirectory($destination))
+			{
+				$this->setError('Unable to create upload path.');
+
+				return false;
+			}
+		}
+
+		$filename = $this->automaticFilename(array(
+			'filename'   => $name,
+			'comment_id' => $this->get('comment_id')
+		));
+
+		$destination .= DS . $filename;
+
+		if (!\Filesystem::upload($temp, $destination))
+		{
+			$this->setError('Unable to upload file.');
+
+			return false;
+		}
+
+		$this->set('filename', $filename);
+
 		return true;
+	}
+
+	/**
+	 * File path
+	 *
+	 * @return  integer
+	 */
+	public function path()
+	{
+		return $this->getUploadDir() . DS . $this->get('comment_id') . DS . $this->get('filename');
+	}
+
+	/**
+	 * Is the file an image?
+	 *
+	 * @return  boolean
+	 */
+	public function isImage()
+	{
+		return preg_match("/\.(bmp|gif|jpg|jpe|jpeg|png)$/i", $this->get('filename'));
+	}
+
+	/**
+	 * Is the file an image?
+	 *
+	 * @return  boolean
+	 */
+	public function size()
+	{
+		if ($this->size === null)
+		{
+			$this->size = 0;
+
+			$path = $this->path();
+
+			if (file_exists($path))
+			{
+				$this->size = filesize($path);
+			}
+		}
+
+		return $this->size;
+	}
+
+	/**
+	 * File width and height
+	 *
+	 * @return  array
+	 */
+	public function dimensions()
+	{
+		if (!$this->dimensions)
+		{
+			$this->dimensions = array(0, 0);
+
+			if ($this->isImage())
+			{
+				$this->dimensions = getimagesize($this->path());
+			}
+		}
+
+		return $this->dimensions;
+	}
+
+	/**
+	 * File width
+	 *
+	 * @return  integer
+	 */
+	public function width()
+	{
+		$dimensions = $this->dimensions();
+
+		return $dimensions[0];
+	}
+
+	/**
+	 * File height
+	 *
+	 * @return  integer
+	 */
+	public function height()
+	{
+		$dimensions = $this->dimensions();
+
+		return $dimensions[1];
 	}
 }
