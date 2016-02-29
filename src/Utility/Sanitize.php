@@ -240,7 +240,7 @@ class Sanitize
 	 * @param      boolean $quotesOnly Only clean quotes (single and double)
 	 * @return     string
 	 */
-	public function cleanMsChar($text, $quotesOnly=false)
+	public static function cleanMsChar($text, $quotesOnly=false)
 	{
 		$y = array(
 			"\x7f"=>'',
