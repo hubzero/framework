@@ -49,6 +49,21 @@ class File extends None
 	protected $directory;
 
 	/**
+	 * A list of files to ignore
+	 *
+	 * @var  array
+	 */
+	protected static $skip = array(
+		'.svn',
+		'cvs',
+		'.ds_store',
+		'__macosx',
+		'index.html',
+		'site.css',
+		'site.less.cache'
+	);
+
+	/**
 	 * Create a new file cache store instance.
 	 *
 	 * @param   array  $options
@@ -84,7 +99,7 @@ class File extends None
 	public static function isAvailable()
 	{
 		$conf = new \Hubzero\Config\Repository('site');
-		return is_writable($conf->get('cache_path', PATH_APP . '/cache'));
+		return is_writable($conf->get('cache_path', PATH_APP . DIRECTORY_SEPARATOR . 'cache'));
 	}
 
 	/**
@@ -226,20 +241,18 @@ class File extends None
 	 */
 	public function clean($group = null)
 	{
-		$path = $this->directory . ($group ? DS . $group : '');
+		$path = $this->directory . ($group ? DIRECTORY_SEPARATOR . $group : '');
 		$root = ($path == $this->directory);
 
 		if (is_dir($path))
 		{
-			$skip = array('.svn', 'cvs', '.ds_store', '__macosx', 'index.html');
-
 			foreach (new DirectoryIterator($path) as $file)
 			{
-				if (!$root || (!$file->isDot() && !in_array(strtolower($file->getFilename()), $skip)))
+				if (!$root || (!$file->isDot() && !in_array(strtolower($file->getFilename()), static::$skip)))
 				{
 					if ($file->isDir())
 					{
-						//$this->clean(($group ? $group . DS : '') . $file->getFilename());
+						//$this->clean(($group ? $group . DIRECTORY_SEPARATOR : '') . $file->getFilename());
 					}
 					else
 					{
@@ -258,38 +271,51 @@ class File extends None
 	/**
 	 * Garbage collect expired cache data
 	 *
+	 * @param   string  $group
 	 * @return  void
 	 */
-	public function gc()
+	public function gc($group = null)
 	{
 		$result = true;
 
-		$path = $this->directory;
+		$path = $this->directory . ($group ? DIRECTORY_SEPARATOR . $group : '');
 
 		if (is_dir($path))
 		{
-			$skip = array('.svn', 'cvs', '.ds_store', '__macosx', 'index.html');
-
 			foreach (new DirectoryIterator($path) as $file)
 			{
-				if (!$file->isDot() && !in_array(strtolower($file->getFilename()), $skip))
+				if ($file->isDot() || in_array(strtolower($file->getFilename()), static::$skip))
 				{
-					if (!file_exists($file->getPathname()))
+					continue;
+				}
+
+				if ($file->isDir())
+				{
+					$result = $this->gc($file->getFilename());
+
+					if (!$result)
 					{
-						continue;
+						break;
 					}
 
-					$data = @unserialize(file_get_contents($file->getPathname()));
+					continue;
+				}
 
-					if (!$data)
-					{
-						throw new RuntimeException('Cache file is invalid.');
-					}
+				if (!file_exists($file->getPathname()))
+				{
+					continue;
+				}
 
-					if ($this->isDataExpired($data))
-					{
-						$result = $this->forget($key);
-					}
+				$data = @unserialize(file_get_contents($file->getPathname()));
+
+				if (!$data)
+				{
+					throw new RuntimeException(sprintf('Cache file "%s" is invalid.', $file->getPathname()));
+				}
+
+				if ($this->isDataExpired($data))
+				{
+					$result = unlink($file->getPathname());
 				}
 			}
 		}
@@ -305,7 +331,6 @@ class File extends None
 	public function all()
 	{
 		$path = $this->directory;
-		$skip = array('.svn', 'cvs', '.ds_store', '__macosx', 'index.html');
 
 		$data = array();
 
@@ -321,15 +346,16 @@ class File extends None
 
 			$item = new Auditor($name);
 
-			$files = new DirectoryIterator($path . DS . $name);
+			$files = new DirectoryIterator($path . DIRECTORY_SEPARATOR . $name);
+
 			foreach ($files as $file)
 			{
-				if ($file->isDot() || $file->isDir() || in_array(strtolower($file->getFilename()), $skip))
+				if ($file->isDot() || $file->isDir() || in_array(strtolower($file->getFilename()), static::$skip))
 				{
 					continue;
 				}
 
-				$item->tally(filesize($path . '/' . $name . '/' . $file->getFilename()) / 1024);
+				$item->tally(filesize($path . DIRECTORY_SEPARATOR . $name . DIRECTORY_SEPARATOR . $file->getFilename()) / 1024);
 			}
 
 			$data[$name] = $item;
@@ -375,9 +401,9 @@ class File extends None
 		$parts = explode('.', $key);
 
 		$path = array_shift($parts);
-		$path = $this->directory . ($path ? DS . $this->cleanPath($path) : '');
+		$path = $this->directory . ($path ? DIRECTORY_SEPARATOR . $this->cleanPath($path) : '');
 
-		return $path . DS . $this->id($key) . '.php';
+		return $path . DIRECTORY_SEPARATOR . $this->id($key) . '.php';
 	}
 
 	/**
@@ -432,6 +458,5 @@ class File extends None
 	protected function isDataExpired(array $data)
 	{
 		return $data['ttl'] !== 0 && time() > $data['ttl'];
-		//return $data['ttl'] !== 0 && time() - $data['time'] > $data['ttl'];
 	}
 }
