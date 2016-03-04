@@ -28,60 +28,14 @@
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
-
-namespace Hubzero\Template;
-
-use Hubzero\Base\ServiceProvider;
-
-/**
- * Component loader service provider
- */
-class TemplateServiceProvider extends ServiceProvider
-{
-	/**
-	 * Register the service provider.
-	 *
-	 * @return  void
-	 */
-	public function register()
-	{
-		$this->app['template'] = function ($app)
-		{
-			$options = [
-				'path_app'  => PATH_APP . DS . 'templates',
-				'path_core' => PATH_CORE . DS . 'templates',
-				'style'     => 0,
-				'lang'      => ''
-			];
-
-			if ($app->isAdmin())
-			{
-				$options['style'] = \User::getParam('admin_style', $options['style']);
-			}
-
-			if ($app->isSite() && $app->has('menu'))
-			{
-				$menu = $app['menu'];
-
-				if (!($item = $menu->getActive()))
-				{
-					$item = $menu->getItem($app['request']->getInt('Itemid', 0));
-				}
-
-				if (is_object($item))
-				{
-					$options['style'] = $item->template_style_id;
-				}
-
-				if ($app->has('language.filter'))
-				{
-					$options['lang'] = $app['language']->getTag();
-				}
-			}
-
-			$options['style'] = $app['request']->getVar('templateStyle', 0);
-
-			return with(new Loader($app, $options))->load();
-		};
-	}
-}
+?>
+<!DOCTYPE html>
+<html>
+	<head>
+		<jdoc:include type="head" />
+	</head>
+	<body class="contentpane">
+		<jdoc:include type="message" />
+		<jdoc:include type="component" />
+	</body>
+</html>
