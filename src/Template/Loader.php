@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -34,11 +33,13 @@ namespace Hubzero\Template;
 
 use Hubzero\Container\Container;
 use Hubzero\Config\Registry;
+use Hubzero\Base\ClientManager;
+use Hubzero\Database\Query;
 use Exception;
 use stdClass;
 
 /**
- * Component helper class
+ * Template loader class
  */
 class Loader
 {
@@ -54,72 +55,91 @@ class Loader
 	 *
 	 * @var  array
 	 */
-	protected $paths;
+	protected $paths = array(
+		'app'  => null,
+		'core' => null
+	);
 
 	/**
-	 * The component list cache
+	 * Specified style
 	 *
-	 * @var  array
+	 * @var  integer
 	 */
-	protected static $components = array();
+	protected $style = 0;
+
+	/**
+	 * Language tag
+	 *
+	 * @var  string
+	 */
+	protected $lang = '';
 
 	/**
 	 * Constructor
 	 *
 	 * @param   object  $app
+	 * @param   array   $options
 	 * @return  void
 	 */
-	public function __construct(Container $app, $path = null)
+	public function __construct(Container $app, $options = array())
 	{
-		self::$components = array();
+		$this->app = $app;
 
-		if (!$path)
+		if (array_key_exists('style', $options))
 		{
-			$path = array(
-				PATH_APP . DS . 'templates',
-				PATH_CORE . DS . 'templates'
-			);
+			$this->style = $options['style'];
 		}
 
-		$this->paths = (array) $path;
-		$this->app   = $app;
+		if (array_key_exists('lang', $options))
+		{
+			$this->lang = $options['lang'];
+		}
+
+		if (array_key_exists('path_app', $options))
+		{
+			$this->setPath('app', $options['path_app']);
+		}
+
+		if (array_key_exists('path_core', $options))
+		{
+			$this->setPath('core', $options['path_core']);
+		}
 	}
 
 	/**
-	 * Checks if the template is enabled
+	 * Set path for a key
 	 *
-	 * @param   string   $option  The component option.
-	 * @param   boolean  $strict  If set and the component does not exist, false will be returned.
-	 * @return  boolean
+	 * @param   string  $key
+	 * @param   string  $path
+	 * @return  object
 	 */
-	public function isEnabled($name, $client_id = 0)
+	public function setPath($key, $path)
 	{
-		$result = $this->load($name, $client_id);
+		$this->paths[(string) $key] = (string) $path;
 
-		return ($result->name == $name);
+		return $this;
 	}
 
 	/**
-	 * Gets the parameter object for the component
+	 * Get path for key name
 	 *
-	 * @param   string   $option     The option for the component.
-	 * @param   integer  $client_id  If set and the component does not exist, false will be returned
-	 * @return  object   A Registry object.
-	 */
-	public function params($name, $client_id = 0)
-	{
-		return $this->load($name, $client_id)->params;
-	}
-
-	/**
-	 * Make sure template name follows naming conventions
-	 *
-	 * @param   string  $name
+	 * @param   string  $key
 	 * @return  string
 	 */
-	public function canonical($name)
+	public function getPath($key)
 	{
-		return preg_replace('/[^A-Z0-9_\.-]/i', '', $name);
+		return (isset($this->paths[$key]) ? $this->paths[$key] : '');
+	}
+
+	/**
+	 * Determine path based on protected status
+	 *
+	 * @param   integer  $protected
+	 * @return  string
+	 */
+	public function determinePath($protected = 0)
+	{
+		return (int) $protected ? $this->getPath('core') : $this->getPath('app');
 	}
 
 	/**
@@ -132,23 +152,14 @@ class Loader
 	{
 		if (!is_null($client_id))
 		{
-			$client = \Hubzero\Base\ClientManager::client($client_id, (! is_numeric($client_id)));
+			$client = ClientManager::client($client_id, (! is_numeric($client_id)));
 		}
 		else
 		{
 			$client = $this->app['client'];
 		}
 
-		$name = $client->name;
-
-		$method = 'get' . ucfirst($name) . 'Template';
-
-		if (method_exists($this, $method))
-		{
-			return $this->$method();
-		}
-
-		return $this->getSystemTemplate();
+		return $this->getTemplate((int)$client->id, $this->style);
 	}
 
 	/**
@@ -158,177 +169,107 @@ class Loader
 	 */
 	public function getSystemTemplate()
 	{
-		$template = new stdClass;
-		$template->id        = 0;
-		$template->home      = 0;
-		$template->template  = 'system';
-		$template->params    = new Registry();
-		$template->protected = 1;
-		$template->path      = PATH_CORE . DS . 'templates' . DS . $template->template;
+		static $template;
+
+		if (!isset($template))
+		{
+			$template = new stdClass;
+			$template->id        = 0;
+			$template->home      = 0;
+			$template->template  = 'system';
+			$template->params    = new Registry();
+			$template->protected = 1;
+			$template->path      =  $this->determinePath($template->protected) . DIRECTORY_SEPARATOR . $template->template;
+		}
 
 		return $template;
 	}
 
 	/**
-	 * Get the admin template
+	 * Get a list of templates for the specified client
 	 *
+	 * @param   integer  $client_id
+	 * @param   integer  $id
 	 * @return  object
 	 */
-	public function getAdministratorTemplate()
+	public function getTemplate($client_id = 0, $id = 0)
 	{
-		// Load the template name from the database
-		try
-		{
-			$db = \App::get('db');
-			$query = $db->getQuery(true);
-			$query->select('s.id, s.home, s.template, s.params, e.protected');
-			$query->from('#__template_styles as s');
-			$query->leftJoin('#__extensions as e ON e.type=' . $db->quote('template') . ' AND e.element=s.template AND e.client_id=s.client_id');
-			if ($style = \User::getParam('admin_style'))
-			{
-				$query->where('s.client_id = 1 AND s.id = ' . (int) $style . ' AND e.enabled = 1', 'OR');
-			}
-			$query->where('s.client_id = 1 AND s.home = 1', 'OR');
-			$query->order('home');
-			$db->setQuery($query);
-
-			$template = $db->loadObject();
-		}
-		catch (Exception $e)
-		{
-			return $this->getSystemTemplate();
-		}
-
-		$template->template = $this->canonical($template->template);
-		$template->params   = new Registry($template->params);
-
-		foreach ($this->paths as $path)
-		{
-			if (file_exists($path . DS . $template->template . DS . 'index.php'))
-			{
-				$template->path = $path . DS . $template->template;
-				return $template;
-			}
-		}
-
-		return $this->getSystemTemplate();
-	}
-
-	/**
-	 * Get the site template
-	 *
-	 * @return  object
-	 */
-	public function getSiteTemplate()
-	{
-		// Get the id of the active menu item
-		$menu = $this->app['menu'];
-		$item = $menu->getActive();
-		if (!$item)
-		{
-			$item = $menu->getItem($this->app['request']->getInt('Itemid', 0));
-		}
-
-		$id = 0;
-		if (is_object($item))
-		{
-			// valid item retrieved
-			$id = $item->template_style_id;
-		}
-		$condition = '';
-
-		$tid = $this->app['request']->getVar('templateStyle', 0);
-		if (is_numeric($tid) && (int) $tid > 0)
-		{
-			$id = (int) $tid;
-		}
-
 		if (!$this->app->has('cache.store') || !($cache = $this->app['cache.store']))
 		{
 			$cache = new \Hubzero\Cache\Storage\None();
 		}
 
-		$tag = '';
+		$templates = $cache->get('com_templates.templates' . $client_id . $this->lang);
 
-		if ($this->app->has('language.filter'))
+		if (!$templates || empty($templates))
 		{
-			$tag = $this->app['language']->getTag();
-		}
-
-		if (!$templates = $cache->get('com_templates.templates0' . $tag))
-		{
-			// Load styles
 			try
 			{
-				$db = \App::get('db');
-				$query = $db->getQuery(true);
-				$query->select('s.id, s.home, s.template, s.params, e.protected');
-				$query->from('#__template_styles as s');
-				$query->where('s.client_id = 0');
-				$query->where('e.enabled = 1');
-				$query->leftJoin('#__extensions as e ON e.element=s.template AND e.type=' . $db->quote('template') . ' AND e.client_id=s.client_id');
+				$db = $this->app['db'];
 
-				$db->setQuery($query);
+				$s = '#__template_styles';
+				$e = '#__extensions';
+
+				$query = new Query($db);
+				$query
+					->select($s . '.id')
+					->select($s . '.home')
+					->select($s . '.template')
+					->select($s . '.params')
+					->select($e . '.protected')
+					->from($s)
+					->join($e, $e . '.element', $s . '.template')
+					->whereEquals($s . '.client_id', (int)$client_id)
+					->whereEquals($e . '.enabled', 1)
+					->whereEquals($e . '.type', 'template')
+					->whereRaw($e . '.`client_id` = `' . $s . '`.`client_id`');
+
+				if ($id)
+				{
+					$query->whereEquals($s . '.id', $id);
+				}
+
+				$query->order('home', 'desc');
+
+				$db->setQuery($query->toString());
 				$templates = $db->loadObjectList('id');
 
-				foreach ($templates as &$template)
+				foreach ($templates as $i => $template)
 				{
-					if (!($template->params instanceof Registry))
-					{
-						$registry = new Registry($template->params);
+					$template->params = new Registry($template->params);
+					$template->path   = $this->determinePath($template->protected) . DIRECTORY_SEPARATOR . $template->template;
 
-						$template->params = $registry;
-					}
+					$templates[$i] = $template;
 
 					// Create home element
-					if ($template->home == 1 && !isset($templates[0])) // || ($this->app->has('language.filter') && $this->app->get('language.filter') && $template->home == $tag))
+					if ($template->home && !isset($templates[0]))
 					{
 						$templates[0] = clone $template;
 					}
 				}
-				$cache->put('com_templates.templates0' . $tag, $templates, $this->app['config']->get('cachetime', 15));
+
+				$cache->put('com_templates.templates' . $client_id . $this->lang, $templates, $this->app['config']->get('cachetime', 15));
 			}
 			catch (Exception $e)
 			{
-				return $this->getSystemTemplate();
+				$templates = array();
 			}
 		}
+
+		$tmpl = null;
 
 		if (isset($templates[$id]))
 		{
-			$template = $templates[$id];
+			$tmpl = $templates[$id];
 		}
-		else
+		else if (isset($templates[0]))
 		{
-			// [!] zooley - Fixing template fallback to always load system template if current one is not found.
-			//     Previous way could cause code to get stuck in a loop and run out of memory.
-			if (isset($templates[0]))
-			{
-				$template = $templates[0];
-			}
-			else
-			{
-				$template = new stdClass;
-				$template->params = new Registry;
-				$template->home   = 0;
-			}
-			$template->id        = 0;
-			$template->template  = 'system';
-			$template->protected = 1;
+			$tmpl = $templates[0];
 		}
 
-		// Allows for overriding the active template from the request
-		//$template->template = $this->app['request']->getCmd('template', $template->template);
-		$template->template = $this->canonical($template->template); // need to filter the default value as well
-
-		// Fallback template
-		foreach ($this->paths as $path)
+		if ($tmpl && file_exists($tmpl->path . DIRECTORY_SEPARATOR . 'index.php'))
 		{
-			if (file_exists($path . DS . $template->template . DS . 'index.php'))
-			{
-				$template->path = $path . DS . $template->template;
-				return $template;
-			}
+			return $tmpl;
 		}
 
 		return $this->getSystemTemplate();

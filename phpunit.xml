@@ -11,6 +11,7 @@
             <directory suffix="Test.php">./src/Notification/Tests</directory>
             <directory suffix="Test.php">./src/Pathway/Tests</directory>
             <directory suffix="Test.php">./src/Spam/Tests</directory>
+            <directory suffix="Test.php">./src/Template/Tests</directory>
         </testsuite>
     </testsuites>
     <logging>
