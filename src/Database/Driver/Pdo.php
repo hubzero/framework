@@ -738,7 +738,7 @@ class Pdo extends Driver
 		}
 		else
 		{
-			return new Query;
+			return new Query($this);
 		}
 	}
 
