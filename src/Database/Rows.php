@@ -75,6 +75,19 @@ class Rows implements Iterator, Countable
 	public $pagination = null;
 
 	/**
+	 * Calls the given array function on the rows object and attaches itself to the model
+	 *
+	 * @return  mixed
+	 * @since   2.1.0
+	 **/
+	private function callArrayFunc($function)
+	{
+		$row = $function($this->rows);
+
+		return ($row) ? $row->setIterator($this) : $row;
+	}
+
+	/**
 	 * Pushes a new model on to the stack
 	 *
 	 * @param   \Hubzero\Database\Relational|static  $model  The model to add
@@ -193,7 +206,7 @@ class Rows implements Iterator, Countable
 	 **/
 	public function current()
 	{
-		return current($this->rows);
+		return $this->callArrayFunc('current');
 	}
 
 	/**
@@ -240,7 +253,7 @@ class Rows implements Iterator, Countable
 	 **/
 	public function first()
 	{
-		return reset($this->rows);
+		return $this->callArrayFunc('reset');
 	}
 
 	/**
@@ -251,7 +264,7 @@ class Rows implements Iterator, Countable
 	 **/
 	public function prev()
 	{
-		return prev($this->rows);
+		return $this->callArrayFunc('prev');
 	}
 
 	/**
@@ -262,7 +275,7 @@ class Rows implements Iterator, Countable
 	 **/
 	public function next()
 	{
-		return next($this->rows);
+		return $this->callArrayFunc('next');
 	}
 
 	/**
@@ -287,7 +300,41 @@ class Rows implements Iterator, Countable
 	 **/
 	public function last()
 	{
-		return end($this->rows);
+		return $this->callArrayFunc('end');
+	}
+
+	/**
+	 * Checks to see if the current item is the first in the list
+	 *
+	 * @param   int  $key  The key to check against
+	 * @return  bool
+	 * @since   2.1.0
+	 **/
+	public function isFirst($key)
+	{
+		if ($this->rows && $this->count())
+		{
+			return $key == array_slice($this->rows, 0, 1)[0]->getPkValue();
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks to see if the current item is the last in the list
+	 *
+	 * @param   int  $key  The key to check against
+	 * @return  bool
+	 * @since   2.1.0
+	 **/
+	public function isLast($key)
+	{
+		if ($this->rows && $this->count())
+		{
+			return $key == array_slice($this->rows, -1, 1)[0]->getPkValue();
+		}
+
+		return false;
 	}
 
 	/**
