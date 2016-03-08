@@ -151,6 +151,13 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 	private $attributes = [];
 
 	/**
+	 * The parent iterator if this model was retrieved as part of a larger rows collection
+	 *
+	 * @var  \Hubzero\Database\Rows
+	 **/
+	private $collection = null;
+
+	/**
 	 * The table to which the class pertains
 	 *
 	 * This will default to #__{namespace}_{modelName} unless otherwise
@@ -821,6 +828,52 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 	public function isNew()
 	{
 		return (!$this->hasAttribute($this->getPrimaryKey()) || !$this->{$this->getPrimaryKey()});
+	}
+
+	/**
+	 * Sets an interator parent on the model
+	 *
+	 * @param   \Hubzero\Database\Rows  $rows  The iterator to set
+	 * @return  $this
+	 * @since   2.1.0
+	 **/
+	public function setIterator($rows)
+	{
+		$this->collection = $rows;
+
+		return $this;
+	}
+
+	/**
+	 * Checks to see if the current item is the first in the list
+	 *
+	 * @return  bool
+	 * @since   2.1.0
+	 **/
+	public function isFirst()
+	{
+		if ($this->collection)
+		{
+			return $this->collection->isFirst($this->getPkValue());
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks to see if the current item is the last in the list
+	 *
+	 * @return  bool
+	 * @since   2.1.0
+	 **/
+	public function isLast()
+	{
+		if ($this->collection)
+		{
+			return $this->collection->isLast($this->getPkValue());
+		}
+
+		return false;
 	}
 
 	/**

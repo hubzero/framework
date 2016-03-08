@@ -78,7 +78,13 @@ class Pagination
 		// See if we need to call a method on the HUBzero paginator
 		if (in_array($name, get_class_methods($this->getPaginator())))
 		{
-			call_user_func_array(array($this->getPaginator(), $name), $arguments);
+			$result = call_user_func_array(array($this->getPaginator(), $name), $arguments);
+
+			// If we got back something other than the class itself, return it
+			if (!($result instanceof \Hubzero\Pagination\Paginator))
+			{
+				return $result;
+			}
 		}
 
 		return $this;
