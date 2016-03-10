@@ -74,7 +74,7 @@ class File extends Relational
 	 */
 	protected $rules = array(
 		'comment_id' => 'positive|nonzero',
-		'file'       => 'notempty'
+		'filename'   => 'notempty'
 	);
 
 	/**
