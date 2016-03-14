@@ -70,6 +70,9 @@ require __DIR__ . DS . 'src' . DS . 'Base' . DS . 'helpers.php';
 
 $app = new Hubzero\Base\Application;
 
+// Explicitly set the client type to testing as some libs do require this info
+$app['client'] = Hubzero\Base\ClientManager::client('testing', true);
+
 /*
 |--------------------------------------------------------------------------
 | Bind The Application In The Container
