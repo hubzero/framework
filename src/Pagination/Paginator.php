@@ -66,7 +66,7 @@ class Paginator extends Object
 	/**
 	 * Prefix used for request variables.
 	 *
-	 * @var  integer
+	 * @var  string
 	 */
 	public $prefix = null;
 
