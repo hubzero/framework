@@ -29,64 +29,36 @@
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-namespace Hubzero\Pagination;
+namespace Hubzero\Pagination\Tests;
 
-use Hubzero\Base\Object;
+use Hubzero\Test\Basic;
+use Hubzero\Pagination\Item;
 
 /**
- * Pagination object representing a particular item in the pagination lists.
+ * Pagination Item test
  */
-class Item extends Object
+class ItemTest extends Basic
 {
 	/**
-	 * The link text.
+	 * Tests that data passed in constructor is set to correct properties
 	 *
-	 * @var  string
-	 */
-	public $text;
-
-	/**
-	 * The number of rows as a base offset.
-	 *
-	 * @var  integer
-	 */
-	public $base;
-
-	/**
-	 * The link URL.
-	 *
-	 * @var  string
-	 */
-	public $link;
-
-	/**
-	 * The prefix used for request variables.
-	 *
-	 * @var  string
-	 */
-	public $prefix;
-
-	/**
-	 * The prefix used for request variables.
-	 *
-	 * @var  integer
-	 */
-	public $rel;
-
-	/**
-	 * Class constructor.
-	 *
-	 * @param   string   $text    The link text.
-	 * @param   integer  $prefix  The prefix used for request variables.
-	 * @param   integer  $base    The number of rows as a base offset.
-	 * @param   string   $link    The link URL.
+	 * @covers  \Hubzero\Pagination\Item::__construct
 	 * @return  void
 	 */
-	public function __construct($text, $prefix = '', $base = null, $link = null)
+	public function testConstructor()
 	{
-		$this->text   = $text;
-		$this->prefix = $prefix;
-		$this->base   = $base;
-		$this->link   = $link;
+		$text   = 'next';
+		$prefix = 'pagenav';
+		$base   = 25;
+		$link   = 'index.php?option=com_tests';
+
+		$item = new Item($text, $prefix, $base, $link);
+
+		$this->assertInstanceOf('Hubzero\Pagination\Item', $item);
+
+		$this->assertEquals($item->text, $text);
+		$this->assertEquals($item->prefix, $prefix);
+		$this->assertEquals($item->base, $base);
+		$this->assertEquals($item->link, $link);
 	}
 }
