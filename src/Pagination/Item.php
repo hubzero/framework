@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -63,7 +62,7 @@ class Item extends Object
 	/**
 	 * The prefix used for request variables.
 	 *
-	 * @var  integer
+	 * @var  string
 	 */
 	public $prefix;
 

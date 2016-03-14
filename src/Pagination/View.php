@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -39,6 +38,13 @@ use Hubzero\View\View as AbstractView;
  */
 class View extends AbstractView
 {
+	/**
+	 * The name of the view
+	 *
+	 * @var  array
+	 */
+	protected $_name = 'pagination';
+
 	/**
 	 * Layout name
 	 *
@@ -67,29 +73,19 @@ class View extends AbstractView
 		// Set the default template search path
 		if (!array_key_exists('template_path', $config))
 		{
-			$config['template_path'] = $this->_basePath . DS . 'Views';
+			$config['template_path'] = $this->_basePath . DIRECTORY_SEPARATOR . 'Views';
 		}
 
 		$this->_setPath('template', $config['template_path']);
 	}
 
 	/**
-	 * Method to get the view name
+	 * Sets an entire array of search paths for templates or resources.
 	 *
-	 * @return  string
+	 * @param   string  $type  The type of path to set, typically 'template'.
+	 * @param   mixed   $path  The new set of search paths.  If null or false, resets to the current directory only.
+	 * @return  void
 	 */
-	public function getName()
-	{
-		return 'pagination';
-	}
-
-	/**
-  * Sets an entire array of search paths for templates or resources.
-  *
-  * @param   string  $type  The type of path to set, typically 'template'.
-  * @param   mixed   $path  The new set of search paths.  If null or false, resets to the current directory only.
-  * @return  void
-  */
 	protected function _setPath($type, $path)
 	{
 		// Clear out the prior search dirs
@@ -103,9 +99,10 @@ class View extends AbstractView
 		{
 			case 'template':
 				// Set the alternative template search dir
-				if (class_exists('\\App'))
+				if (class_exists('\\App') && \App::has('template'))
 				{
-					$fallback = JPATH_BASE . DS . 'templates' . DS . \App::get('template')->template . DS . 'html' . DS . $this->getName();
+					$fallback  = \App::get('template')->path . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . $this->getName();
+
 					$this->_addPath('template', $fallback);
 				}
 			break;
