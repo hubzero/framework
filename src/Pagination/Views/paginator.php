@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -42,21 +41,24 @@ if ($this->limits)
 	}
 }
 
-/**
- * Method to create an active pagination link to the item
- *
- * @param   Item    $item  The object with which to make an active link.
- * @return  string  HTML link
- */
-function paginator_item_active($item, $prefix)
+if (!function_exists('paginator_item_active'))
 {
-	if (App::isAdmin())
+	/**
+	 * Method to create an active pagination link to the item
+	 *
+	 * @param   Item    $item  The object with which to make an active link.
+	 * @return  string  HTML link
+	 */
+	function paginator_item_active($item, $prefix)
 	{
-		return '<a title="' . $item->text . '" onclick="document.adminForm.' . $prefix . 'limitstart.value=' . ($item->base > 0 ? $item->base : 0) . '; Joomla.submitform();return false;">' . $item->text . '</a>';
-	}
-	else
-	{
-		return '<a title="' . $item->text . '" href="' . $item->link . '" ' . ($item->rel ? 'rel="' . $item->rel . '" ' : '') . 'class="pagenav">' . $item->text . '</a>';
+		if (App::isAdmin())
+		{
+			return '<a title="' . $item->text . '" onclick="document.adminForm.' . $prefix . 'limitstart.value=' . ($item->base > 0 ? $item->base : 0) . '; Joomla.submitform();return false;">' . $item->text . '</a>';
+		}
+		else
+		{
+			return '<a title="' . $item->text . '" href="' . $item->link . '" ' . ($item->rel ? 'rel="' . $item->rel . '" ' : '') . 'class="pagenav">' . $item->text . '</a>';
+		}
 	}
 }
 ?>
