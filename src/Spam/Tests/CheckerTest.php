@@ -39,8 +39,10 @@ use Hubzero\Spam\Tests\Mock\Detector;
 class CheckerTest extends Basic
 {
 	/**
-	 * Test to make sure a negative number fails validation
+	 * Test to make sure a detector is registered properly
+	 * and returns $this.
 	 *
+	 * @covers  \Hubzero\Spam\Checker::registerDetector
 	 * @return  void
 	 **/
 	public function testRegisterDetector()
@@ -55,8 +57,24 @@ class CheckerTest extends Basic
 	}
 
 	/**
-	 * Test to make sure a zero fails validation
+	 * Test to get a registered detector
 	 *
+	 * @covers  \Hubzero\Spam\Checker::getDetector
+	 * @return  void
+	 **/
+	public function testGetDetector()
+	{
+		$service = new Checker();
+		$service->registerDetector(new Detector());
+
+		$this->assertInstanceOf('Hubzero\Spam\Tests\Mock\Detector', $service->getDetector('Hubzero\Spam\Tests\Mock\Detector'));
+		$this->assertFalse($service->getDetector('Hubzero\Spam\Tests\Mock\Example'));
+	}
+
+	/**
+	 * Test that getDetectors returns an array of detectors
+	 *
+	 * @covers  \Hubzero\Spam\Checker::getDetectors
 	 * @return  void
 	 **/
 	public function testGetDetectors()
@@ -75,5 +93,39 @@ class CheckerTest extends Basic
 		$this->assertTrue(is_array($detectors), 'Getting all detectors should return an array');
 		$this->assertCount(1, $detectors, 'Get detectors should have returned one detector');
 		$this->assertEquals($detectors, $data);
+	}
+
+	/**
+	 * Test that getReport() returns an array
+	 *
+	 * @covers  \Hubzero\Spam\Checker::getReport
+	 * @return  void
+	 **/
+	public function testGetReport()
+	{
+		$service = new Checker();
+		$service->registerDetector(new Detector());
+
+		$report = $service->getReport();
+
+		$this->assertTrue(is_array($report));
+	}
+
+	/**
+	 * Test the check() method
+	 *
+	 * @covers  \Hubzero\Spam\Checker::check
+	 * @return  void
+	 **/
+	public function testCheck()
+	{
+		$service = new Checker();
+		$service->setLogging(false);
+		$service->registerDetector(new Detector());
+
+		$result = $service->check('Maecenas sed diam eget risus varius blandit sit amet non magna.');
+
+		$this->assertInstanceOf('Hubzero\Spam\Result', $result);
+		$this->assertFalse($result->isSpam());
 	}
 }
