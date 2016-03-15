@@ -129,4 +129,65 @@ class ProfilerTest extends Basic
 
 		$this->assertGreaterThan(0, $this->instance->duration());
 	}
+
+	/**
+	 * Tests the label() method.
+	 *
+	 * @covers  \Hubzero\Debug\Profiler::label
+	 * @return  void
+	 **/
+	public function testLabel()
+	{
+		$this->assertEquals($this->instance->label(), 'test');
+	}
+
+	/**
+	 * Tests the now() method.
+	 *
+	 * @covers  \Hubzero\Debug\Profiler::now
+	 * @return  void
+	 **/
+	public function testNow()
+	{
+		$this->assertGreaterThanOrEqual(microtime(true), $this->instance->now());
+	}
+
+	/**
+	 * Tests the now() method.
+	 *
+	 * @covers  \Hubzero\Debug\Profiler::now
+	 * @return  void
+	 **/
+	public function testReset()
+	{
+		$instance = new Profiler('test');
+
+		$instance->mark('one');
+		$instance->mark('two');
+		$instance->mark('three');
+
+		$instance->reset();
+
+		$marks = $instance->marks();
+
+		$this->assertTrue(empty($marks));
+		$this->assertEquals($instance->label(), '');
+	}
+
+	/**
+	 * Tests the summary() method.
+	 *
+	 * @covers  \Hubzero\Debug\Profiler::summary
+	 * @return  void
+	 **/
+	public function testSummary()
+	{
+		$summary = $this->instance->summary();
+
+		$this->assertTrue(is_array($summary));
+		$this->assertTrue(array_key_exists('start', $summary));
+		$this->assertTrue(array_key_exists('end', $summary));
+		$this->assertTrue(array_key_exists('total', $summary));
+		$this->assertTrue(array_key_exists('memory', $summary));
+	}
 }
