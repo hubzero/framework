@@ -76,7 +76,7 @@ class View extends AbstractView
 			$config['template_path'] = $this->_basePath . DIRECTORY_SEPARATOR . 'Views';
 		}
 
-		$this->_setPath('template', $config['template_path']);
+		$this->setPath('template', $config['template_path']);
 	}
 
 	/**
@@ -86,26 +86,23 @@ class View extends AbstractView
 	 * @param   mixed   $path  The new set of search paths.  If null or false, resets to the current directory only.
 	 * @return  void
 	 */
-	protected function _setPath($type, $path)
+	protected function setPath($type, $path)
 	{
+		$type = strtolower($type);
+
 		// Clear out the prior search dirs
 		$this->_path[$type] = array();
 
 		// Actually add the user-specified directories
-		$this->_addPath($type, $path);
+		$this->addPath($type, $path);
 
 		// Always add the fallback directories as last resort
-		switch (strtolower($type))
+		if ($type == 'template' && $this->_overridePath)
 		{
-			case 'template':
-				// Set the alternative template search dir
-				if (class_exists('\\App') && \App::has('template'))
-				{
-					$fallback  = \App::get('template')->path . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . $this->getName();
+			// Set the alternative template search dir
+			$path = $this->_overridePath . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . $this->getName();
 
-					$this->_addPath('template', $fallback);
-				}
-			break;
+			$this->addPath($type, $path);
 		}
 	}
 }

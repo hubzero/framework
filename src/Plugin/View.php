@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -65,43 +64,25 @@ class View extends AbstractView
 	public function __construct($config = array())
 	{
 		// Set the view name
-		if (empty($this->_folder))
+		if (!array_key_exists('folder', $config))
 		{
-			if (array_key_exists('folder', $config))
-			{
-				$this->_folder = $config['folder'];
-			}
-			else
-			{
-				$this->_folder = $this->getFolder();
-			}
+			$config['folder'] = $this->getFolder();
 		}
+		$this->_folder = $config['folder'];
 
 		// Set the view name
-		if (empty($this->_element))
+		if (!array_key_exists('element', $config))
 		{
-			if (array_key_exists('element', $config))
-			{
-				$this->_element = $config['element'];
-			}
-			else
-			{
-				$this->_element = $this->getElement();
-			}
+			$config['element'] = $this->getElement();
 		}
+		$this->_element = $config['element'];
 
 		// Set the view name
-		if (empty($this->_name))
+		if (!array_key_exists('name', $config))
 		{
-			if (array_key_exists('name', $config))
-			{
-				$this->_name = $config['name'];
-			}
-			else
-			{
-				$this->_name = $this->getName();
-			}
+			$config['name'] = $this->getName();
 		}
+		$this->_name = $config['name'];
 
 		// Set the charset (used by the variable escaping functions)
 		if (array_key_exists('charset', $config))
@@ -116,51 +97,42 @@ class View extends AbstractView
 		}
 
 		// Set a base path for use by the view
-		if (array_key_exists('base_path', $config))
+		if (!array_key_exists('base_path', $config))
 		{
-			$this->_basePath = $config['base_path'];
-		}
-		else
-		{
-			$this->_basePath = PATH_APP . DS . 'plugins' . DS . $this->_folder . DS . $this->_element;
-			if (!file_exists($this->_basePath))
+			if (defined('PATH_APP'))
 			{
-				$this->_basePath = PATH_CORE . DS . 'plugins' . DS . $this->_folder . DS . $this->_element;
+				$config['base_path'] = PATH_APP . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR . $this->_folder . DIRECTORY_SEPARATOR . $this->_element;
+
+				if (!file_exists($config['base_path']) && defined('PATH_CORE'))
+				{
+					$config['base_path'] = PATH_CORE . DIRECTORY_SEPARATOR . 'plugins' . DIRECTORY_SEPARATOR . $this->_folder . DIRECTORY_SEPARATOR . $this->_element;
+				}
 			}
 		}
+		$this->_basePath = $config['base_path'];
 
 		// Set the default template search path
-		if (array_key_exists('template_path', $config))
+		if (!array_key_exists('template_path', $config))
 		{
-			// User-defined dirs
-			$this->_setPath('template', $config['template_path']);
+			$config['template_path'] = $this->_basePath . '/views/' . $this->getName() . '/tmpl';
 		}
-		else
-		{
-			$this->_setPath('template', $this->_basePath . '/views/' . $this->getName() . '/tmpl');
-		}
+		$this->setPath('template', $config['template_path']);
 
 		// Set the default helper search path
-		if (array_key_exists('helper_path', $config))
+		if (!array_key_exists('helper_path', $config))
 		{
-			// User-defined dirs
-			$this->_setPath('helper', $config['helper_path']);
+			$config['helper_path'] = $this->_basePath . '/helpers';
 		}
-		else
-		{
-			$this->_setPath('helper', $this->_basePath . '/helpers');
-		}
+		$this->setPath('helper', $config['helper_path']);
 
 		// Set the layout
-		if (array_key_exists('layout', $config))
+		if (!array_key_exists('layout', $config))
 		{
-			$this->setLayout($config['layout']);
+			$config['layout'] = 'default';
 		}
-		else
-		{
-			$this->setLayout('default');
-		}
+		$this->setLayout($config['layout']);
 
+		// Set the site's base URL
 		$this->baseurl = \Request::base(true);
 	}
 
@@ -190,7 +162,7 @@ class View extends AbstractView
 			}
 			else
 			{
-				throw new Exception(\Lang::txt('JLIB_APPLICATION_ERROR_VIEW_GET_NAME'), 500);
+				throw new Exception('Cannot get or parse view class name.', 500);
 			}
 		}
 
@@ -228,7 +200,7 @@ class View extends AbstractView
 			}
 			else
 			{
-				throw new Exception(\Lang::txt('JLIB_APPLICATION_ERROR_VIEW_GET_NAME'), 500);
+				throw new Exception('Cannot get or parse view class name.', 500);
 			}
 		}
 
@@ -236,36 +208,32 @@ class View extends AbstractView
 	}
 
 	/**
-  * Sets an entire array of search paths for templates or resources.
-  *
-  * @param   string        $type  The type of path to set, typically 'template'.
-  * @param   string|array  $path  The new set of search paths. If null or false, resets to the current directory only.
-  * @return  void
-  */
-	protected function _setPath($type, $path)
+	 * Sets an entire array of search paths for templates or resources.
+	 *
+	 * @param   string        $type  The type of path to set, typically 'template'.
+	 * @param   string|array  $path  The new set of search paths. If null or false, resets to the current directory only.
+	 * @return  void
+	 */
+	protected function setPath($type, $path)
 	{
-		// clear out the prior search dirs
+		$type = strtolower($type);
+
+		// Clear out the prior search dirs
 		$this->_path[$type] = array();
 
-		// actually add the user-specified directories
-		$this->_addPath($type, $path);
+		// Actually add the user-specified directories
+		$this->addPath($type, $path);
 
-		// always add the fallback directories as last resort
-		switch (strtolower($type))
+		// Always add the fallback directories as last resort
+		if ($type == 'template' && $this->_overridePath)
 		{
-			case 'template':
-				$option = 'plg_' . $this->_folder . '_' . $this->_element;
-				$option = preg_replace('/[^A-Z0-9_\.-]/i', '', $option);
+			// Set the alternative template search dir
+			$option = 'plg_' . $this->_folder . '_' . $this->_element;
+			$option = preg_replace('/[^A-Z0-9_\.-]/i', '', $option);
 
-				// set the alternative template search dir
-				if (\App::has('template'))
-				{
-					$this->_addPath(
-						'template',
-						\App::get('template')->path . DS . 'html' . DS . $option . DS . $this->getName()
-					);
-				}
-			break;
+			$path = $this->_overridePath . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . $option . DIRECTORY_SEPARATOR . $this->getName();
+
+			$this->addPath($type, $path);
 		}
 	}
 
@@ -311,7 +279,7 @@ class View extends AbstractView
 		{
 			foreach ($this->_path['helper'] as $path)
 			{
-				$file = $path . DS . $method . '.php';
+				$file = $path . DIRECTORY_SEPARATOR . $method . '.php';
 				if (file_exists($file))
 				{
 					include_once $file;

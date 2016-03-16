@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -60,9 +59,13 @@ class View extends AbstractView
 		// Set a base path for use by the view
 		if (!array_key_exists('base_path', $config))
 		{
-			$config['base_path'] = JPATH_COMPONENT;
-		}
+			$config['base_path'] = '';
 
+			if (defined('JPATH_COMPONENT'))
+			{
+				$config['base_path'] = JPATH_COMPONENT;
+			}
+		}
 		$this->_basePath = $config['base_path'];
 	}
 
@@ -108,7 +111,7 @@ class View extends AbstractView
 		{
 			foreach ($this->_path['helper'] as $path)
 			{
-				$file = $path . DS . $method . '.php';
+				$file = $path . DIRECTORY_SEPARATOR . $method . '.php';
 				if (file_exists($file))
 				{
 					include_once $file;
