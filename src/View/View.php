@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -34,6 +33,7 @@ namespace Hubzero\View;
 
 use Hubzero\Base\Object;
 use Hubzero\View\Exception\InvalidLayoutException;
+use Exception;
 
 /**
  * Base class for a View
@@ -47,7 +47,7 @@ class View extends Object
 	/**
 	 * The name of the view
 	 *
-	 * @var  array
+	 * @var  string
 	 */
 	protected $_name = null;
 
@@ -57,6 +57,13 @@ class View extends Object
 	 * @var  string
 	 */
 	protected $_basePath = null;
+
+	/**
+	 * The base override path
+	 *
+	 * @var  string
+	 */
+	protected $_overridePath = null;
 
 	/**
 	 * Layout name
@@ -125,18 +132,27 @@ class View extends Object
 	 */
 	public function __construct($config = array())
 	{
-		// Set the view name
-		if (empty($this->_name))
+		// Set the override path
+		//
+		// NOTE: This needs to come before getName()
+		// as it calls setPath()
+		if (!array_key_exists('override_path', $config))
 		{
-			if (array_key_exists('name', $config))
+			$config['override_path'] = '';
+
+			if (\App::has('template'))
 			{
-				$this->_name = $config['name'];
-			}
-			else
-			{
-				$this->_name = $this->getName();
+				$config['override_path'] = \App::get('template')->path;
 			}
 		}
+		$this->_overridePath = $config['override_path'];
+
+		// Set the view name
+		if (!array_key_exists('name', $config))
+		{
+			$config['name'] = $this->getName();
+		}
+		$this->_name = $config['name'];
 
 		// Set the charset (used by the variable escaping functions)
 		if (array_key_exists('charset', $config))
@@ -151,48 +167,40 @@ class View extends Object
 		}
 
 		// Set a base path for use by the view
-		if (array_key_exists('base_path', $config))
+		if (!array_key_exists('base_path', $config))
 		{
-			$this->_basePath = $config['base_path'];
+			$config['base_path'] = '';
+
+			if (defined('JPATH_COMPONENT'))
+			{
+				$config['base_path'] = JPATH_COMPONENT;
+			}
 		}
-		else
-		{
-			$this->_basePath = JPATH_COMPONENT;
-		}
+		$this->_basePath = $config['base_path'];
 
 		// Set the default template search path
-		if (array_key_exists('template_path', $config))
+		if (!array_key_exists('template_path', $config))
 		{
-			// User-defined dirs
-			$this->_setPath('template', $config['template_path']);
+			$config['template_path'] = $this->_basePath . '/views/' . $this->getName() . '/tmpl';
 		}
-		else
-		{
-			$this->_setPath('template', $this->_basePath . '/views/' . $this->getName() . '/tmpl');
-		}
+		$this->setPath('template', $config['template_path']);
 
 		// Set the default helper search path
-		if (array_key_exists('helper_path', $config))
+		if (!array_key_exists('helper_path', $config))
 		{
-			// User-defined dirs
-			$this->_setPath('helper', $config['helper_path']);
+			$config['helper_path'] = $this->_basePath . '/helpers';
 		}
-		else
-		{
-			$this->_setPath('helper', $this->_basePath . '/helpers');
-		}
+		$this->setPath('helper', $config['helper_path']);
 
 		// Set the layout
-		if (array_key_exists('layout', $config))
+		if (!array_key_exists('layout', $config))
 		{
-			$this->setLayout($config['layout']);
+			$config['layout'] = $this->_layout;
 		}
-		else
-		{
-			$this->setLayout($this->_layout);
-		}
+		$this->setLayout($config['layout']);
 
-		$this->baseurl = \Request::base(true);
+		// Set the site's base URL
+		$this->baseurl = \App::get('request')->base(true);
 	}
 
 	/**
@@ -204,7 +212,8 @@ class View extends Object
 	public function display($tpl = null)
 	{
 		$result = $this->loadTemplate($tpl);
-		if ($result instanceof \Exception)
+
+		if ($result instanceof Exception)
 		{
 			return $result;
 		}
@@ -295,7 +304,7 @@ class View extends Object
 	}
 
 	/**
-	 * Get the layout.
+	 * Get the layout path.
 	 *
 	 * @return  string  The layout name
 	 */
@@ -305,20 +314,22 @@ class View extends Object
 	}
 
 	/**
-	 * Get the layout.
+	 * Set the layout path.
 	 *
-	 * @return  string  The layout name
+	 * @param   string  $path
+	 * @return  object
 	 */
 	public function setBasePath($path)
 	{
 		$this->_basePath = $path;
+
 		return $this;
 	}
 
 	/**
 	 * Get the layout.
 	 *
-	 * @return  string  The layout name
+	 * @return  string
 	 */
 	public function getLayout()
 	{
@@ -328,11 +339,21 @@ class View extends Object
 	/**
 	 * Get the layout template.
 	 *
-	 * @return  string  The layout template name
+	 * @return  string
 	 */
 	public function getLayoutTemplate()
 	{
 		return $this->_layoutTemplate;
+	}
+
+	/**
+	 * Get the site template.
+	 *
+	 * @return  string
+	 */
+	public function getOverridePath()
+	{
+		return $this->_overridePath;
 	}
 
 	/**
@@ -347,18 +368,22 @@ class View extends Object
 	{
 		if (empty($this->_name))
 		{
-			$this->_name = \App::Get('request')->getCmd('controller');
+			$this->_name = \App::get('request')->getCmd('controller');
+
 			if (!$this->_name)
 			{
 				$r = null;
+
 				if (!preg_match('/View((view)*(.*(view)?.*))$/i', get_class($this), $r))
 				{
-					throw new \Exception(\App::get('language')->txt('JLIB_APPLICATION_ERROR_VIEW_GET_NAME'), 500);
+					throw new Exception('Cannot get or parse view class name.', 500);
 				}
+
 				if (strpos($r[3], 'view'))
 				{
-					throw new \Exception(\App::get('language')->txt('JLIB_APPLICATION_ERROR_VIEW_GET_NAME_SUBSTRING'), 500);
+					throw new Exception('Classname contains the substring "view" which causes problems when extracting the classname.', 500);
 				}
+
 				$this->_name = strtolower($r[3]);
 			}
 		}
@@ -375,7 +400,8 @@ class View extends Object
 	public function setName($name)
 	{
 		$this->_name = $name;
-		$this->_setPath('template', $this->_basePath . '/views/' . $this->getName() . '/tmpl');
+		$this->setPath('template', $this->_basePath . '/views/' . $this->getName() . '/tmpl');
+
 		return $this;
 	}
 
@@ -421,14 +447,26 @@ class View extends Object
 	}
 
 	/**
+	 * Set a path to the site template
+	 *
+	 * @param   string  $template
+	 * @return  object
+	 */
+	public function setOverridePath($path)
+	{
+		$this->_overridePath = $path;
+		return $this;
+	}
+
+	/**
 	 * Adds to the stack of view script paths in LIFO order.
 	 *
 	 * @param   mixed  $path  A directory path or an array of paths.
-	 * @return  void
+	 * @return  object
 	 */
 	public function addTemplatePath($path)
 	{
-		$this->_addPath('template', $path);
+		$this->addPath('template', $path);
 		return $this;
 	}
 
@@ -436,11 +474,11 @@ class View extends Object
 	 * Adds to the stack of helper script paths in LIFO order.
 	 *
 	 * @param   mixed  $path  A directory path or an array of paths.
-	 * @return  void
+	 * @return  object
 	 */
 	public function addHelperPath($path)
 	{
-		$this->_addPath('helper', $path);
+		$this->addPath('helper', $path);
 		return $this;
 	}
 
@@ -455,41 +493,36 @@ class View extends Object
 		// Clear prior output
 		$this->_output = null;
 
-		$template = \App::get('template')->template;
-		$layout = $this->getLayout();
+		$template = $this->getOverridePath();
+		$layout   = $this->getLayout();
 		$layoutTemplate = $this->getLayoutTemplate();
 
 		// Create the template file name based on the layout
-		$file = isset($tpl) ? $layout . '_' . $tpl : $layout;
-
-		// Clean the file name
+		$file = $tpl ? $layout . '_' . $tpl : $layout;
 		$file = preg_replace('/[^A-Z0-9_\.-]/i', '', $file);
-		$tpl  = isset($tpl) ? preg_replace('/[^A-Z0-9_\.-]/i', '', $tpl) : $tpl;
-
-		$apppath = PATH_APP . DS . 'bootstrap' . \App::get('client')->name;
-
-		// Load the language file for the template
-		$lang = \App::get('language');
-		$lang->load('tpl_' . $template, $apppath, null, false, false) ||
-		$lang->load('tpl_' . $template, \App::get('template')->path, null, false, false) ||
-		$lang->load('tpl_' . $template, $apppath, $lang->getDefault(), false, false) ||
-		$lang->load('tpl_' . $template, \App::get('template')->path, $lang->getDefault(), false, false);
+		$tpl  = preg_replace('/[^A-Z0-9_\.-]/i', '', (string) $tpl);
 
 		// Change the template folder if alternative layout is in different template
-		if (isset($layoutTemplate) && $layoutTemplate != '_' && $layoutTemplate != $template)
+		if (isset($layoutTemplate)
+		 && $layoutTemplate != '_'
+		 && $layoutTemplate != $template)
 		{
 			$this->_path['template'] = str_replace($template, $layoutTemplate, $this->_path['template']);
 		}
 
 		// Load the template script
-		$filetofind = $this->_createFileName('template', array('name' => $file));
-		$this->_template = \App::get('filesystem')->find($this->_path['template'], $filetofind);
+		$this->_template = $this->find(
+			$this->_path['template'],
+			$this->createFileName('template', array('name' => $file))
+		);
 
 		// If alternate layout can't be found, fall back to default layout
 		if ($this->_template == false)
 		{
-			$filetofind = $this->_createFileName('', array('name' => 'default' . (isset($tpl) ? '_' . $tpl : $tpl)));
-			$this->_template = \App::get('filesystem')->find($this->_path['template'], $filetofind);
+			$this->_template = $this->find(
+				$this->_path['template'],
+				$this->createFileName('', array('name' => 'default' . ($tpl ? '_' . $tpl : $tpl)))
+			);
 		}
 
 		if ($this->_template != false)
@@ -518,10 +551,8 @@ class View extends Object
 
 			return $this->_output;
 		}
-		else
-		{
-			throw new InvalidLayoutException(\App::get('language')->txt('JLIB_APPLICATION_ERROR_LAYOUTFILE_NOT_FOUND', $file), 500);
-		}
+
+		throw new InvalidLayoutException(sprintf('Layout %s not found', $file), 500);
 	}
 
 	/**
@@ -531,27 +562,26 @@ class View extends Object
 	 * @param   mixed   $path  The new search path, or an array of search paths.  If null or false, resets to the current directory only.
 	 * @return  void
 	 */
-	protected function _setPath($type, $path)
+	protected function setPath($type, $path)
 	{
+		$type = strtolower($type);
+
 		// Clear out the prior search dirs
 		$this->_path[$type] = array();
 
 		// Actually add the user-specified directories
-		$this->_addPath($type, $path);
+		$this->addPath($type, $path);
 
 		// Always add the fallback directories as last resort
-		switch (strtolower($type))
+		if ($type == 'template' && $this->_overridePath)
 		{
-			case 'template':
-				// Set the alternative template search dir
-				$component = strtolower(\App::get('request')->getCmd('option'));
-				$component = preg_replace('/[^A-Z0-9_\.-]/i', '', $component);
+			// Set the alternative template search dir
+			$component = strtolower(\App::get('request')->getCmd('option'));
+			$component = preg_replace('/[^A-Z0-9_\.-]/i', '', $component);
 
-				$this->_addPath(
-					'template',
-					\App::get('template')->path . DS . 'html' . DS . $component . DS . $this->getName()
-				);
-			break;
+			$path = $this->_overridePath . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . $component . DIRECTORY_SEPARATOR . $this->getName();
+
+			$this->addPath($type, $path);
 		}
 	}
 
@@ -562,7 +592,7 @@ class View extends Object
 	 * @param   mixed   $path  The directory or stream, or an array of either, to search.
 	 * @return  void
 	 */
-	protected function _addPath($type, $path)
+	protected function addPath($type, $path)
 	{
 		// Just force to array
 		settype($path, 'array');
@@ -592,27 +622,61 @@ class View extends Object
 	 * @param   array   $parts  An associative array of filename information
 	 * @return  string  The filename
 	 */
-	protected function _createFileName($type, $parts = array())
+	protected function createFileName($type, $parts = array())
 	{
-		$filename = '';
+		$filename = strtolower($parts['name']);
 
-		switch ($type)
+		$ext = 'php';
+
+		if ($type == 'template')
 		{
-			case 'template':
-				$filename = strtolower($parts['name']) . '.' . $this->_layoutExt;
-				break;
-
-			default:
-				$filename = strtolower($parts['name']) . '.php';
-				break;
+			$ext = $this->_layoutExt;
 		}
-		return $filename;
+
+		return $filename . '.' . $ext;
+	}
+
+	/**
+	 * Find a file from a list of paths
+	 *
+	 * @param   array   $paths
+	 * @param   string  $file
+	 * @return  mixed   FALSE if not found, string if found
+	 */
+	protected function find($paths, $file)
+	{
+		$paths = is_array($paths) ? $paths : array($paths);
+
+		foreach ($paths as $path)
+		{
+			$fullname = $path . DIRECTORY_SEPARATOR . $file;
+
+			// Is the path based on a stream?
+			if (strpos($path, '://') === false)
+			{
+				// Not a stream, so do a realpath() to avoid directory
+				// traversal attempts on the local file system.
+				$path     = realpath($path);
+				$fullname = realpath($fullname);
+			}
+
+			// The substr() check added to make sure that the realpath()
+			// results in a directory registered so that
+			// non-registered directories are not accessible via directory
+			// traversal attempts.
+			if (file_exists($fullname) && substr($fullname, 0, strlen($path)) == $path)
+			{
+				return $fullname;
+			}
+		}
+
+		return false;
 	}
 
 	/**
 	 * Get the string contents of the view.
 	 *
-	 * @return string
+	 * @return  string
 	 */
 	public function __toString()
 	{
@@ -627,7 +691,7 @@ class View extends Object
 	 * @return  void
 	 * @since   1.3.1
 	 */
-	public function helper($name, $helper) //callable
+	public function helper($name, $helper)
 	{
 		static::$helpers[$name] = $helper;
 	}
@@ -667,6 +731,7 @@ class View extends Object
 		if (class_exists($invokable))
 		{
 			$callback = new $invokable();
+
 			if (is_callable($callback))
 			{
 				$callback->setView($this);
