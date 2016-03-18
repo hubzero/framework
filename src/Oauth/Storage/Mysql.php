@@ -45,7 +45,7 @@ use Hubzero\Oauth\Storage\SessionTokenInterface;
 use Hubzero\Oauth\Storage\ToolSessionTokenInterface;
 
 // include developer model
-require_once PATH_CORE . DS . 'components' . DS . 'com_developer' . DS . 'models' . DS . 'developer.php';
+require_once PATH_CORE . DS . 'components' . DS . 'com_developer' . DS . 'models' . DS . 'application.php';
 
 /**
  * Custom Hubzero OAuth2 Storage Class
@@ -68,10 +68,10 @@ class Mysql
 	public function getAccessToken($access_token)
 	{
 		// create access token
-		$model = new \Components\Developer\Models\Api\AccessToken();
+		$token = \Components\Developer\Models\Accesstoken::oneByToken($access_token);
 
 		// make sure we have a token
-		if (!$token = $model->loadByToken($access_token))
+		if (!$token->get('id'))
 		{
 			return false;
 		}
@@ -83,7 +83,7 @@ class Mysql
 		}
 
 		// get the application's client id
-		$application = new \Components\Developer\Models\Api\Application($token->get('application_id'));
+		$application = \Components\Developer\Models\Application::oneOrFail($token->get('application_id'));
 		$token->set('client_id', $application->get('client_id'));
 
 		// format expires to unix timestamp
@@ -113,13 +113,13 @@ class Mysql
 		$client = $this->getClientDetails($client_id);
 
 		// create access token
-		$model = new \Components\Developer\Models\Api\AccessToken();
+		$model = new \Components\Developer\Models\Accesstoken();
 		$model->set('application_id', $client['id']);
 		$model->set('access_token', $access_token);
 		$model->set('uidNumber', $user_id);
 		$model->set('expires', $expires);
 		$model->set('created', $created);
-		return $model->store();
+		return $model->save();
 	}
 
 	/**
@@ -131,10 +131,10 @@ class Mysql
 	public function getClientDetails($clientId)
 	{
 		// create model
-		$model = new \Components\Developer\Models\Api\Application();
+		$application = \Components\Developer\Models\Application::oneByClientid($clientId);
 
 		// load application by client id
-		if (!$application = $model->loadByClientid($clientId))
+		if (!$application->get('id'))
 		{
 			return false;
 		}
@@ -247,23 +247,23 @@ class Mysql
 	public function getAuthorizationCode($code)
 	{
 		// auth model
-		$model = new \Components\Developer\Models\Api\AuthorizationCode();
+		$authorizationCode = \Components\Developer\Models\Authorizationcode::oneByCode($code);
 
 		// fetch by code
-		if (!$authorizationCode = $model->loadByCode($code))
+		if (!$authorizationCode->get('id'))
 		{
 			return false;
 		}
 
 		// get the application's client id
-		$application = new \Components\Developer\Models\Api\Application($authorizationCode->get('application_id'));
+		$application = \Components\Developer\Models\Api\Application::oneOrFail($authorizationCode->get('application_id'));
 		$authorizationCode->set('client_id', $application->get('client_id'));
 
 		// format expires to unix timestamp for authorization code grant type
 		$authorizationCode->set('expires', with(new Date($authorizationCode->get('expires')))->toUnix());
 
 		// return code
-		return $authorizationCode->toArray(true);
+		return $authorizationCode->toArray();
 	}
 
 	/**
@@ -286,13 +286,13 @@ class Mysql
 		$client = $this->getClientDetails($client_id);
 
 		// create authorization code 
-		$model = new \Components\Developer\Models\Api\AuthorizationCode();
+		$model = new \Components\Developer\Models\Authorizationcode();
 		$model->set('application_id', $client['id']);
 		$model->set('authorization_code', $code);
 		$model->set('uidNumber', $user_id);
 		$model->set('redirect_uri', $redirect_uri);
 		$model->set('expires', $expires);
-		return $model->store();
+		return $model->save();
 	}
 
 	/**
@@ -304,15 +304,15 @@ class Mysql
 	public function expireAuthorizationCode($code)
 	{
 		// auth model
-		$model = new \Components\Developer\Models\Api\AuthorizationCode();
+		$authorizationCode = \Components\Developer\Models\Authorizationcode::oneByCode($code);
 
 		// fetch by code
-		if (!$authorizationCode = $model->loadByCode($code))
+		if (!$authorizationCode->get('id'))
 		{
 			return false;
 		}
 
-		return $authorizationCode->delete();
+		return $authorizationCode->destroy();
 	}
 
 	/**
@@ -395,10 +395,10 @@ class Mysql
 	public function getRefreshToken($refresh_token)
 	{
 		// create refresh token
-		$model = new \Components\Developer\Models\Api\RefreshToken();
+		$token = \Components\Developer\Models\Refreshtoken::oneByToken($refresh_token);
 
 		// make sure we have a token
-		if (!$token = $model->loadByToken($refresh_token))
+		if (!$token->get('id'))
 		{
 			return false;
 		}
@@ -410,14 +410,14 @@ class Mysql
 		}
 
 		// get the application's client id
-		$application = new \Components\Developer\Models\Api\Application($token->get('application_id'));
+		$application = \Components\Developer\Models\Application::oneOrFail($token->get('application_id'));
 		$token->set('client_id', $application->get('client_id'));
 
 		// format expires to unix timestamp
 		$token->set('expires', with(new Date($token->get('expires')))->toUnix());
 
 		// return token
-		return $token->toArray(true);
+		return $token->toArray();
 	}
 
 	/**
@@ -440,13 +440,13 @@ class Mysql
 		$client = $this->getClientDetails($client_id);
 
 		// create refresh token
-		$model = new \Components\Developer\Models\Api\RefreshToken();
+		$model = new \Components\Developer\Models\Refreshtoken();
 		$model->set('application_id', $client['id']);
 		$model->set('refresh_token', $refresh_token);
 		$model->set('uidNumber', $user_id);
 		$model->set('expires', $expires);
 		$model->set('created', $created);
-		return $model->store();
+		return $model->save();
 	}
 
 	/**
@@ -458,16 +458,16 @@ class Mysql
 	public function unsetRefreshToken($refresh_token)
 	{
 		// create refresh token
-		$model = new \Components\Developer\Models\Api\RefreshToken();
+		$token = \Components\Developer\Models\RefreshToken::oneByToken($refresh_token);
 
 		// make sure we have a token
-		if (!$token = $model->loadByToken($refresh_token))
+		if (!$token->get('id'))
 		{
 			return false;
 		}
 
 		// delete token
-		return $token->delete();
+		return $token->destroy();
 	}
 
 	/**
@@ -600,21 +600,19 @@ class Mysql
 	private function findInternalClient()
 	{
 		// create model and fetch applications matching fitlers
-		$model = new \Components\Developer\Models\Developer();
-		$applications = $model->applications('list', array(
-			'hub_account' => 1,
-			'limit'       => 1
-		));
+		$application = \Components\Developer\Models\Application::all()
+			->whereEquals('hub_account', 1)
+			->row();
 
 		// make sure we have at least one 
 		// although it should always only be one
-		if ($applications->count() < 1)
+		if (!$application->get('id'))
 		{
 			return false;
 		}
 
 		// return first as an array
-		return $applications->first()->toArray();
+		return $applications->toArray();
 	}
 
 	/**
@@ -629,7 +627,7 @@ class Mysql
 		$clientSecret = sha1($clientId);
 
 		// application model
-		$application = new \Components\Developer\Models\Api\Application();
+		$application = new \Components\Developer\Models\Application();
 		$application->set('name', 'Hub Account');
 		$application->set('description', 'Hub account for internal requests. DO NOT DELETE.');
 		$application->set('redirect_uri', 'https://' . $_SERVER['HTTP_HOST']);
@@ -640,7 +638,7 @@ class Mysql
 		$application->set('created_by', \User::get('uidNumber'));
 		$application->set('state', 1);
 		$application->set('hub_account', 1);
-		$application->store();
+		$application->save();
 
 		return true;
 	}
