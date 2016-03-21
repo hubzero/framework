@@ -612,7 +612,7 @@ class Mysql
 		}
 
 		// return first as an array
-		return $applications->toArray();
+		return $application->toArray();
 	}
 
 	/**
