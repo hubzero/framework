@@ -191,6 +191,14 @@ class Log extends Relational
 	 */
 	public function save()
 	{
+		if ($data = $this->get('details'))
+		{
+			if (!is_string($data))
+			{
+				$this->set('details', json_encode($data));
+			}
+		}
+
 		$result = parent::save();
 
 		if ($result)
@@ -273,7 +281,10 @@ class Log extends Relational
 				if (!isset($receiver['scope'])
 				 || !isset($receiver['scope_id']))
 				{
-					continue;
+					$receiver = array_values($receiver);
+
+					$receiver['scope']    = $receiver[0];
+					$receiver['scope_id'] = $receiver[1];
 				}
 
 				$key = $receiver['scope'] . '.' . $receiver['scope_id'];
