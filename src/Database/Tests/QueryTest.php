@@ -35,6 +35,8 @@ namespace Hubzero\Database\Tests;
 
 use Hubzero\Test\Database;
 use Hubzero\Database\Query;
+use Hubzero\Database\Value\Basic;
+use Hubzero\Database\Value\Raw;
 
 /**
  * Base query tests
@@ -105,6 +107,64 @@ class QueryTest extends Database
 		// Get our expected state of the database
 		$expectedTable = $this->createFlatXmlDataSet(dirname(__FILE__) . DS . 'Fixtures' . DS . 'updatedUsers.xml')
 		                      ->getTable('users');
+
+		// Now assert that updated and expected are the same
+		$this->assertTablesEqual($expectedTable, $queryTable);
+	}
+
+	/**
+	 * Test to make sure we can set a basic value on update
+	 *
+	 * @return  void
+	 **/
+	public function testSetWithBasicValue()
+	{
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		// Try to update an existing row
+		$query->alter('users', 'id', 1, [
+			'name'  => new Basic('Updated User'),
+			'email' => new Basic('updateduser@gmail.com')
+		]);
+
+		// Get the current state of the database
+		$queryTable = $this->getConnection()->createQueryTable(
+		    'users', 'SELECT * FROM users'
+		);
+
+		// Get our expected state of the database
+		$expectedTable = $this->createFlatXmlDataSet(dirname(__FILE__) . DS . 'Fixtures' . DS . 'updatedUsers.xml')
+		                      ->getTable('users');
+
+		// Now assert that updated and expected are the same
+		$this->assertTablesEqual($expectedTable, $queryTable);
+	}
+
+	/**
+	 * Test to make sure we can set a raw value on update
+	 *
+	 * @return  void
+	 **/
+	public function testSetWithRawValue()
+	{
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		// Try to update an existing row
+		$query->alter('discussions', 'id', 2, [
+			'lft' => new Raw($dbo->quoteName('lft') . ' + 2'),
+			'rgt' => new Raw($dbo->quoteName('rgt') . ' + 2')
+		]);
+
+		// Get the current state of the database
+		$queryTable = $this->getConnection()->createQueryTable(
+		    'discussions', 'SELECT * FROM discussions WHERE `id` = 2'
+		);
+
+		// Get our expected state of the database
+		$expectedTable = $this->createFlatXmlDataSet(dirname(__FILE__) . DS . 'Fixtures' . DS . 'updatedDiscussions.xml')
+		                      ->getTable('discussions');
 
 		// Now assert that updated and expected are the same
 		$this->assertTablesEqual($expectedTable, $queryTable);

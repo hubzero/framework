@@ -102,7 +102,7 @@ class Mysql
 	 * @return  $this
 	 * @since   2.0.0
 	 **/
-	protected function bind($value, $type = null)
+	public function bind($value, $type = null)
 	{
 		$this->bindings[] = $value;
 	}
@@ -565,8 +565,15 @@ class Mysql
 
 		foreach ($this->set as $field => $value)
 		{
-			$updates[] = $this->connection->quoteName($field) . ' = ?';
-			$this->bind(is_string($value) ? trim($value) : $value);
+			if (is_object($value))
+			{
+				$updates[] = $this->connection->quoteName($field) . ' = ' . $value->build($this);
+			}
+			else
+			{
+				$updates[] = $this->connection->quoteName($field) . ' = ?';
+				$this->bind(is_string($value) ? trim($value) : $value);
+			}
 		}
 
 		return 'SET ' . implode(',', $updates);
