@@ -112,7 +112,7 @@ class DocumentServiceProvider extends Middleware
 			$params = array(
 				'template'  => $this->app['template']->template,
 				'file'      => $file . '.php',
-				'directory' => ($this->app['template']->protected ? PATH_CORE : PATH_APP) . DS . 'templates',
+				'directory' => dirname($this->app['template']->path),
 				'params'    => $this->app['template']->params
 			);
 			$params['baseurl'] = rtrim(\Request::root(true), '/') . rtrim(substr(dirname($params['directory']), strlen(PATH_ROOT)), '/');

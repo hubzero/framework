@@ -35,6 +35,7 @@ namespace Hubzero\Error\Renderer;
 use Hubzero\Error\RendererInterface;
 use Hubzero\Http\Response;
 use Exception;
+use Closure;
 
 /**
  * Displays the custom error page when an uncaught exception occurs.
@@ -66,11 +67,11 @@ class Page implements RendererInterface
 	 * Create a new exception renderer.
 	 *
 	 * @param   object  $document  Document instance
-	 * @param   string  $template  Template name
+	 * @param   object  $template  Template loader
 	 * @param   bool    $debug     Debugging turned on?
 	 * @return  void
 	 */
-	public function __construct($document, $template = 'system', $debug = false)
+	public function __construct($document, $template = null, $debug = false)
 	{
 		$this->document = $document;
 		$this->template = $template;
@@ -105,17 +106,13 @@ class Page implements RendererInterface
 
 			$this->document->setTitle(\Lang::txt('Error') . ': ' . $error->getCode());
 
-			$path = PATH_APP . DS . 'templates';
-			if (!is_dir($path . DS . $this->template))
-			{
-				$path = PATH_CORE . DS . 'templates';
-			}
+			$template = $this->template->load();
 
 			$data = $this->document->render(
 				false,
 				array(
-					'template'  => $this->template,
-					'directory' => $path,
+					'template'  => $template->template,
+					'directory' => dirname($template->path),
 					'debug'     => $this->debug
 				)
 			);

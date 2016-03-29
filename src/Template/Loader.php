@@ -87,12 +87,12 @@ class Loader
 
 		if (array_key_exists('style', $options))
 		{
-			$this->style = $options['style'];
+			$this->setStyle($options['style']);
 		}
 
 		if (array_key_exists('lang', $options))
 		{
-			$this->lang = $options['lang'];
+			$this->setLang($options['lang']);
 		}
 
 		if (array_key_exists('path_app', $options))
@@ -140,6 +140,52 @@ class Loader
 	public function determinePath($protected = 0)
 	{
 		return (int) $protected ? $this->getPath('core') : $this->getPath('app');
+	}
+
+	/**
+	 * Set style
+	 *
+	 * @param   integer  $style
+	 * @return  object
+	 */
+	public function setStyle($style)
+	{
+		$this->style = (int) $style;
+
+		return $this;
+	}
+
+	/**
+	 * Get style
+	 *
+	 * @return  integer
+	 */
+	public function getStyle()
+	{
+		return $this->style;
+	}
+
+	/**
+	 * Set language
+	 *
+	 * @param   string  $lang
+	 * @return  object
+	 */
+	public function setLang($lang)
+	{
+		$this->lang = (string) $lang;
+
+		return $this;
+	}
+
+	/**
+	 * Get language
+	 *
+	 * @return  string
+	 */
+	public function getLang()
+	{
+		return $this->lang;
 	}
 
 	/**
