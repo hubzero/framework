@@ -45,7 +45,7 @@ class TemplateServiceProvider extends ServiceProvider
 	 */
 	public function register()
 	{
-		$this->app['template'] = function ($app)
+		$this->app['template.loader'] = function ($app)
 		{
 			$options = [
 				'path_app'  => PATH_APP . DS . 'templates',
@@ -59,6 +59,13 @@ class TemplateServiceProvider extends ServiceProvider
 				$options['style'] = \User::getParam('admin_style', $options['style']);
 			}
 
+			return new Loader($app, $options);
+		};
+
+		$this->app['template'] = function ($app)
+		{
+			$loader = $app['template.loader'];
+
 			if ($app->isSite() && $app->has('menu'))
 			{
 				$menu = $app['menu'];
@@ -70,18 +77,21 @@ class TemplateServiceProvider extends ServiceProvider
 
 				if (is_object($item))
 				{
-					$options['style'] = $item->template_style_id;
+					$loader->setStyle($item->template_style_id);
 				}
 
 				if ($app->has('language.filter'))
 				{
-					$options['lang'] = $app['language']->getTag();
+					$loader->setLang($app['language']->getTag());
 				}
 			}
 
-			$options['style'] = $app['request']->getVar('templateStyle', 0);
+			if ($style = $app['request']->getVar('templateStyle', 0))
+			{
+				$loader->setStyle($style);
+			}
 
-			return with(new Loader($app, $options))->load();
+			return $loader->load();
 		};
 	}
 }

@@ -114,11 +114,18 @@ class ErrorServiceProvider extends ServiceProvider
 		{
 			if ($this->app->isAdmin() || $this->app->isSite())
 			{
-				$this->app['error']->setRenderer(new Page($this->app['document'], $this->app['template']->template, $this->app['config']->get('debug')));
+				$this->app['error']->setRenderer(new Page(
+					$this->app['document'],
+					$this->app['template.loader'],
+					$this->app['config']->get('debug')
+				));
 			}
 			else if ($this->app->isApi())
 			{
-				$this->app['error']->setRenderer(new Api($this->app['response'], $this->app['config']->get('debug')));
+				$this->app['error']->setRenderer(new Api(
+					$this->app['response'],
+					$this->app['config']->get('debug')
+				));
 			}
 		}
 	}
