@@ -39,32 +39,29 @@
 		<column>user_id</column>
 		<column>title</column>
 		<column>content</column>
-		<column>parent_id</column>
-		<column>level</column>
 		<column>lft</column>
 		<column>rgt</column>
-		<column>alias</column>
+		<column>parent_id</column>
+		<column>depth</column>
 		<row>
 			<value>1</value>
-			<value></value>
-			<value>ROOT</value>
-			<value></value>
-			<value>0</value>
-			<value>0</value>
+			<value>3</value>
+			<value>My first discussion</value>
+			<value>Tell me everything!</value>
 			<value>0</value>
 			<value>3</value>
-			<value></value>
+			<value>0</value>
+			<value>0</value>
 		</row>
 		<row>
 			<value>2</value>
 			<value>3</value>
-			<value>Let's chat</value>
-			<value>Let’s chat about things that matter</value>
-			<value>1</value>
-			<value>1</value>
+			<value>Confused</value>
+			<value>Is this really a good idea?</value>
 			<value>1</value>
 			<value>2</value>
-			<value>letschat</value>
+			<value>1</value>
+			<value>1</value>
 		</row>
 	</table>
 	<table name="groups">
