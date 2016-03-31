@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -60,14 +59,21 @@ class Checker
 	 *
 	 * @var  object
 	 */
-	protected $stringProcessor;
+	protected $stringProcessor = null;
 
 	/**
-	 * Log data?
+	 * Constructor
 	 *
-	 * @var  boolean
+	 * @param   object  $stringProcessor
+	 * @return  void
 	 */
-	protected $logging = true;
+	public function __construct($stringProcessor = null)
+	{
+		if ($stringProcessor)
+		{
+			$this->setStringProcessor($stringProcessor);
+		}
+	}
 
 	/**
 	 * Set string processor
@@ -81,14 +87,13 @@ class Checker
 	}
 
 	/**
-	 * Set logging
+	 * Get string processor
 	 *
-	 * @param   bool  $log
-	 * @return  void
+	 * @return  object
 	 */
-	public function setLogging($log)
+	public function getStringProcessor()
 	{
-		$this->logging = (bool) $log;
+		return $this->stringProcessor;
 	}
 
 	/**
@@ -129,11 +134,6 @@ class Checker
 		}
 
 		$result = new Result($failure > 0, $messages);
-
-		if ($this->logging)
-		{
-			$this->log($result->isSpam(), $data);
-		}
 
 		return $result;
 	}
@@ -212,34 +212,18 @@ class Checker
 			'username'   => null,
 			'id'         => null,
 			'text'       => null,
-			'ip'         => $this->getIp(),
-			'user_agent' => $this->getUserAgent()
+			'ip'         => null,
+			'user_agent' => null
 		), $data);
 
 		$data['original_text'] = $data['text'];
-		$data['text'] = $this->stringProcessor ? $this->stringProcessor->prepare($data['text']) : $data['text'];
+
+		if ($this->stringProcessor)
+		{
+			$data['text'] = $this->stringProcessor->prepare($data['text']);
+		}
 
 		return $data;
-	}
-
-	/**
-	 * Get IP address
-	 *
-	 * @return  string
-	 */
-	protected function getIp()
-	{
-		return \App::get('request')->ip();
-	}
-
-	/**
-	 * Get User Agent
-	 *
-	 * @return  string
-	 */
-	protected function getUserAgent()
-	{
-		return \App::get('request')->getVar('HTTP_USER_AGENT', null, 'server');
 	}
 
 	/**
@@ -273,42 +257,5 @@ class Checker
 			'is_spam' => $value,
 			'message' => $message
 		);
-	}
-
-	/**
-	 * Log results of the check
-	 *
-	 * @param   string  $isSpam  Spam detection result
-	 * @param   array   $data    Data being checked
-	 * @return  void
-	 */
-	protected function log($isSpam, $data)
-	{
-		if (!\App::has('log'))
-		{
-			return;
-		}
-
-		$request = \App::get('request');
-
-		$fallback  = 'option=' . $request->getCmd('option');
-		$fallback .= '&controller=' . $request->getCmd('controller');
-		$fallback .= '&task=' . $request->getCmd('task');
-
-		$from = $request->getVar('REQUEST_URI', $fallback, 'server');
-		$from = $from ?: $fallback;
-
-		$info = array(
-			($isSpam ? 'spam' : 'ham'),
-			$data['ip'],
-			$data['id'],
-			$data['username'],
-			md5($data['text']),
-			$from
-		);
-
-		\App::get('log')
-			->logger('spam')
-			->info(implode(' ', $info));
 	}
 }
