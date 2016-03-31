@@ -41,6 +41,15 @@ class Detector extends Service
 	 */
 	public function detect($data)
 	{
+		if (!is_array($data) || !isset($data['text']))
+		{
+			return false;
+		}
+		if (stristr($data['text'], 'spam'))
+		{
+			$this->message = 'Text contained the word "spam".';
+			return true;
+		}
 		return false;
 	}
 
