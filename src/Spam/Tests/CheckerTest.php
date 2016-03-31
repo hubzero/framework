@@ -32,12 +32,32 @@ namespace Hubzero\Spam\Tests;
 use Hubzero\Test\Basic;
 use Hubzero\Spam\Checker;
 use Hubzero\Spam\Tests\Mock\Detector;
+use Hubzero\Spam\StringProcessor\NoneStringProcessor;
+use Hubzero\Spam\StringProcessor\NativeStringProcessor;
 
 /**
  * Spam checker tests
  */
 class CheckerTest extends Basic
 {
+	/**
+	 * Tests for setting and getting a StringProcessor
+	 *
+	 * @covers  \Hubzero\Spam\Checker::setStringProcessor
+	 * @covers  \Hubzero\Spam\Checker::getStringProcessor
+	 * @return  void
+	 **/
+	public function testStringProcessor()
+	{
+		$service = new Checker(new NoneStringProcessor());
+
+		$this->assertInstanceOf('Hubzero\Spam\StringProcessor\NoneStringProcessor', $service->getStringProcessor());
+
+		$service->setStringProcessor(new NativeStringProcessor());
+
+		$this->assertInstanceOf('Hubzero\Spam\StringProcessor\NativeStringProcessor', $service->getStringProcessor());
+	}
+
 	/**
 	 * Test to make sure a detector is registered properly
 	 * and returns $this.
@@ -120,12 +140,20 @@ class CheckerTest extends Basic
 	public function testCheck()
 	{
 		$service = new Checker();
-		$service->setLogging(false);
 		$service->registerDetector(new Detector());
 
 		$result = $service->check('Maecenas sed diam eget risus varius blandit sit amet non magna.');
 
 		$this->assertInstanceOf('Hubzero\Spam\Result', $result);
 		$this->assertFalse($result->isSpam());
+
+		$result = $service->check('Maecenas sed diam eget risus varius spam blandit sit amet non magna.');
+
+		$this->assertInstanceOf('Hubzero\Spam\Result', $result);
+		$this->assertTrue($result->isSpam());
+
+		$messages = $result->getMessages();
+		$this->assertTrue(is_array($messages));
+		$this->assertTrue(in_array('Text contained the word "spam".', $messages));
 	}
 }
