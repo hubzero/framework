@@ -71,6 +71,26 @@ class HandlerTest extends Basic
 	/**
 	 * Test that the lit of messages returned by the handler
 	 *
+	 * @covers  \Hubzero\Notification\Handler::message
+	 * @return  void
+	 **/
+	public function testMessage()
+	{
+		$handler = new Handler(new Memory);
+
+		$item = $this->data[0];
+
+		$this->assertInstanceOf('Hubzero\Notification\Handler', $handler->message($item['message']));
+
+		$messages = $handler->messages();
+
+		$this->assertTrue(is_array($messages), 'Getting all messages should return an array');
+		$this->assertCount(1, $messages, 'Total messages returned does not equal number added');
+	}
+
+	/**
+	 * Test that the lit of messages returned by the handler
+	 *
 	 * @covers  \Hubzero\Notification\Handler::messages
 	 * @return  void
 	 **/
@@ -271,6 +291,27 @@ class HandlerTest extends Basic
 		}
 
 		$messages = $handler->toJson();
+
+		$this->assertTrue(is_string($messages));
+		$this->assertJson($messages);
+	}
+
+	/**
+	 * Test __toString
+	 *
+	 * @covers  \Hubzero\Notification\Handler::__toString
+	 * @return  void
+	 **/
+	public function testToString()
+	{
+		$handler = new Handler(new Memory);
+
+		foreach ($this->data as $item)
+		{
+			$handler->message($item['message'], $item['type'], $item['domain']);
+		}
+
+		$messages = (string) $handler;
 
 		$this->assertTrue(is_string($messages));
 		$this->assertJson($messages);
