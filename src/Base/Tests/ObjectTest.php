@@ -134,4 +134,55 @@ class ObjectTest extends Basic
 			$this->assertEquals($this->data[$key], $val);
 		}
 	}
+
+	/**
+	 * Test setting a property
+	 *
+	 * @covers  \Hubzero\Base\Object::set
+	 * @return  void
+	 **/
+	public function testSet()
+	{
+		$obj = new Object();
+
+		$this->assertInstanceOf('Hubzero\Base\Object', $obj->set('foo', 'bar'));
+		$this->assertTrue(isset($obj->foo));
+		$this->assertEquals($obj->foo, 'bar');
+	}
+
+	/**
+	 * Test retrieving a set property and
+	 * retriving a default value if a property isn't set
+	 *
+	 * @covers  \Hubzero\Base\Object::get
+	 * @return  void
+	 **/
+	public function testGet()
+	{
+		$obj = new Object();
+		$obj->set('foo', 'bar');
+
+		$this->assertEquals($obj->get('foo'), 'bar');
+		$this->assertEquals($obj->get('bar', 'default'), 'default');
+	}
+
+	/**
+	 * Test setting a default value if not alreay assigned
+	 *
+	 * @covers  \Hubzero\Base\Object::def
+	 * @return  void
+	 **/
+	public function testDef()
+	{
+		$obj = new Object();
+
+		$obj->def('bar', 'ipsum');
+
+		$this->assertEquals($obj->get('bar'), 'ipsum');
+
+		$obj->set('foo', 'bar');
+		$obj->def('foo', 'lorem');
+
+		$this->assertEquals($obj->get('foo'), 'bar');
+	}
 }

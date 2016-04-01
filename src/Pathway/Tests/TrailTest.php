@@ -39,12 +39,65 @@ use Hubzero\Pathway\Item;
 class TrailTest extends Basic
 {
 	/**
+	 * Test ArrayAccess methods
+	 *
+	 * @covers  \Hubzero\Pathway\Trail::set
+	 * @covers  \Hubzero\Pathway\Trail::get
+	 * @covers  \Hubzero\Pathway\Trail::has
+	 * @covers  \Hubzero\Pathway\Trail::forget
+	 * @covers  \Hubzero\Pathway\Trail::offsetSet
+	 * @covers  \Hubzero\Pathway\Trail::offsetGet
+	 * @covers  \Hubzero\Pathway\Trail::offsetUnset
+	 * @covers  \Hubzero\Pathway\Trail::offsetExists
+	 * @return  void
+	 **/
+	public function testArrayAccessMethods()
+	{
+		$pathway = new Trail();
+
+		$crumb1 = new Item('Crumb 1', 'index.php?option=com_lorem');
+		$crumb2 = new Item('Crumb 2', 'index.php?option=com_ipsum');
+		$crumb3 = new Item('Crumb 3', 'index.php?option=com_dolor');
+
+		$pathway->set(0, $crumb1);
+		$pathway->set(1, $crumb2);
+		$pathway->offsetSet(2, $crumb3);
+
+		$this->assertTrue($pathway->has(1));
+		$this->assertFalse($pathway->has(3));
+
+		$item = $pathway->get(0);
+
+		$this->assertEquals($crumb1->name, $item->name);
+		$this->assertEquals($crumb1->link, $item->link);
+
+		$item = $pathway->get(1);
+
+		$this->assertEquals($crumb2->name, $item->name);
+		$this->assertEquals($crumb2->link, $item->link);
+
+		$item = $pathway->offsetGet(2);
+
+		$this->assertEquals($crumb3->name, $item->name);
+		$this->assertEquals($crumb3->link, $item->link);
+
+		$pathway->forget(1);
+
+		$this->assertFalse($pathway->has(1));
+
+		$pathway->offsetUnset(2);
+
+		$this->assertFalse($pathway->offsetExists(2));
+	}
+
+	/**
 	 * Tests:
 	 *  1. the append() method is chainable
 	 *  2. append() adds to the items list
 	 *  3. append() adds an Hubzero\Pathway\Item object to the items list
 	 *  4. append() adds to the END of the items list
 	 *
+	 * @covers  \Hubzero\Pathway\Trail::append
 	 * @return  void
 	 **/
 	public function testAppend()
@@ -75,6 +128,7 @@ class TrailTest extends Basic
 	 *  3. prepend() adds an Hubzero\Pathway\Item object to the items list
 	 *  4. prepend() adds to the BEGINNING of the items list
 	 *
+	 * @covers  \Hubzero\Pathway\Trail::prepend
 	 * @return  void
 	 **/
 	public function testPrepend()
@@ -99,11 +153,28 @@ class TrailTest extends Basic
 	}
 
 	/**
+	 * Test the count() method returns the number of items added
+	 *
+	 * @covers  \Hubzero\Pathway\Trail::count
+	 * @return  void
+	 **/
+	public function testCount()
+	{
+		$pathway = new Trail();
+		$pathway->append('Crumb 1', 'index.php?option=com_lorem');
+		$pathway->append('Crumb 2', 'index.php?option=com_ipsum');
+
+		$this->assertEquals(2, $pathway->count());
+		$this->assertEquals(2, count($pathway));
+	}
+
+	/**
 	 * Tests:
 	 *  1. the names() method returns an array
 	 *  2. the number of items in the array matches the number of items added
 	 *  3. the array returned contains just the names of the items added
 	 *
+	 * @covers  \Hubzero\Pathway\Trail::names
 	 * @return  void
 	 **/
 	public function testNames()
@@ -130,6 +201,7 @@ class TrailTest extends Basic
 	 *  2. the number of items in the array matches the number of items added
 	 *  3. the array returned contains a Hubzero\Pathway\Item object for each entry added
 	 *
+	 * @covers  \Hubzero\Pathway\Trail::items
 	 * @return  void
 	 **/
 	public function testItems()
@@ -156,6 +228,7 @@ class TrailTest extends Basic
 	 *  2. the number of items in the array matches the number of items added
 	 *  3. the array returned contains just the names of the items added
 	 *
+	 * @covers  \Hubzero\Pathway\Trail::clear
 	 * @return  void
 	 **/
 	public function testClear()
