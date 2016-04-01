@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -110,6 +109,7 @@ class Object
 	public function getProperties($public = true)
 	{
 		$vars = get_object_vars($this);
+
 		if ($public)
 		{
 			foreach ($vars as $key => $value)
@@ -152,11 +152,19 @@ class Object
 	{
 		if (is_array($properties) || is_object($properties))
 		{
+			// PHP changed the object-to-array casting algorithm with version 5.3.0
+			// So we need to use get_object_vars() instead
+			if (is_object($properties))
+			{
+				$properties = get_object_vars($properties);
+			}
+
 			foreach ((array) $properties as $k => $v)
 			{
 				// Use the set function which might be overridden.
 				$this->set($k, $v);
 			}
+
 			return true;
 		}
 
