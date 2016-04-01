@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -273,6 +272,7 @@ class Behavior
 			Asset::script('assets/flot/jquery.flot.min.js', true, true);
 			Asset::script('assets/flot/jquery.flot.canvas.min.js', true, true);
 			Asset::script('assets/flot/jquery.flot.time.min.js', true, true);
+			Asset::script('assets/flot/jquery.flot.tooltip.min.js', true, true);
 		}
 		else
 		{
