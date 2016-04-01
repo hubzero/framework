@@ -10,6 +10,14 @@
 			<value>This is my bio about me.</value>
 		</row>
 	</table>
+	<table name="categories">
+		<column>id</column>
+		<column>name</column>
+		<column>lft</column>
+		<column>rgt</column>
+		<column>parent_id</column>
+		<column>depth</column>
+	</table>
 	<table name="comments">
 		<column>id</column>
 		<column>user_id</column>
@@ -43,6 +51,8 @@
 		<column>rgt</column>
 		<column>parent_id</column>
 		<column>depth</column>
+		<column>scope</column>
+		<column>scope_id</column>
 		<row>
 			<value>1</value>
 			<value>3</value>
@@ -52,6 +62,8 @@
 			<value>3</value>
 			<value>0</value>
 			<value>0</value>
+			<value>group</value>
+			<value>1</value>
 		</row>
 		<row>
 			<value>2</value>
@@ -61,6 +73,8 @@
 			<value>1</value>
 			<value>2</value>
 			<value>1</value>
+			<value>1</value>
+			<value>group</value>
 			<value>1</value>
 		</row>
 	</table>
