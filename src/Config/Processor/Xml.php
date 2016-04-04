@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -55,16 +54,16 @@ class Xml extends Base
 	 * Parses an XML file as an array
 	 *
 	 * @param   string  $path
-	 * @return  object
+	 * @return  array
 	 * @throws  ParseException  If there is an error parsing the XML file
 	 */
 	public function parse($path)
 	{
 		libxml_use_internal_errors(true);
 
-		$data = simplexml_load_file($path, null, LIBXML_NOERROR);
+		$xml = simplexml_load_file($path, null, LIBXML_NOERROR);
 
-		if ($data === false)
+		if ($xml === false)
 		{
 			$errors      = libxml_get_errors();
 			$latestError = array_pop($errors);
@@ -78,6 +77,11 @@ class Xml extends Base
 			throw new ParseException($error);
 		}
 
+		$data = new stdClass;
+		foreach ($xml->children() as $node)
+		{
+			$data->$node['name'] = $this->getValueFromNode($node);
+		}
 		$data = json_decode(json_encode($data), true);
 
 		return $data;

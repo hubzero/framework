@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -56,14 +55,14 @@ class Yaml extends Base
 	 * Loads a YAML/YML file as an array
 	 *
 	 * @param   string  $path
-	 * @return  object
+	 * @return  array
 	 * @throws  ParseException If If there is an error parsing the YAML file
 	 */
 	public function parse($path)
 	{
 		try
 		{
-			$data = YamlParser::parse(file_get_contents($path));
+			$data = SymfonyYaml::parse(file_get_contents($path));
 		}
 		catch (Exception $exception)
 		{

@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -52,11 +51,10 @@ class Php extends Base
 	}
 
 	/**
-	 * {@inheritDoc}
 	 * Loads a PHP file and gets its' contents as an array
 	 *
 	 * @param   string  $path
-	 * @return  object
+	 * @return  array
 	 * @throws  ParseException              If the PHP file throws an exception
 	 * @throws  UnsupportedFormatException  If the PHP file does not return an array
 	 */
@@ -93,12 +91,10 @@ class Php extends Base
 	}
 
 	/**
-	 * Converts an object into a php class string.
+	 * Converts an object into a php class or array string.
 	 *
-	 * NOTE: Only one depth level is supported.
-	 *
-	 * @param   object  $object  Data Source Object
-	 * @param   array   $params  Parameters used by the formatter
+	 * @param   object  $object   Data Source Object
+	 * @param   array   $options  Parameters used by the formatter
 	 * @return  string  Config class formatted string
 	 */
 	public function objectToString($object, $options = array())
@@ -155,6 +151,10 @@ class Php extends Base
 		switch ($format)
 		{
 			case 'object':
+				if (!isset($options['class']) || !$options['class'])
+				{
+					$options['class'] = 'Config';
+				}
 				$str .= "class " . $options['class'] . "\n";
 				$str .= "{\n";
 				$str .= $vars;

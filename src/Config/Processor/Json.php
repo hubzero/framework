@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -56,7 +55,7 @@ class Json extends Base
 	 * Loads a JSON file as an array
 	 *
 	 * @param   string  $path
-	 * @return  object
+	 * @return  array
 	 * @throws  ParseException  If there is an error parsing the JSON file
 	 */
 	public function parse($path)
