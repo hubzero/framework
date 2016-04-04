@@ -102,7 +102,7 @@ trait ErrorBag
 	 */
 	public function setError($error, $key=null)
 	{
-		if ($key)
+		if ($key !== null)
 		{
 			$this->_errors[$key] = $error;
 		}
