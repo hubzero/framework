@@ -385,7 +385,7 @@ class Behavior
 
 		$options = Behavior::getJSObject($opt);*/
 
-		\App::get('document')->addScriptDeclaration(
+		App::get('document')->addScriptDeclaration(
 			"jQuery(document).ready(function($){
 				$('" . $selector . "').tooltip({
 					track: true,
@@ -469,7 +469,7 @@ class Behavior
 		$opt['onHide']			= (isset($params['onHide'])) ? $params['onHide'] : null;
 		);*/
 
-		if (!empty($params) || \App::isAdmin())
+		if (!empty($params) || App::isAdmin())
 		{
 			$opt = array('arrows' => false);
 			$opt['ajax']       = (isset($params['ajaxOptions']) && (is_array($params['ajaxOptions']))) ? $params['ajaxOptions'] : null;
@@ -809,7 +809,7 @@ class Behavior
 		$document->addStyleDeclaration('html { display:none }');
 		$document->addScriptDeclaration($js);
 
-		\JResponse::setHeader('X-Frame-Options', 'SAMEORIGIN');
+		App::get('response')->headers->set('X-Frame-Options', 'SAMEORIGIN');
 
 		self::$loaded[__METHOD__] = true;
 	}
