@@ -159,6 +159,12 @@ return array(
 	 **/
 	public function testObjectToString()
 	{
+		// Test that a string is returned as-is
+		$result = $this->processor->objectToString($this->str);
+
+		$this->assertEquals($this->str, $result);
+
+		// Test object to string conversion
 		$result = $this->processor->objectToString($this->obj, array(
 			'format' => 'array'
 		));

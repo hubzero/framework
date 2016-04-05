@@ -101,11 +101,9 @@ class Ini extends Base
 			return false;
 		}
 
-		try
-		{
-			$obj = parse_ini_string($data);
-		}
-		catch (Exception $e)
+		$obj = @parse_ini_string($data);
+
+		if (!$obj)
 		{
 			return false;
 		}
@@ -126,6 +124,11 @@ class Ini extends Base
 	 */
 	public function objectToString($object, $options = array())
 	{
+		if (is_string($object))
+		{
+			return $object;
+		}
+
 		// Initialize variables.
 		$local  = array();
 		$global = array();
@@ -165,6 +168,11 @@ class Ini extends Base
 	 */
 	public function stringToObject($data, $options = array())
 	{
+		if (is_object($data))
+		{
+			return $data;
+		}
+
 		$sections = (isset($options['processSections'])) ? $options['processSections'] : false;
 
 		// Check the memory cache for already processed strings.

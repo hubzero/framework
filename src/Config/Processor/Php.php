@@ -99,6 +99,11 @@ class Php extends Base
 	 */
 	public function objectToString($object, $options = array())
 	{
+		if (is_string($object))
+		{
+			return $object;
+		}
+
 		$format = 'object';
 		if (isset($options['format']) && $options['format'])
 		{

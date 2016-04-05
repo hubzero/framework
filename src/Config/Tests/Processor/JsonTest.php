@@ -133,6 +133,7 @@ class JsonTest extends Basic
 	{
 		$this->assertFalse($this->processor->canParse('Cras justo odio, dapibus ac facilisis in, egestas eget quam.'));
 		$this->assertFalse($this->processor->canParse('<config><app><setting name="application_env">development</setting></app></config>'));
+		$this->assertFalse($this->processor->canParse('{Cras justo odio, dapibus ac facilisis in, egestas eget quam.}'));
 		$this->assertTrue($this->processor->canParse($this->str));
 	}
 
@@ -147,6 +148,10 @@ class JsonTest extends Basic
 		$result = $this->processor->parse(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Files' . DIRECTORY_SEPARATOR . 'test.json');
 
 		$this->assertEquals($this->arr, $result);
+
+		$this->setExpectedException('Hubzero\Config\Exception\ParseException');
+
+		$result = $this->processor->parse(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Files' . DIRECTORY_SEPARATOR . 'test.xml');
 	}
 
 	/**
@@ -157,6 +162,12 @@ class JsonTest extends Basic
 	 **/
 	public function testObjectToString()
 	{
+		// Test that a string is returned as-is
+		$result = $this->processor->objectToString($this->str);
+
+		$this->assertEquals($this->str, $result);
+
+		// Test object to string conversion
 		$result = $this->processor->objectToString($this->obj);
 
 		$this->assertEquals($this->str, $result);
@@ -170,7 +181,36 @@ class JsonTest extends Basic
 	 **/
 	public function testStringToObject()
 	{
+		$result = $this->processor->stringToObject($this->obj, true);
+
+		$this->assertEquals($this->obj, $result);
+
 		$result = $this->processor->stringToObject($this->str, true);
+
+		$this->assertEquals($this->obj, $result);
+
+		$result = $this->processor->stringToObject('
+[app]
+application_env="development"
+editor="ckeditor"
+list_limit=25
+helpurl="English (GB) - HUBzero help"
+debug=1
+debug_lang=0
+sef=1
+sef_rewrite=1
+sef_suffix=0
+sef_groups=0
+feed_limit=10
+feed_email="author"
+
+[seo]
+sef=1
+sef_groups=0
+sef_rewrite=1
+sef_suffix=0
+unicodeslugs=0
+sitename_pagetitles=0', true);
 
 		$this->assertEquals($this->obj, $result);
 	}

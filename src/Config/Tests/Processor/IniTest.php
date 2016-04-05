@@ -153,7 +153,8 @@ sitename_pagetitles=0';
 	public function testCanParse()
 	{
 		$this->assertFalse($this->processor->canParse('Cras justo odio, dapibus ac facilisis in, egestas eget quam.'));
-		$this->assertFalse($this->processor->canParse('{"application_env":"development","editor":"ckeditor","list_limit":"25"}'));
+		$this->assertFalse($this->processor->canParse('{"application_env":"development","editor":"ck = editor","list_limit":"25"}'));
+		$this->assertFalse($this->processor->canParse('<foo att=="val">Cras justo odio dapibus ac facilisis in, egestas eget quam.</foo>'));
 		$this->assertTrue($this->processor->canParse($this->str));
 	}
 
@@ -168,6 +169,10 @@ sitename_pagetitles=0';
 		$result = $this->processor->parse(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Files' . DIRECTORY_SEPARATOR . 'test.ini');
 
 		$this->assertEquals($this->arr, $result);
+
+		$this->setExpectedException('Hubzero\Config\Exception\ParseException');
+
+		$result = $this->processor->parse(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Files' . DIRECTORY_SEPARATOR . 'test.xml');
 	}
 
 	/**
@@ -178,6 +183,12 @@ sitename_pagetitles=0';
 	 **/
 	public function testObjectToString()
 	{
+		// Test that a string is returned as-is
+		$result = $this->processor->objectToString($this->str);
+
+		$this->assertEquals($this->str, $result);
+
+		// Test object to string conversion
 		$result = $this->processor->objectToString($this->obj);
 
 		$this->assertEquals($this->str, $result);
@@ -191,6 +202,17 @@ sitename_pagetitles=0';
 	 **/
 	public function testStringToObject()
 	{
+		// Test that an object is returned as-is
+		$result = $this->processor->stringToObject($this->obj, array('processSections' => true));
+
+		$this->assertEquals($this->obj, $result);
+
+		// Test that an empty string returns an empty stdClass object
+		$result = $this->processor->stringToObject('', array('processSections' => true));
+
+		$this->assertEquals(new stdClass, $result);
+
+		// Test that a string gets converted as expected
 		$result = $this->processor->stringToObject($this->str, array('processSections' => true));
 
 		$this->assertEquals($this->obj, $result);

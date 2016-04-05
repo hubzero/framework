@@ -114,6 +114,11 @@ class Xml extends Base
 	 */
 	public function objectToString($object, $options = array())
 	{
+		if (is_string($object))
+		{
+			return $object;
+		}
+
 		// Initialise variables.
 		$rootName = (isset($options['name'])) ? $options['name'] : 'registry';
 		$nodeName = (isset($options['nodeName'])) ? $options['nodeName'] : 'node';
@@ -136,6 +141,11 @@ class Xml extends Base
 	 */
 	public function stringToObject($data, $options = array())
 	{
+		if (is_object($data))
+		{
+			return $data;
+		}
+
 		$obj = new stdClass;
 
 		$xml = simplexml_load_string($data);

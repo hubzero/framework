@@ -35,6 +35,7 @@ use Hubzero\Config\Exception\ParseException;
 use Hubzero\Config\Processor as Base;
 use Symfony\Component\Yaml\Yaml as SymfonyYaml;
 use Exception;
+use stdClass;
 
 /**
  * YAML Processor
@@ -90,11 +91,10 @@ class Yaml extends Base
 		try
 		{
 			// Parse config string
-			$parsed = SymfonyYaml::parse($data);
+			$parsed = SymfonyYaml::parse($data, true);
 		}
 		catch (Exception $e)
 		{
-			// Throw an exception Hubzero knows how to catch
 			return false;
 		}
 
@@ -163,7 +163,7 @@ class Yaml extends Base
 		try
 		{
 			// Parse config string
-			$parsed = SymfonyYaml::parse($data);
+			$parsed = SymfonyYaml::parse($data, true);
 		}
 		catch (Exception $e)
 		{
@@ -171,11 +171,36 @@ class Yaml extends Base
 			throw new ParseException(
 				array(
 					'message'   => 'Error parsing YAML',
-					'exception' => $exception,
+					'exception' => $e,
 				)
 			);
 		}
 
-		return $parsed;
+		return (is_string($parsed) ? $parsed : $this->toObject($parsed));
+	}
+
+	/**
+	 * Convert an array to an object
+	 *
+	 * @param   array   $data
+	 * @return  object  Data object.
+	 */
+	protected function toObject($data)
+	{
+		$obj = new stdClass;
+
+		foreach ($data as $key => $datum)
+		{
+			if (is_array($datum))
+			{
+				$obj->$key = $this->toObject($datum);
+			}
+			else
+			{
+				$obj->$key = $datum;
+			}
+		}
+
+		return $obj;
 	}
 }
