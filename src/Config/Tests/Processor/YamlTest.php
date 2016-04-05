@@ -30,13 +30,13 @@
 namespace Hubzero\Config\Tests\Processor;
 
 use Hubzero\Test\Basic;
-use Hubzero\Config\Processor\Xml;
+use Hubzero\Config\Processor\Yaml;
 use stdClass;
 
 /**
- * Xml Processor tests
+ * Yaml Processor tests
  */
-class XmlTest extends Basic
+class YamlTest extends Basic
 {
 	/**
 	 * Format processor
@@ -53,42 +53,31 @@ class XmlTest extends Basic
 	private $obj = null;
 
 	/**
-	 * Expected data as an array
-	 *
-	 * @var  array
-	 */
-	private $arr = null;
-
-	/**
 	 * Expected data as a string
 	 *
 	 * @var  string
 	 */
-	private $str = '<?xml version="1.0"?>
-<config>
-	<setting name="app" type="object">
-		<setting name="application_env" type="string">development</setting>
-		<setting name="editor" type="string">ckeditor</setting>
-		<setting name="list_limit" type="integer">25</setting>
-		<setting name="helpurl" type="string">English (GB) - HUBzero help</setting>
-		<setting name="debug" type="integer">1</setting>
-		<setting name="debug_lang" type="integer">0</setting>
-		<setting name="sef" type="integer">1</setting>
-		<setting name="sef_rewrite" type="integer">1</setting>
-		<setting name="sef_suffix" type="integer">0</setting>
-		<setting name="sef_groups" type="integer">0</setting>
-		<setting name="feed_limit" type="integer">10</setting>
-		<setting name="feed_email" type="string">author</setting>
-	</setting>
-	<setting name="seo" type="object">
-		<setting name="sef" type="integer">1</setting>
-		<setting name="sef_groups" type="integer">0</setting>
-		<setting name="sef_rewrite" type="integer">1</setting>
-		<setting name="sef_suffix" type="integer">0</setting>
-		<setting name="unicodeslugs" type="integer">0</setting>
-		<setting name="sitename_pagetitles" type="integer">0</setting>
-	</setting>
-</config>';
+	private $str = "app:
+    application_env: development
+    editor: ckeditor
+    list_limit: 25
+    helpurl: 'English (GB) - HUBzero help'
+    debug: 1
+    debug_lang: 0
+    sef: 1
+    sef_rewrite: 1
+    sef_suffix: 0
+    sef_groups: 0
+    feed_limit: 10
+    feed_email: author
+seo:
+    sef: 1
+    sef_groups: 0
+    sef_rewrite: 1
+    sef_suffix: 0
+    unicodeslugs: 0
+    sitename_pagetitles: 0
+";
 
 	/**
 	 * Test setup
@@ -127,7 +116,7 @@ class XmlTest extends Basic
 			'seo' => (array)$data->seo
 		);
 
-		$this->processor = new Xml();
+		$this->processor = new Yaml();
 
 		parent::setUp();
 	}
@@ -135,7 +124,7 @@ class XmlTest extends Basic
 	/**
 	 * Tests the getSupportedExtensions() method.
 	 *
-	 * @covers  \Hubzero\Config\Processor\Xml::getSupportedExtensions
+	 * @covers  \Hubzero\Config\Processor\Yaml::getSupportedExtensions
 	 * @return  void
 	 **/
 	public function testGetSupportedExtensions()
@@ -143,44 +132,44 @@ class XmlTest extends Basic
 		$extensions = $this->processor->getSupportedExtensions();
 
 		$this->assertTrue(is_array($extensions));
-		$this->assertCount(1, $extensions);
-		$this->assertTrue(in_array('xml', $extensions));
+		$this->assertCount(2, $extensions);
+		$this->assertTrue(in_array('yml', $extensions));
+		$this->assertTrue(in_array('yaml', $extensions));
 	}
 
 	/**
 	 * Tests the canParse() method.
 	 *
-	 * @covers  \Hubzero\Config\Processor\Xml::canParse
+	 * @covers  \Hubzero\Config\Processor\Yaml::canParse
 	 * @return  void
 	 **/
 	public function testCanParse()
 	{
-		$this->assertFalse($this->processor->canParse('Cras justo odio, dapibus ac facilisis in, egestas eget quam.'));
-		$this->assertFalse($this->processor->canParse('{"application_env":"development","editor":"ckeditor","list_limit":"25"}'));
+		$this->assertFalse($this->processor->canParse("foo:\n	bar"));
 		$this->assertTrue($this->processor->canParse($this->str));
 	}
 
 	/**
 	 * Tests the parse() method.
 	 *
-	 * @covers  \Hubzero\Config\Processor\Xml::parse
+	 * @covers  \Hubzero\Config\Processor\Yaml::parse
 	 * @return  void
 	 **/
 	public function testParse()
 	{
-		$result = $this->processor->parse(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Files' . DIRECTORY_SEPARATOR . 'test.xml');
+		$result = $this->processor->parse(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Files' . DIRECTORY_SEPARATOR . 'test.yaml');
 
 		$this->assertEquals($this->arr, $result);
 
 		$this->setExpectedException('Hubzero\Config\Exception\ParseException');
 
-		$result = $this->processor->parse(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Files' . DIRECTORY_SEPARATOR . 'test.ini');
+		$result = $this->processor->parse(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Files' . DIRECTORY_SEPARATOR . 'test.xml');
 	}
 
 	/**
 	 * Tests the objectToString() method.
 	 *
-	 * @covers  \Hubzero\Config\Processor\Xml::objectToString
+	 * @covers  \Hubzero\Config\Processor\Yaml::objectToString
 	 * @return  void
 	 **/
 	public function testObjectToString()
@@ -191,21 +180,15 @@ class XmlTest extends Basic
 		$this->assertEquals($this->str, $result);
 
 		// Test object to string conversion
-		$result = $this->processor->objectToString($this->obj, array(
-			'name'     => 'config',
-			'nodeName' => 'setting'
-		));
+		$result = $this->processor->objectToString($this->obj);
 
-		$str = str_replace(array("\n", "\t"), '', $this->str);
-		$str = str_replace('<?xml version="1.0"?>', "<?xml version=\"1.0\"?>\n", $str);
-
-		$this->assertEquals($str, trim($result));
+		$this->assertEquals($this->str, $result);
 	}
 
 	/**
 	 * Tests the stringToObject() method.
 	 *
-	 * @covers  \Hubzero\Config\Processor\Xml::stringToObject
+	 * @covers  \Hubzero\Config\Processor\Yaml::stringToObject
 	 * @return  void
 	 **/
 	public function testStringToObject()
@@ -219,5 +202,10 @@ class XmlTest extends Basic
 		$result = $this->processor->stringToObject($this->str);
 
 		$this->assertEquals($this->obj, $result);
+
+		// Test that an unparsable string throws an exception
+		$this->setExpectedException('Hubzero\Config\Exception\ParseException');
+
+		$result = $this->processor->stringToObject("foo:\n	bar");
 	}
 }
