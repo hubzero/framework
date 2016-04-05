@@ -31,7 +31,8 @@ namespace Hubzero\Browser\Tests;
 
 use Hubzero\Test\Basic;
 use Hubzero\Browser\Detector;
-use Hubzero\Browser\Tests\Fixtures\UserAgentStringMapper;
+use SimpleXmlElement;
+use stdClass;
 
 /**
  * Detector tests
@@ -46,15 +47,49 @@ class DetectorTest extends Basic
 	 **/
 	public function testMatch()
 	{
-		$uas = UserAgentStringMapper::map();
+		$uas = self::map();
 
 		foreach ($uas as $userAgentString)
 		{
-			$browser = new Detector($userAgentString->getString());
+			$browser = new Detector($userAgentString->string);
 
-			$this->assertEquals(strtolower($userAgentString->getBrowser()), $browser->name());
-			$this->assertEquals($userAgentString->getBrowserVersion(), $browser->version());
-			$this->assertEquals($userAgentString->getOs(), $browser->platform());
+			$this->assertEquals($userAgentString->string, $browser->agent());
+			$this->assertEquals(strtolower($userAgentString->browser), $browser->name());
+			$this->assertEquals($userAgentString->browserVersion, $browser->version());
+			$this->assertEquals($userAgentString->os, $browser->platform());
 		}
+	}
+
+	/**
+	 * Map test data
+	 *
+	 * @return  array
+	 */
+	private static function map()
+	{
+		$collection = array();
+
+		$xml = new SimpleXmlElement(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'Fixtures' . DIRECTORY_SEPARATOR . 'UserAgentStrings.xml'));
+
+		if ($xml)
+		{
+			foreach ($xml->strings->string as $string)
+			{
+				$string = $string->field;
+
+				$userAgentString = new stdClass();
+				$userAgentString->browser        = (string)$string[0];
+				$userAgentString->browserVersion = (string)$string[1];
+				$userAgentString->os             = (string)$string[2];
+				$userAgentString->osVersion      = (string)$string[3];
+				$userAgentString->device         = (string)$string[4];
+				$userAgentString->deviceVersion  = (string)$string[5];
+				$userAgentString->string         = str_replace(array(PHP_EOL, '  '), ' ', (string)$string[6]);
+
+				$collection[] = $userAgentString;
+			}
+		}
+
+		return $collection;
 	}
 }
