@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
@@ -74,6 +73,22 @@ class SessionServiceProvider extends ServiceProvider
 						$options['force_ssl'] = true;
 					}
 				break;
+			}
+
+			// If profiling or debugging is turned on...
+			if ($app['config']->get('profile') || $app['config']->get('debug'))
+			{
+				// If we have a profiler and the client is Admin or Site...
+				if ($app->has('profiler') && in_array($app['client']->id, array(0, 1)))
+				{
+					$options['profiler'] = $app['profiler'];
+				}
+			}
+
+			// Skip session writes on the API and command line calls
+			if ($app['client']->id == 4 || php_sapi_name() == 'cli')
+			{
+				$options['skipWrites'] = true;
 			}
 
 			$session = new Manager($handler, $options);
