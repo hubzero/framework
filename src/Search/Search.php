@@ -32,80 +32,68 @@
 
 namespace Hubzero\Search;
 
-use Hubzero\Search\Adapter\Solr;
-/*use Hubzero\Filesystem\Exception\FileNotFoundException;
-use Hubzero\Filesystem\Exception\FileExistsException;
-use FilesystemIterator;
-use DirectoryIterator;
-*/
-
 /**
  * Hubzero class for performing Search and Indexing Operations.
  */
-class Search
+interface Search
 {
 	/**
-	 * AdapterInterface
-	 *
-	 * @var string 
+	 * status 
+	 * 
+	 * @access public
+	 * @return void
 	 */
-	protected $adapter;
+	public function status();
 
 	/**
-	 * Macros list
-	 *
-	 * @var  array
+	 * query 
+	 * 
+	 * @param mixed $queryObject 
+	 * @access public
+	 * @return void
 	 */
-	protected $macros = array();
+	public function query($queryObject);
 
 	/**
-	 * Constructor.
-	 *
-	 * @param   object  $adapter  AdapterInterface
-	 * @return  void
+	 * getResults 
+	 * 
+	 * @access public
+	 * @return void
 	 */
-	public function __construct($adapter = 'Solr')
-	{
-		$adapterClass = "Hubzero\Search\Adapter\\".$adapter;
-		$this->adapter = new $adapterClass;
-	}
+	public function getResult();
 
 	/**
-	 * Get the Adapter.
-	 *
-	 * @return  object  AdapterInterface
+	 * index 
+	 * 
+	 * @param SearchDocument $document 
+	 * @access public
+	 * @return void
 	 */
-	public function getAdapter()
-	{
-		return $this->adapter;
-	}
+	public function index($SearchDocument);
 
 	/**
-	 * Set the Adapter.
-	 *
-	 * @param   object  $adapter  AdapterInterface
-	 * @return  object
+	 * updateIndex 
+	 * 
+	 * @param mixed $document 
+	 * @param mixed $id 
+	 * @access public
+	 * @return void
 	 */
-	public function setAdapter($adapter = 'Solr')
-	{
-		$adapterClass = "Hubzero\Search\Adapter\\".$adapter;
-		$this->adapter = new $adapter;
+	public function updateIndex($document, $id);
 
-		return $this;
-	}
+	/**
+	 * lastInsert 
+	 * 
+	 * @access public
+	 * @return void
+	 */
+	public function lastInsert();
 
-	public function test()
-	{
-		return $this->adapter->test();
-	}
-
-	public function getConfig()
-	{
-		return $this->adapter->getConfig();
-	}
-
-	public function status()
-	{
-		return $this->adapter->status();
-	}
+	/**
+	 * getLog 
+	 * 
+	 * @access public
+	 * @return void
+	 */
+	public function getLog();
 }
