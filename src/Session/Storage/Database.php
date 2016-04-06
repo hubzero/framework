@@ -39,6 +39,20 @@ use Exception;
 class Database extends Store
 {
 	/**
+	 * Profiler for debugging
+	 *
+	 * @var  object
+	 */
+	private $profiler = null;
+
+	/**
+	 * Skip session writes?
+	 *
+	 * @var  bool
+	 */
+	private $skipWrites = false;
+
+	/**
 	 * Constructor
 	 *
 	 * @param   array  $options  Optional parameters.
@@ -52,6 +66,16 @@ class Database extends Store
 		}
 
 		$this->connection = $options['database'];
+
+		if (isset($options['profiler']))
+		{
+			$this->profiler = $options['profiler'];
+		}
+
+		if (isset($options['skipWrites']))
+		{
+			$this->skipWrites = (bool)$options['skipWrites'];
+		}
 
 		parent::__construct($options);
 	}
@@ -97,13 +121,14 @@ class Database extends Store
 	 */
 	public function write($session_id, $session_data)
 	{
-		if (\App::get('client')->id == 4 || php_sapi_name() == 'cli')
+		// Skip session write on API and command line calls
+		if ($this->skipWrites)
 		{
-			if (php_sapi_name() != 'cli' && \App::get('profiler'))
+			if ($this->profiler)
 			{
-				\App::get('profiler')->log();
+				$this->profiler->mark('sessionStore');
 			}
-			return true; // skip session write on api and command line calls
+			return true;
 		}
 
 		// Get the database connection object and verify its connected.
@@ -123,26 +148,25 @@ class Database extends Store
 
 				if ($this->connection->execute())
 				{
-					if ($profiler = \App::get('profiler'))
+					if ($this->profiler)
 					{
-						$profiler->log();
+						$this->profiler->mark('sessionStore');
 					}
 					return true;
 				}
 
-				/* Since $db->execute did not throw an exception, so the query was successful.
-				Either the data changed, or the data was identical.
-				In either case we are done.
-				*/
+				// Since $db->execute did not throw an exception, so the query was successful.
+				// Either the data changed, or the data was identical.
+				// In either case we are done.
 			}
 			catch (Exception $e)
 			{
 			}
 		}
 
-		if ($profiler = \App::get('profiler'))
+		if ($this->profiler)
 		{
-			$profiler->log();
+			$this->profiler->mark('sessionStore');
 		}
 		return false;
 	}
