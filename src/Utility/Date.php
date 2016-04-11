@@ -476,7 +476,7 @@ class Date extends DateTime
 		// 1 to 59 minutes
 		if ($diff < 60 || $unit == 'minute')
 		{
-			return \Lang::txt('JLIB_HTML_DATE_RELATIVE_MINUTES', $diff);
+			return \Lang::txts('JLIB_HTML_DATE_RELATIVE_MINUTES', $diff);
 		}
 
 		// Round to hours
@@ -485,7 +485,7 @@ class Date extends DateTime
 		// 1 to 23 hours
 		if ($diff < 24 || $unit == 'hour')
 		{
-			return \Lang::txt('JLIB_HTML_DATE_RELATIVE_HOURS', $diff);
+			return \Lang::txts('JLIB_HTML_DATE_RELATIVE_HOURS', $diff);
 		}
 
 		// Round to days
@@ -494,7 +494,7 @@ class Date extends DateTime
 		// 1 to 6 days
 		if ($diff < 7 || $unit == 'day')
 		{
-			return \Lang::txt('JLIB_HTML_DATE_RELATIVE_DAYS', $diff);
+			return \Lang::txts('JLIB_HTML_DATE_RELATIVE_DAYS', $diff);
 		}
 
 		// Round to weeks
@@ -503,7 +503,7 @@ class Date extends DateTime
 		// 1 to 4 weeks
 		if ($diff <= 4 || $unit == 'week')
 		{
-			return \Lang::txt('JLIB_HTML_DATE_RELATIVE_WEEKS', $diff);
+			return \Lang::txts('JLIB_HTML_DATE_RELATIVE_WEEKS', $diff);
 		}
 
 		// [!] HUBZERO - Added months
