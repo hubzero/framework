@@ -142,35 +142,6 @@ class QueryTest extends Database
 	}
 
 	/**
-	 * Test to make sure we can set a raw value on update
-	 *
-	 * @return  void
-	 **/
-	public function testSetWithRawValue()
-	{
-		$dbo   = $this->getMockDriver();
-		$query = new Query($dbo);
-
-		// Try to update an existing row
-		$query->alter('discussions', 'id', 2, [
-			'lft' => new Raw($dbo->quoteName('lft') . ' + 2'),
-			'rgt' => new Raw($dbo->quoteName('rgt') . ' + 2')
-		]);
-
-		// Get the current state of the database
-		$queryTable = $this->getConnection()->createQueryTable(
-		    'discussions', 'SELECT * FROM discussions WHERE `id` = 2'
-		);
-
-		// Get our expected state of the database
-		$expectedTable = $this->createFlatXmlDataSet(dirname(__FILE__) . DS . 'Fixtures' . DS . 'updatedDiscussions.xml')
-		                      ->getTable('discussions');
-
-		// Now assert that updated and expected are the same
-		$this->assertTablesEqual($expectedTable, $queryTable);
-	}
-
-	/**
 	 * Test to make sure we can run a basic delete statement
 	 *
 	 * @return  void
