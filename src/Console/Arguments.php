@@ -75,7 +75,7 @@ class Arguments
 	 *
 	 * @var  array
 	 **/
-	private $commandNamespaces = [];
+	private static $commandNamespaces = [];
 
 	/**
 	 * Constructor
@@ -88,7 +88,7 @@ class Arguments
 	public function __construct($arguments)
 	{
 		$this->raw = $arguments;
-		$this->registerNamespace(__NAMESPACE__ . '\\Command');
+		self::registerNamespace(__NAMESPACE__ . '\\Command');
 	}
 
 	/**
@@ -168,7 +168,7 @@ class Arguments
 			$class = isset($this->raw[1]) ? $this->raw[1] : 'help';
 			$task  = (isset($this->raw[2]) && substr($this->raw[2], 0, 1) != "-") ? $this->raw[2] : 'execute';
 
-			$this->class = self::routeCommand($class, $this->commandNamespaces);
+			$this->class = self::routeCommand($class);
 			$this->task  = self::routeTask($class, $this->class, $task);
 
 			// Parse the remaining args for command options/arguments
@@ -239,19 +239,18 @@ class Arguments
 	 * @param   string  $namespace  The namespace location to use
 	 * @return  $this
 	 **/
-	public function registerNamespace($namespace)
+	public static function registerNamespace($namespace)
 	{
-		$this->commandNamespaces[] = $namespace;
+		self::$commandNamespaces[] = $namespace;
 	}
 
 	/**
 	 * Routes command to the proper file based on the input given
 	 *
-	 * @param   string  $command     The command to route
-	 * @param   array   $namespaces  The potential command namespace locations
+	 * @param   string  $command  The command to route
 	 * @return  void
 	 **/
-	public static function routeCommand($command = 'help', $namespaces = [])
+	public static function routeCommand($command = 'help')
 	{
 		// Aliases take precedence, so parse for them first
 		if ($aliases = Config::get('aliases'))
@@ -271,7 +270,7 @@ class Arguments
 			}
 		}
 
-		foreach ($namespaces as $namespace)
+		foreach (self::$commandNamespaces as $namespace)
 		{
 			// Check if we're targeting a namespaced command
 			$bits = [];
