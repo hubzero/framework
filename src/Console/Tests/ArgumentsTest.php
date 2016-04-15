@@ -94,8 +94,9 @@ class ArgumentsTest extends Basic
 			'alternative:subcommand'
 		];
 
+		Arguments::registerNamespace('Hubzero\Console\Tests\Mock\{$1}\Cli\Commands');
+
 		$arguments = new Arguments($args);
-		$arguments->registerNamespace('Hubzero\Console\Tests\Mock\{$1}\Cli\Commands');
 		$arguments->parse();
 
 		$this->assertEquals('Hubzero\Console\Tests\Mock\Alternative\Cli\Commands\Subcommand', $arguments->get('class'), 'Arguments parser failed to find the proper command');
