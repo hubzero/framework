@@ -222,6 +222,26 @@ class QueryTest extends Database
 	}
 
 	/**
+	 * Test to make sure we can build a query with a raw JOIN statement
+	 *
+	 * @return  void
+	 **/
+	public function testBuildQueryWithRawJoinClause()
+	{
+		// Here's the query we're try to write...
+		$expected = "SELECT * FROM `users` INNER JOIN posts ON `users`.id = `posts`.user_id AND `users`.id > 1";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users')
+		      ->joinRaw('posts', '`users`.id = `posts`.user_id AND `users`.id > 1');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+	}
+
+	/**
 	 * Test to make sure that fetch properly caches a query
 	 *
 	 * @return  void
