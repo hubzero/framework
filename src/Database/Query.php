@@ -257,6 +257,20 @@ class Query
 	}
 
 	/**
+	 * Defines a table join to be performed for the query using a raw expression 
+	 *
+	 * @param   string  $table  The table join
+	 * @param   string  $raw    The join clause (anything after the ON keyword)
+	 * @param   string  $type   The join type to perform
+	 * @return  $this
+	 **/
+	public function joinRaw($table, $raw, $type = 'inner')
+	{
+		$this->syntax->setRawJoin($table, $raw, $type);
+		return $this;
+	}
+
+	/**
 	 * Applies a where clause to the pending query
 	 *
 	 * @param   string  $column    The column to which the clause will apply

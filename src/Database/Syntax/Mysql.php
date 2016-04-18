@@ -207,6 +207,23 @@ class Mysql
 	}
 
 	/**
+	 * Sets a join element on the query
+	 *
+	 * @param   string  $table  The table join
+	 * @param   string  $raw    The join clause
+	 * @param   string  $type   The join type to perform
+	 * @return  $this
+	 **/
+	public function setRawJoin($table, $raw, $type = 'inner')
+	{
+		$this->join[] = [
+			'table'  => $table,
+			'raw'    => $raw,
+			'type'   => $type
+		];
+	}
+
+	/**
 	 * Sets a set element on the query
 	 *
 	 * @param   array  $data  The data to be modified
@@ -475,7 +492,14 @@ class Mysql
 
 		foreach ($this->join as $join)
 		{
-			$joins[] = strtoupper($join['type']) . ' JOIN ' . $join['table'] . ' ON ' . $join['left'] . ' = ' . $join['right'];
+			if (isset($join['raw']))
+			{
+				$joins[] = strtoupper($join['type']) . ' JOIN ' . $join['table'] . ' ON ' . $join['raw'];
+			}
+			else
+			{
+				$joins[] = strtoupper($join['type']) . ' JOIN ' . $join['table'] . ' ON ' . $join['left'] . ' = ' . $join['right'];
+			}
 		}
 
 		return implode("\n", $joins);
