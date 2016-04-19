@@ -95,22 +95,44 @@ class Loader extends Base
 
 		$controller = $this->app['request']->getCmd('controller', 'api') . 'v' . str_replace('.', '_', $this->app['request']->getVar('version', '1.0'));
 
-		$path = JPATH_COMPONENT . DS . 'controllers' . DS . $controller . '.php';
+		$path       = JPATH_COMPONENT . DS . 'controllers' . DS . $controller . '.php';
+		$controller = '\\Components\\' . ucfirst(substr($option, 4)) . '\\Api\\Controllers\\' . ucfirst($controller);
+		$found      = false;
 
-		// If component is disabled throw error
-		if (!$this->isEnabled($option) || !file_exists($path))
+		// Make sure the component is enabled
+		if ($this->isEnabled($option))
+		{
+			// Check to see if the class is autoload-able
+			if (class_exists($controller))
+			{
+				$found = true;
+
+				// Infer the appropriate language path and load from there
+				$path  = with(new \ReflectionClass($controller))->getFileName();
+				$bits  = explode(DS, $path);
+				$local = implode(DS, array_slice($bits, 0, -2));
+
+				$lang->load($option, $local, null, false, true);
+			}
+			else if (file_exists($path))
+			{
+				$found = true;
+				require_once $path;
+
+				// Load local language files
+				$lang->load($option, JPATH_COMPONENT, null, false, true);
+			}
+		}
+
+		if (!$found)
 		{
 			$this->app->abort(404, $lang->translate('JLIB_APPLICATION_ERROR_COMPONENT_NOT_FOUND'));
 		}
 
-		// Load common and local language files.
-		$lang->load($option, JPATH_COMPONENT, null, false, true) ||
+		// Load common language files
 		$lang->load($option, JPATH_BASE, null, false, true);
 
-		require_once $path;
-
 		// Handle template preview outlining.
-		$controller = '\\Components\\' . ucfirst(substr($option, 4)) . '\\Api\\Controllers\\' . ucfirst($controller);
 		$action = new $controller(\App::get('response'));
 		$action->execute();
 
