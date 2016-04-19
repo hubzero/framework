@@ -100,11 +100,11 @@ class Test extends Base implements CommandInterface
 
 		if (is_resource($process))
 		{
-			while ($c = fgetc($pipes[1]))
+			while (false !== ($c = fgetc($pipes[1])))
 			{
 				print $c;
 			}
-			while ($s = fgets($pipes[1]))
+			while (false !== ($s = fgets($pipes[1])))
 			{
 				print $s;
 			}
