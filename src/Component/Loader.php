@@ -208,16 +208,43 @@ class Loader
 			define('JPATH_COMPONENT_ADMINISTRATOR', PATH_CORE . DS . 'components' . DS . $option . DS . 'admin');
 		}
 
-		$path = JPATH_COMPONENT . DS . $file . '.php';
+		$path      = JPATH_COMPONENT . DS . $file . '.php';
+		$namespace = '\\Components\\' . ucfirst(substr($option, 4)) . '\\' . ucfirst($client) . '\\Bootstrap';
+		$found     = false;
 
-		// If component is disabled throw error
-		if (!$this->isEnabled($option) || !file_exists($path))
+		// Make sure the component is enabled
+		if ($this->isEnabled($option))
+		{
+			// Check to see if the class is autoload-able
+			if (class_exists($namespace))
+			{
+				$found = true;
+				$path  = $namespace;
+
+				// Infer the appropriate language path and load from there
+				$file  = with(new \ReflectionClass($namespace))->getFileName();
+				$bits  = explode(DS, $file);
+				$local = implode(DS, array_slice($bits, 0, -1));
+
+				// Load local language files
+				$lang->load($option, $local, null, false, true);
+			}
+			else if (file_exists($path))
+			{
+				$found = true;
+
+				// Load local language files
+				$lang->load($option, JPATH_COMPONENT, null, false, true);
+			}
+		}
+
+		// Make sure we found something
+		if (!$found)
 		{
 			$this->app->abort(404, $lang->translate('JLIB_APPLICATION_ERROR_COMPONENT_NOT_FOUND'));
 		}
 
-		// Load common and local language files.
-		$lang->load($option, JPATH_COMPONENT, null, false, true) ||
+		// Load base language file
 		$lang->load($option, JPATH_BASE, null, false, true);
 
 		// Handle template preview outlining.
@@ -242,11 +269,42 @@ class Loader
 	protected function execute($path)
 	{
 		ob_start();
-		require_once $path;
+
+		if (file_exists($path))
+		{
+			$this->executePath($path);
+		}
+		else
+		{
+			$this->executeBootstrap($path);
+		}
+
 		$contents = ob_get_contents();
 		ob_end_clean();
 
 		return $contents;
+	}
+
+	/**
+	 * Execute the component from an old path based component
+	 *
+	 * @param   string  $path  The component path
+	 * @return  void
+	 */
+	protected function executePath($path)
+	{
+		require_once $path;
+	}
+
+	/**
+	 * Execute the component from a new bootstrapped component
+	 *
+	 * @param   string  $namespace  The namespace of the component to start
+	 * @return  void
+	 */
+	protected function executeBootstrap($namespace)
+	{
+		with(new $namespace)->start();
 	}
 
 	/**
