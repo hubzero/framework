@@ -33,6 +33,8 @@
 
 namespace Hubzero\User;
 
+use Hubzero\Config\Registry;
+
 /**
  * Users database model
  *
@@ -40,6 +42,73 @@ namespace Hubzero\User;
  */
 class User extends \Hubzero\Database\Relational
 {
+	/**
+	 * Default order by for model
+	 *
+	 * @var    string
+	 * @since  2.1.0
+	 */
+	public $orderBy = 'id';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var    string
+	 * @since  2.1.0
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Guest status
+	 *
+	 * @var    bool
+	 * @since  2.1.0
+	 */
+	public $guest = null;
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var    array
+	 * @since  2.1.0
+	 */
+	protected $rules = array(
+		'name'     => 'notempty',
+		'username' => 'notempty'
+	);
+
+	/**
+	 * User params
+	 *
+	 * @var    object
+	 * @since  2.1.0
+	 */
+	protected $userParams = null;
+
+	/**
+	 * Authorised access groups
+	 *
+	 * @var    array
+	 * @since  2.1.0
+	 */
+	protected $authGroups = null;
+
+	/**
+	 * Authorised access levels
+	 *
+	 * @var    array
+	 * @since  2.1.0
+	 */
+	protected $authLevels = null;
+
+	/**
+	 * Authorised access actions
+	 *
+	 * @var    array
+	 * @since  2.1.0
+	 */
+	protected $authActions = null;
+
 	/**
 	 * Defines a one to many relationship between users and reset tokens
 	 *
@@ -71,6 +140,22 @@ class User extends \Hubzero\Database\Relational
 	public function logger()
 	{
 		return new Logger($this);
+	}
+
+	/**
+	 * Transform parameters into object
+	 *
+	 * @return  object  \Hubzero\Config\Registry
+	 * @since   2.1.0
+	 */
+	public function transformParams()
+	{
+		if (!isset($this->userParams))
+		{
+			$this->userParams = new Registry($this->get('params'));
+		}
+
+		return $this->userParams;
 	}
 
 	/**
@@ -125,5 +210,49 @@ class User extends \Hubzero\Database\Relational
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Finds a user by username
+	 *
+	 * @param   string  $username
+	 * @return  object
+	 */
+	public static function oneByUsername($username)
+	{
+		return self::all()
+			->whereEquals('username', $username)
+			->row();
+	}
+
+	/**
+	 * Finds a user by email
+	 *
+	 * @param   string  $email
+	 * @return  object
+	 */
+	public static function oneByEmail($email)
+	{
+		if (!filter_var($email, FILTER_VALIDATE_EMAIL))
+		{
+			return self::oneByUsername($email);
+		}
+
+		return self::all()
+			->whereEquals('email', $email)
+			->row();
+	}
+
+	/**
+	 * Finds a user by activation token
+	 *
+	 * @param   string  $token
+	 * @return  object
+	 */
+	public static function oneByActivationToken($token)
+	{
+		return self::all()
+			->whereEquals('activation', $token)
+			->row();
 	}
 }
