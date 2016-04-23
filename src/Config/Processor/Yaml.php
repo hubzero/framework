@@ -176,6 +176,11 @@ class Yaml extends Base
 			);
 		}
 
+		if (!$parsed)
+		{
+			$parsed = '';
+		}
+
 		return (is_string($parsed) ? $parsed : $this->toObject($parsed));
 	}
 
