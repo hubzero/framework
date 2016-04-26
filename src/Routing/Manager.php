@@ -45,6 +45,13 @@ class Manager
 	protected $app;
 
 	/**
+	 * List of paths to route rules
+	 *
+	 * @var  array
+	 */
+	protected $paths = array();
+
+	/**
 	 * The array of created "drivers".
 	 *
 	 * @var  array
@@ -55,11 +62,13 @@ class Manager
 	 * Create a new manager instance.
 	 *
 	 * @param   object  $app
+	 * @param   array   $paths
 	 * @return  void
 	 */
-	public function __construct($app)
+	public function __construct($app, $paths = array())
 	{
-		$this->app = $app;
+		$this->app   = $app;
+		$this->paths = (array)$paths;
 	}
 
 	/**
@@ -105,18 +114,22 @@ class Manager
 
 		$router = new Router(array(), $prefix);
 
-		$routes = PATH_CORE . DS . 'bootstrap' . DS . $client .  DS . 'routes.php';
+		$routes = array();
 
-		if (file_exists($routes))
+		foreach ($this->paths as $path)
 		{
-			require $routes;
+			$routes[] = $path . DIRECTORY_SEPARATOR . 'bootstrap' . DIRECTORY_SEPARATOR . $client;
+			$routes[] = $path . DIRECTORY_SEPARATOR . 'bootstrap' . DIRECTORY_SEPARATOR . ucfirst($client);
 		}
 
-		$routes = PATH_APP . DS . 'bootstrap' . DS . $client .  DS . 'routes.php';
-
-		if (file_exists($routes))
+		foreach ($routes as $route)
 		{
-			require $routes;
+			$path = $route . DIRECTORY_SEPARATOR . 'routes.php';
+
+			if (file_exists($path))
+			{
+				require $path;
+			}
 		}
 
 		return $router;
