@@ -32,7 +32,6 @@
 namespace Hubzero\Item;
 
 use Hubzero\Database\Relational;
-use Hubzero\User\Profile;
 use User;
 
 /**
@@ -141,11 +140,7 @@ class Watch extends Relational
 	 */
 	public function creator()
 	{
-		if ($profile = Profile::getInstance($this->get('created_by')))
-		{
-			return $profile;
-		}
-		return new Profile;
+		return $this->belongsToOne('Hubzero\User\User', 'created_by');
 	}
 
 	/**

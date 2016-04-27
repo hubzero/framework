@@ -32,7 +32,6 @@
 namespace Hubzero\Activity;
 
 use Hubzero\Database\Relational;
-use Hubzero\User\Profile;
 use Exception;
 use Event;
 
@@ -151,11 +150,7 @@ class Log extends Relational
 	 */
 	public function creator()
 	{
-		if ($profile = Profile::getInstance($this->get('created_by')))
-		{
-			return $profile;
-		}
-		return new Profile;
+		return $this->belongsToOne('Hubzero\User\User', 'created_by');
 	}
 
 	/**
@@ -165,11 +160,11 @@ class Log extends Relational
 	 */
 	public function destroy()
 	{
-		foreach ($this->recipients() as $recipient)
+		foreach ($this->recipients()->rows() as $recipient)
 		{
 			if (!$recipient->destroy())
 			{
-				$this->setError($recipient->getError());
+				$this->addError($recipient->getError());
 				return false;
 			}
 		}
