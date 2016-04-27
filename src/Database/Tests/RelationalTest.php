@@ -564,4 +564,19 @@ class RelationalTest extends Database
 		// Note that we're expecting the relationship registered in the previous test
 		$this->assertEquals(['posts', 'bio'], User::introspectRelationships(), 'User should have had two relationships of "posts" and "bio"');
 	}
+
+	/**
+	 * Tests to make sure we can serialize and unserialize a model
+	 *
+	 * @return  void
+	 **/
+	public function testCanDoSimpleSerialization()
+	{
+		$user = User::oneOrFail(1);
+
+		$serialized   = serialize($user);
+		$unserialized = unserialize($serialized);
+
+		$this->assertEquals($user, $unserialized, 'Unserialize did not result in the original model');
+	}
 }
