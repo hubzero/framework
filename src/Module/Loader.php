@@ -425,7 +425,7 @@ class Loader
 
 		$Itemid   = $this->app['request']->getInt('Itemid');
 
-		$user     = \User::getRoot();
+		$user     = $this->app['user']->getInstance();
 		$groups   = implode(',', $user->getAuthorisedViewLevels());
 		$lang     = $this->app['language']->getTag();
 		$clientId = (int) $this->app['client']->id;
@@ -558,7 +558,7 @@ class Loader
 		$cache = \JFactory::getCache($cacheparams->cachegroup, 'callback');
 
 		// Turn cache off for internal callers if parameters are set to off and for all logged in users
-		if ($moduleparams->get('owncache', null) === '0' || $this->app['config']->get('caching') == 0 || \User::get('id'))
+		if ($moduleparams->get('owncache', null) === '0' || $this->app['config']->get('caching') == 0 || $this->app['user']->getInstance()->get('id'))
 		{
 			$cache->setCaching(false);
 		}
@@ -569,7 +569,7 @@ class Loader
 		$wrkaroundoptions = array('nopathway' => 1, 'nohead' => 0, 'nomodules' => 1, 'modulemode' => 1, 'mergehead' => 1);
 
 		$wrkarounds = true;
-		$view_levels = md5(serialize(\User::getAuthorisedViewLevels()));
+		$view_levels = md5(serialize($this->app['user']->getInstance()->getAuthorisedViewLevels()));
 
 		switch ($cacheparams->cachemode)
 		{

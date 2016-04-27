@@ -32,7 +32,6 @@
 namespace Hubzero\Item;
 
 use Hubzero\Database\Relational;
-use Hubzero\User\Profile;
 use Request;
 use Lang;
 use Date;
@@ -135,12 +134,7 @@ class Comment extends Relational
 	 */
 	public function creator()
 	{
-		if ($profile = Profile::getInstance($this->get('created_by')))
-		{
-			return $profile;
-		}
-
-		return new Profile;
+		return $this->belongsToOne('Hubzero\User\User', 'created_by');
 	}
 
 	/**
@@ -303,7 +297,7 @@ class Comment extends Relational
 			return $vote;
 		}
 
-		$user = $user_id ? User::getInstance($user_id) : User::getRoot();
+		$user = $user_id ? User::getInstance($user_id) : User::getInstance();
 		$ip   = $ip ?: Request::ip();
 
 		// See if a person from this IP has already voted in the last week
@@ -418,13 +412,13 @@ class Comment extends Relational
 		if ($this->get('state') == self::STATE_DELETED
 		 || $this->get('state') == self::STATE_UNPUBLISHED)
 		{
-			foreach ($this->replies() as $comment)
+			foreach ($this->replies()->rows() as $comment)
 			{
 				$comment->set('state', $this->get('state'));
 
 				if (!$comment->save())
 				{
-					$this->setError($comment->getError());
+					$this->addError($comment->getError());
 
 					return false;
 				}
@@ -448,31 +442,31 @@ class Comment extends Relational
 		}
 
 		// Remove comments
-		foreach ($this->replies() as $comment)
+		foreach ($this->replies()->rows() as $comment)
 		{
 			if (!$comment->destroy())
 			{
-				$this->setError($comment->getError());
+				$this->addError($comment->getError());
 				return false;
 			}
 		}
 
 		// Remove votes
-		foreach ($this->votes() as $vote)
+		foreach ($this->votes()->rows() as $vote)
 		{
 			if (!$vote->destroy())
 			{
-				$this->setError($vote->getError());
+				$this->addError($vote->getError());
 				return false;
 			}
 		}
 
 		// Remove files
-		foreach ($this->files() as $file)
+		foreach ($this->files()->rows() as $file)
 		{
 			if (!$file->destroy())
 			{
-				$this->setError($file->getError());
+				$this->addError($file->getError());
 				return false;
 			}
 		}

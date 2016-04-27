@@ -186,7 +186,7 @@ class Manager
 	public function logout($userid = null, $options = array())
 	{
 		// Get a user object
-		$user = ($userid ? \User::getInstance($userid) : \User::getRoot());
+		$user = ($userid ? \User::getInstance($userid) : \User::getInstance());
 
 		// Build the credentials array.
 		$parameters['username'] = $user->get('username');

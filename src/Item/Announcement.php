@@ -32,7 +32,6 @@
 namespace Hubzero\Item;
 
 use Hubzero\Database\Relational;
-use Hubzero\User\Profile;
 use Lang;
 use Date;
 
@@ -149,17 +148,13 @@ class Announcement extends Relational
 	}
 
 	/**
-	 * Defines a belongs to one relationship between article and user
+	 * Defines a belongs to one relationship between entry and user
 	 *
-	 * @return  object  \Hubzero\Database\Relationship\BelongsToOne
+	 * @return  object
 	 */
 	public function creator()
 	{
-		if ($profile = Profile::getInstance($this->get('created_by')))
-		{
-			return $profile;
-		}
-		return new Profile;
+		return $this->belongsToOne('Hubzero\User\User', 'created_by');
 	}
 
 	/**

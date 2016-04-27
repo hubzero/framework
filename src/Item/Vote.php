@@ -33,7 +33,6 @@ namespace Hubzero\Item;
 
 use Hubzero\Database\Relational;
 use Hubzero\Utility\Validate;
-use Hubzero\User\Profile;
 use Lang;
 
 /**
@@ -176,14 +175,7 @@ class Vote extends Relational
 	 */
 	public function voter()
 	{
-		$profile = Profile::getInstance($this->get('created_by'));
-
-		if (!$profile)
-		{
-			$profile = new Profile;
-		}
-
-		return $profile;
+		return $this->belongsToOne('Hubzero\User\User', 'created_by');
 	}
 
 	/**
