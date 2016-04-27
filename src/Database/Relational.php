@@ -52,7 +52,7 @@ use Hubzero\Error\Exception\RuntimeException;
  * @uses  \Hubzero\Error\Exception\BadMethodCallException  to handle calls to undefined methods
  * @uses  \Hubzero\Error\Exception\RuntimeException        to handle scenarios with undefined rows
  */
-class Relational implements \IteratorAggregate, \ArrayAccess
+class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 {
 	/*
 	 * Errors trait for error message handling
@@ -431,6 +431,30 @@ class Relational implements \IteratorAggregate, \ArrayAccess
 	public function __clone()
 	{
 		$this->query = clone $this->query;
+	}
+
+	/**
+	 * Serializes the model data for storage
+	 *
+	 * @return  string
+	 * @since   2.1.0
+	 **/
+	public function serialize()
+	{
+		return serialize($this->getAttributes());
+	}
+
+	/**
+	 * Unserializes the data into a new model
+	 *
+	 * @param   string  $data  The data to build from
+	 * @return  void
+	 * @since   2.1.0
+	 **/
+	public function unserialize($data)
+	{
+		$this->__construct();
+		$this->set(unserialize($data));
 	}
 
 	/**
