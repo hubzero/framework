@@ -84,7 +84,7 @@ class Record extends Object
 	protected $_database;
 
 	/**
-	 * JUser
+	 * User
 	 *
 	 * @var  object
 	 */
@@ -107,7 +107,7 @@ class Record extends Object
 
 		// Create core objects
 		$this->_database = \App::get('db');
-		$this->_user     = \User::getRoot();
+		$this->_user     = \User::getInstance();
 
 		// Create objects
 		$this->record = new stdClass;

@@ -32,6 +32,7 @@
 
 namespace Hubzero\User\Profile;
 
+use Hubzero\User\User;
 use Hubzero\User\Profile;
 use Hubzero\Image\Identicon;
 
@@ -123,9 +124,9 @@ class Helper
 		}
 
 		// lets make sure we have a profile object
-		if ($member instanceof \JUser)
+		if ($member instanceof User)
 		{
-			$member = Profile::getInstance($member->get('id'));
+			return $member->picture($anonymous, $thumbit, $serveFile);
 		}
 		else if (is_numeric($member) || is_string($member))
 		{

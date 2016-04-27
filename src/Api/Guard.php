@@ -35,6 +35,7 @@ namespace Hubzero\Api;
 use Hubzero\Container\Container;
 use Hubzero\Oauth\Server;
 use Hubzero\Oauth\Storage\Mysql as MysqlStorage;
+use Hubzero\User\User;
 use Exception;
 use Event;
 
@@ -108,7 +109,7 @@ class Guard
 		if (isset($this->token['uidNumber']))
 		{
 			$response['user_id'] = $this->token['uidNumber'];
-			$this->app['session']->set('user', new \JUser($response['user_id']));
+			$this->app['session']->set('user', User::oneOrNew($response['user_id']));
 		}
 
 		// Fire after auth event
