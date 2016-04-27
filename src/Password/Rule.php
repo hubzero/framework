@@ -32,7 +32,7 @@
 
 namespace Hubzero\Password;
 
-use Hubzero\User\Profile;
+use Hubzero\User\User;
 use Hubzero\User\Password\History;
 use Hubzero\User\Password;
 
@@ -245,7 +245,14 @@ class Rule
 			{
 				if ($name == null)
 				{
-					$xuser = Profile::getInstance($user);
+					if (is_numeric($user))
+					{
+						$xuser = User::oneOrNew($user);
+					}
+					else
+					{
+						$xuser = User::oneByUsername($user);
+					}
 
 					if (!is_object($xuser))
 					{
@@ -258,11 +265,14 @@ class Rule
 
 					$name = $givenName;
 
-					if (!empty($middleName)) {
-						if (empty($name)) {
+					if (!empty($middleName))
+					{
+						if (empty($name))
+						{
 							$name = $middleName;
 						}
-						else {
+						else
+						{
 							$name .= ' ' . $middleName;
 						}
 					}
@@ -289,14 +299,14 @@ class Rule
 			{
 				if (is_numeric($user))
 				{
-					$juser = \JUser::getInstance($user);
+					$xuser = User::oneOrNew($user);
 
-					if (!is_object($juser))
+					if (!is_object($xuser))
 					{
 						continue;
 					}
 
-					$user = $juser->get('username');
+					$user = $xuser->get('username');
 				}
 
 				if (self::isBasedOnUsername($password, $user))

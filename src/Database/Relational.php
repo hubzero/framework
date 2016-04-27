@@ -1590,7 +1590,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	}
 
 	/**
-	 * Applies a where clause comparing a field to the current juser id
+	 * Applies a where clause comparing a field to the current user id
 	 *
 	 * NOTE: whereas other 'where' clauses can be called statically due to their
 	 * location in the query builder class, this method cannot be as it is attached

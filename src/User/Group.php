@@ -35,6 +35,7 @@ namespace Hubzero\User;
 use Hubzero\Base\Object;
 use Hubzero\Utility\Validate;
 use Hubzero\Utility\String;
+use Hubzero\User\User;
 
 /**
  * Group model
@@ -1288,14 +1289,10 @@ class Group extends Object
 
 		if (!is_numeric($uid))
 		{
-			$uidNumber = \JUserHelper::getUserId($uid);
-		}
-		else
-		{
-			$uidNumber = $uid;
+			$uid = User::oneByUsername($uid)->get('id');
 		}
 
-		return in_array($uidNumber, $this->get($table));
+		return in_array($uid, $this->get($table));
 	}
 
 	/**

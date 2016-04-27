@@ -147,6 +147,43 @@ class User extends \Hubzero\Database\Relational
 	public static $pictureResolvers = array();
 
 	/**
+	 * Serializes the model data for storage
+	 *
+	 * @return  string
+	 * @since   2.1.0
+	 */
+	public function serialize()
+	{
+		$attr = $this->getAttributes();
+
+		$attr['guest'] = $this->guest;
+
+		return serialize($attr);
+	}
+
+	/**
+	 * Unserializes the data into a new model
+	 *
+	 * @param   string  $data  The data to build from
+	 * @return  void
+	 * @since   2.1.0
+	 */
+	public function unserialize($data)
+	{
+		$this->__construct();
+
+		$data = unserialize($data);
+
+		if (isset($data['guest']))
+		{
+			$this->guest = $data['guest'];
+			unset($data['guest']);
+		}
+
+		$this->set($data);
+	}
+
+	/**
 	 * Sets up additional custom rules
 	 *
 	 * @return  void
@@ -274,6 +311,27 @@ class User extends \Hubzero\Database\Relational
 		}
 
 		return parent::get($key, $default);
+	}
+
+	/**
+	 * Sets attributes (i.e. fields) on the model
+	 *
+	 * This must be used when setting data to be saved. Otherwise, the properties
+	 * will be attached directly to the model itself and not included in the save.
+	 *
+	 * @param   array|string  $key    The key to set, or array of key/value pairs
+	 * @param   mixed         $value  The value to set if key is string
+	 * @return  object        $this   Chainable
+	 * @since   2.1.0
+	 */
+	public function set($key, $value = null)
+	{
+		if (is_string($key) && $key == 'guest')
+		{
+			return $this->guest = $value;
+		}
+
+		return parent::set($key, $value);
 	}
 
 	/**
@@ -540,9 +598,16 @@ class User extends \Hubzero\Database\Relational
 	{
 		$timestamp = new Date($timestamp);
 
-		$this->set('lastvisitDate', $timestamp->toSql());
+		//$this->set('lastvisitDate', $timestamp->toSql());
 
-		return self::save();
+		//return self::save();
+
+		$query = $this->getQuery()
+			->update($this->getTableName())
+			->set(array('lastvisitDate' => $timestamp->toSql()))
+			->whereEquals('id', $this->get('id'));
+
+		return $query->execute();
 	}
 
 	/**

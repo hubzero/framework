@@ -247,7 +247,7 @@ class SiteController extends Object implements ControllerInterface
 		//
 		// [!] Deprecated
 		//     These will be going away in a future version. Do not use.
-		$this->juser    = \User::getRoot();
+		$this->juser    = \User::getInstance();
 		$this->database = \App::get('db');
 		$this->config   = \Component::params($this->_option);
 	}
@@ -536,7 +536,7 @@ class SiteController extends Object implements ControllerInterface
 	protected function _authorize()
 	{
 		// Check if they are logged in
-		if ($this->juser->get('guest'))
+		if ($this->juser->isGuest())
 		{
 			return false;
 		}

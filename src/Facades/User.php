@@ -52,20 +52,20 @@ class User extends Facade
 	 *
 	 * @return  boolean
 	 */
-	public static function isGuest()
+	/*public static function isGuest()
 	{
 		return static::getRoot()->get('guest');
-	}
+	}*/
 
 	/**
 	 * Get the root object behind the facade.
 	 *
 	 * @return  mixed
 	 */
-	public static function getRoot()
+	/*public static function getRoot()
 	{
 		return \JFactory::getUser();
-	}
+	}*/
 
 	/**
 	 * Gets a user state.
