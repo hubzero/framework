@@ -280,6 +280,66 @@ class User extends \Hubzero\Database\Relational
 	}
 
 	/**
+	 * Get groups
+	 *
+	 * @return  object
+	 */
+	public function groups($role = 'all')
+	{
+		//return $this->manyToMany('Hubzero\User\Extended\Group', 'id', 'uidNumber');
+
+		static $groups;
+
+		if (!isset($groups))
+		{
+			$groups = array(
+				'applicants' => array(),
+				'invitees'   => array(),
+				'members'    => array(),
+				'managers'   => array(),
+				'all'        => array()
+			);
+			$groups['all'] = Helper::getGroups($this->get('id'), 'all', 1);
+
+			if ($groups['all'])
+			{
+				foreach ($groups['all'] as $item)
+				{
+					if ($item->registered)
+					{
+						if (!$item->regconfirmed)
+						{
+							$groups['applicants'][] = $item;
+						}
+						else
+						{
+							if ($item->manager)
+							{
+								$groups['managers'][] = $item;
+							}
+							else
+							{
+								$groups['members'][] = $item;
+							}
+						}
+					}
+					else
+					{
+						$groups['invitees'][] = $item;
+					}
+				}
+			}
+		}
+
+		if ($role)
+		{
+			return (isset($groups[$role])) ? $groups[$role] : false;
+		}
+
+		return $groups;
+	}
+
+	/**
 	 * Defines a relationship with a generic user logging class (not a relational model itself)
 	 *
 	 * @return  object  \Hubzero\User\Logger
@@ -310,6 +370,11 @@ class User extends \Hubzero\Database\Relational
 			return $this->isGuest();
 		}
 
+		if ($key == 'uidNumber')
+		{
+			$key = 'id';
+		}
+
 		return parent::get($key, $default);
 	}
 
@@ -329,6 +394,11 @@ class User extends \Hubzero\Database\Relational
 		if (is_string($key) && $key == 'guest')
 		{
 			return $this->guest = $value;
+		}
+
+		if (is_string($key) && $key == 'uidNumber')
+		{
+			$key = 'id';
 		}
 
 		return parent::set($key, $value);
