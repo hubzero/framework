@@ -2205,7 +2205,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function automaticCreatedBy()
 	{
-		return User::get('id');
+		return (int)User::get('id');
 	}
 
 	/**
