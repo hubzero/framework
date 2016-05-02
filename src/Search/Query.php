@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2009-2015 HUBzero Foundation, LLC.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,140 +24,85 @@
  *
  * HUBzero is a registered trademark of Purdue University.
  *
- * @package   framework
- * @author    Kevin Wojkovich <kevinw@purdue.edu>
- * @copyright Copyright 2009-2015 HUBzero Foundation, LLC.
+ * @package   hubzero-cms
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-namespace Hubzero\Search;
-use Hubzero\User\Group;
+	namespace Hubzero\Search;
 
+	use Hubzero\Search\Adapters;
 
-/**
- * Hubzero class for performing Search and Indexing Operations.
- */
-class Query extends \Hubzero\Base\Object
-{
-	protected $facets = array();
-	protected $queryString;
-	protected $formatOptions = array();
-	protected $filters = array();
-	protected $fields = array();
-	protected $limit = 15;
-	protected $offset = 0;
-
-	public function setQueryString($string)
+	class Query
 	{
-		$this->set('queryString', $string);
-		return $this;
-	}
-
-	/**
-	 * addFacet - Add a facet to the search
-	 *
-	 * @param mixed $label
-	 * @param mixed $facetQueryString
-	 * @access public
-	 * @return void
-	 */
-	public function addFacet($label, $field, $operator, $value)
-	{
-		array_push($this->facets, array('label' => $label, 'field' => $field, 'operator' => $operator, 'value' => $value));
-		return $this;
-	}
-
-	/**
-	 * setFields - Set the fields returned in the result
-	 *
-	 * @param array $fields
-	 * @access public
-	 * @return void
-	 * @todo Test
-	 */
-	public function setFields($fields = array())
-	{
-		if (!isset($this->fields))
+		public function __construct($config)
 		{
-			$this->fields = array();
+			$engine = $config->get('engine');
+			$adapter = "\\Hubzero\\Search\\Adapters\\" . ucfirst($engine) . 'QueryAdapter';
+			$this->adapter = new $adapter($config);
+			return $this;
 		}
-		if (is_array($fields))
+
+		public function getSuggestions($terms)
 		{
-			$this->fields = array_unique(array_merge($this->fields, $fields));
+			$suggestions = $this->adapter->getSuggestions($terms);
+			return $suggestions;
 		}
-		elseif (is_string($fields))
+
+		public function query($terms)
 		{
-			if (strpos("," , $fields) === FALSE)
-			{
-				$this->fields = array($fields);
-			}
-			else
-			{
-				$this->fields = explode("," , $fields);
-			}
+			$this->adapter->query($terms);
+			return $this;
 		}
-		return $this;
+
+		public function fields($fields)
+		{
+			$this->adapter->fields($fields);
+			return $this;
+		}
+
+		public function addFilter($name, $query = array())
+		{
+			$this->adapter->addFilter($name, $query);
+			return $this;
+		}
+		public function addFacet($name, $query = array())
+		{
+			$this->adapter->addFacet($name, $query);
+			return $this;
+		}
+
+		public function getFacetCount($name)
+		{
+			return $this->adapter->getFacetCount($name);
+		}
+
+		public function limit($limit)
+		{
+			$this->adapter->limit($limit);
+			return $this;
+		}
+
+		public function start($start)
+		{
+			$this->adapter->start($start);
+			return $this;
+		}
+
+		public function sortBy($field, $direction)
+		{
+			$this->adapter->sortBy($field, $direction);
+			return $this;
+		}
+
+		public function run()
+		{
+			return $this->adapter->run();
+		}
+
+		public function restrictAccess()
+		{
+			$this->adapter->restrictAccess();
+			return $this;
+		}
 	}
-
-	/**
-	 * addFilter
-	 *
-	 * @param mixed $name 
-	 * @param mixed $operator 
-	 * @param mixed $value 
-	 * @access public
-	 * @return void
-	 */
-	public function addFilter($name, $field, $operator, $value)
-	{
-		$filter = array('name' => $name, 'field' => $field, 'operator' => $operator, 'value' => $value);
-		array_push($this->filters, $filter);
-		return $this;
-	}
-
-	/**
-	 * addRawFilter 
-	 * 
-	 * @param mixed $name 
-	 * @param mixed $string 
-	 * @fixme solr specific
-	 * @access public
-	 * @return void
-	 */
-	public function addRawFilter($name, $string)
-	{
-		$this->rawFilter = array('name' => $name, 'rawString' => $string);
-		return $this;
-	}
-
-	/**
-	 * limit - Limits the number of results returned from the query
-	 *
-	 * @param int $number
-	 * @access public
-	 * @return void
-	 */
-	public function limit($limit, $offset)
-	{
-		$this->set('limit', $limit);
-		$this->set('offset', $offset);
-		return $this;
-	}
-
-	/**
-	 * orderBy - Adds 'order' as a query parameter
-	 *
-	 * @param mixed $field
-	 * @param mixed $subject
-	 * @param mixed $direction
-	 * @access public
-	 * @return void
-	 */
-	public function orderBy($field, $direction)
-	{
-		$this->orderBy = array('field'=> $field, 'direction'=> $direction);
-		return $this;
-	}
-
-}
-
