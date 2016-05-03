@@ -32,7 +32,7 @@
 
 namespace Hubzero\Oauth\Storage;
 
-use Hubzero\User\Profile;
+use Hubzero\User\User;
 use Hubzero\User\Password;
 use Hubzero\Utility\Date;
 use OAuth2\RequestInterface;
@@ -352,13 +352,15 @@ class Mysql
 		}
 
 		// load profile object, make sure its valid
-		if (!$profile = Profile::getInstance($username))
+		$profile = \Hubzero\User\User::oneByUsername($username);
+
+		if (!$profile->get('id'))
 		{
 			return false;
 		}
 
 		// return details as associative array
-		return ['user_id' => $profile->get('uidNumber'), 'scope' => null];
+		return ['user_id' => $profile->get('id'), 'scope' => null];
 	}
 
 	/**
@@ -370,20 +372,15 @@ class Mysql
 	private function getUsernameFromEmail($enteredUsername)
 	{
 		// get username from email
-		$db = \App::get('db');
-		$sql = "SELECT `id`, `username`, `password`
-				FROM `#__users`
-				WHERE `email`=" . $db->quote($enteredUsername);
-		$db->setQuery($sql);
-		$result = $db->loadObjectList();
+		$result = \Hubzero\User\User::oneByEmail($enteredUsername);
 
 		// no results or too many
-		if (!$result || count($result) > 1)
+		if (!$result || !$result->get('id'))
 		{
 			return null;
 		}
 
-		return $result[0]->username;
+		return $result->get('username');
 	}
 
 	/**
@@ -566,8 +563,8 @@ class Mysql
 		}
 
 		// return user id
-		$profile = \Hubzero\User\Profile::getInstance($session->username);
-		return $profile->get('uidNumber');
+		$profile = \Hubzero\User\User::oneByUsername($session->username);
+		return $profile->get('id');
 	}
 
 	/**
@@ -623,7 +620,7 @@ class Mysql
 	public function createInternalRequestClient()
 	{
 		// client id/secret
-		$clientId     = md5(uniqid(\User::get('uidNumber'), true));
+		$clientId     = md5(uniqid(\User::get('id'), true));
 		$clientSecret = sha1($clientId);
 
 		// application model
@@ -635,7 +632,7 @@ class Mysql
 		$application->set('client_secret', $clientSecret);
 		$application->set('grant_types', 'client_credentials session tool');
 		$application->set('created', with(new Date('now'))->toSql());
-		$application->set('created_by', \User::get('uidNumber'));
+		$application->set('created_by', \User::get('id'));
 		$application->set('state', 1);
 		$application->set('hub_account', 1);
 		$application->save();
