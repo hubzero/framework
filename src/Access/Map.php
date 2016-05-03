@@ -99,4 +99,73 @@ class Map extends Relational
 	{
 		return $this->belongsToOne('Hubzero\Access\Group', 'group_id');
 	}
+
+	/**
+	 * Delete this object and its dependencies
+	 *
+	 * @return  boolean
+	 */
+	public function destroy()
+	{
+		$query = $this->getQuery()
+			->delete($this->getTableName())
+			->whereEquals('group_id', $this->get('group_id'))
+			->whereEquals('user_id', $this->get('user_id'));
+
+		if (!$query->execute())
+		{
+			$this->addError($query->getError());
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Delete objects of this type by Access Group ID
+	 *
+	 * @param   mixed    $group_id  Integer or array of integers
+	 * @return  boolean
+	 */
+	public static function destroyByGroup($group_id)
+	{
+		$group_id = (is_array($group_id) ? $group_id : array($group_id));
+
+		$blank = self::blank();
+
+		$query = $blank->getQuery()
+			->delete($blank->getTableName())
+			->whereIn('group_id', $group_id);
+
+		if (!$query->execute())
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Delete objects of this type by User ID
+	 *
+	 * @param   mixed    $user_id  Integer or array of integers
+	 * @return  boolean
+	 */
+	public static function destroyByUser($user_id)
+	{
+		$user_id = (is_array($user_id) ? $user_id : array($user_id));
+
+		$blank = self::blank();
+
+		$query = $blank->getQuery()
+			->delete($blank->getTableName())
+			->whereIn('user_id', $user_id);
+
+		if (!$query->execute())
+		{
+			return false;
+		}
+
+		return true;
+	}
 }
