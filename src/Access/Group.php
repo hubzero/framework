@@ -99,7 +99,7 @@ class Group extends Relational
 				->where('id', '<>', $data['id'])
 				->count();
 
-			return $exist->isNew() ? false : 'Access group title already exists.';
+			return $exist ? 'Access group title already exists.' : false;
 		});
 	}
 
@@ -164,7 +164,7 @@ class Group extends Relational
 		// get all children of this node
 		$children = self::all()
 			->select('id')
-			->where('parent_id', (int) $parent_id)
+			->whereEquals('parent_id', (int) $parent_id)
 			->order('parent_id', 'asc')
 			->rows();
 
@@ -186,12 +186,16 @@ class Group extends Relational
 
 		// we've got the left value, and now that we've processed
 		// the children of this node we also know the right value
-		$current = self::oneOrFail((int) $parent_id);
-		$current->set('lft', (int) $left);
-		$current->set('rgt', (int) $right);
+		$query = $this->getQuery()
+			->update($this->getTableName())
+			->set(array(
+				'lft' => (int) $left,
+				'rgt' => (int) $right
+			))
+			->whereEquals('id', (int) $parent_id);
 
 		// if there is an update failure, return false to break out of the recursion
-		if (!$current->save())
+		if (!$query->execute())
 		{
 			return false;
 		}
@@ -231,7 +235,7 @@ class Group extends Relational
 			->where('rgt', '<=', (int)$this->get('rgt'))
 			->rows();
 
-		if ($children->count())
+		if (!$children->count())
 		{
 			$this->addError('JLIB_DATABASE_ERROR_DELETE_CATEGORY');
 			return false;
@@ -243,12 +247,16 @@ class Group extends Relational
 		foreach ($children as $child)
 		{
 			$ids[] = $child->get('id');
+		}
 
-			if (!$child->destroy())
-			{
-				$this->addError($child->getError());
-				return false;
-			}
+		$query = $this->getQuery()
+			->delete($this->getTableName())
+			->whereIn('id', $ids);
+
+		if (!$query->execute())
+		{
+			$this->addError($query->getError());
+			return false;
 		}
 
 		// Delete the usergroup in view levels
@@ -290,20 +298,16 @@ class Group extends Relational
 		}
 
 		// Delete the user to usergroup mappings for the group(s) from the database.
-		$maps = Map::all()
-			->whereIn('group_id', $ids)
-			->all();
-
-		// Check for a database error.
-		foreach ($maps as $map)
+		try
 		{
-			if (!$map->destroy())
-			{
-				$this->addError($map->getError());
-				return false;
-			}
+			Map::destroyByGroup($ids);
+		}
+		catch (\Exception $e)
+		{
+			$this->addError($e->getMessage());
+			return false;
 		}
 
-		return parent::destroy();
+		return true;
 	}
 }
