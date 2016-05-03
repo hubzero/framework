@@ -35,7 +35,7 @@ namespace Hubzero\Api\Response;
 use Hubzero\Base\Middleware;
 use Hubzero\Http\Request;
 use Hubzero\User\Group;
-use Hubzero\User\Profile;
+use Hubzero\User\User;
 
 /**
  * Expander Response Modifier
@@ -153,8 +153,8 @@ class ObjectExpander extends Middleware
 	/**
 	 * Normalize expand keys
 	 * 
-	 * @param  array $expandKeys Raw expand keys
-	 * @return array             Normalized expand keys
+	 * @param   array  $expandKeys  Raw expand keys
+	 * @return  array  Normalized expand keys
 	 */
 	private function normalizeExpandKeys($expandKeys)
 	{
@@ -211,12 +211,12 @@ class ObjectExpander extends Middleware
 	/**
 	 * Function to return profile object 
 	 * 
-	 * @param   integer  $uidNumber  User identifier
-	 * @return  object   Profile object
+	 * @param   integer  $user_id  User identifier
+	 * @return  object   User object
 	 */
-	private function profileExpander($uidNumber)
+	private function profileExpander($user_id)
 	{
-		return Profile::getInstance($uidNumber);
+		return User::oneOrNew($user_id);
 	}
 
 	/**
