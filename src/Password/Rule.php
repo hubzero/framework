@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2010-2015 HUBzero Foundation, LLC.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,67 +24,312 @@
  *
  * HUBzero is a registered trademark of Purdue University.
  *
- * @package   framework
- * @author	  Nicholas J. Kisseberth <nkissebe@purdue.edu>
- * @copyright Copyright 2010-2015 HUBzero Foundation, LLC.
+ * @package   hubzero-cms
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Password;
 
+use Hubzero\Database\Relational;
 use Hubzero\User\User;
 use Hubzero\User\Password\History;
 use Hubzero\User\Password;
 
 /**
- * Password rule
+ * Password rule model
  */
-class Rule
+class Rule extends Relational
 {
 	/**
-	 * Get a list of rules
+	 * The table namespace
 	 *
-	 * @param   string  $group
-	 * @param   bool    $all
-	 * @return  array
+	 * @var  string
 	 */
-	public static function getRules($group = null, $all = false)
-	{
-		$db =  \App::get('db');
+	protected $namespace = 'password';
 
-		if (empty($db))
+	/**
+	 * The table to which the class pertains
+	 *
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
+	 */
+	protected $table = '#__password_rule';
+
+	/**
+	 * Default order by for model
+	 *
+	 * @var  string
+	 */
+	public $orderBy = 'ordering';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'description' => 'notempty',
+		'rule'        => 'notempty'
+	);
+
+	/**
+	 * Automatic fields to populate every time a row is created
+	 *
+	 * @var  array
+	 */
+	public $initiate = array(
+		'ordering'
+	);
+
+	/**
+	 * Generates automatic ordering field value
+	 *
+	 * @param   array   $data  the data being saved
+	 * @return  string
+	 */
+	public function automaticOrdering($data)
+	{
+		if (!isset($data['ordering']))
 		{
-			return array();
+			$last = self::all()
+				->select('ordering')
+				->order('ordering', 'desc')
+				->row();
+
+			$data['ordering'] = (int)$last->get('ordering') + 1;
 		}
 
-		if (empty($group))
+		return $data['ordering'];
+	}
+
+	/**
+	 * Method to move a row in the ordering sequence of a group of rows defined by an SQL WHERE clause.
+	 * Negative numbers move the row up in the sequence and positive numbers move it down.
+	 *
+	 * @param   integer  $delta  The direction and magnitude to move the row in the ordering sequence.
+	 * @param   string   $where  WHERE clause to use for limiting the selection of rows to compact the ordering values.
+	 * @return  bool     True on success.
+	 */
+	public function move($delta, $where = '')
+	{
+		// If the change is none, do nothing.
+		if (empty($delta))
 		{
-			$group = "'%'";
+			return true;
+		}
+
+		// Select the primary key and ordering values from the table.
+		$query = self::all();
+
+		// If the movement delta is negative move the row up.
+		if ($delta < 0)
+		{
+			$query->where('ordering', '<', (int) $this->get('ordering'));
+			$query->order('ordering', 'desc');
+		}
+		// If the movement delta is positive move the row down.
+		elseif ($delta > 0)
+		{
+			$query->where('ordering', '>', (int) $this->get('ordering'));
+			$query->order('ordering', 'asc');
+		}
+
+		// Add the custom WHERE clause if set.
+		if ($where)
+		{
+			$query->whereRaw($where);
+		}
+
+		// Select the first row with the criteria.
+		$row = $query->ordered()->row();
+
+		// If a row is found, move the item.
+		if ($row->get('id'))
+		{
+			$prev = $this->get('ordering');
+
+			// Update the ordering field for this instance to the row's ordering value.
+			$this->set('ordering', (int) $row->get('ordering'));
+
+			// Check for a database error.
+			if (!$this->save())
+			{
+				return false;
+			}
+
+			// Update the ordering field for the row to this instance's ordering value.
+			$row->set('ordering', (int) $prev);
+
+			// Check for a database error.
+			if (!$row->save())
+			{
+				return false;
+			}
 		}
 		else
 		{
-			$group = $db->quote($group);
+			// Update the ordering field for this instance.
+			$this->set('ordering', (int) $this->get('ordering'));
+
+			// Check for a database error.
+			if (!$this->save())
+			{
+				return false;
+			}
 		}
 
-		$query = "SELECT id,rule,class,value,description,failuremsg FROM " . "#__password_rule WHERE `grp` LIKE $group";
+		return true;
+	}
 
-		if ($all == false)
+	/**
+	 * Insert default content
+	 *
+	 * @param   integer  $restore  Whether or not to force restoration of default values (even if other values are present)
+	 * @return  void
+	 */
+	public static function defaultContent($restore=0)
+	{
+		$defaults = array(
+			array(
+				'class'       => 'alpha',
+				'description' => 'Must contain at least 1 letter',
+				'enabled'     => '0',
+				'failuremsg'  => 'Must contain at least 1 letter',
+				'grp'         => 'hub',
+				'ordering'    => '1',
+				'rule'        => 'minClassCharacters',
+				'value'       => '1'
+			),
+			array(
+				'class'       => 'nonalpha',
+				'description' => 'Must contain at least 1 number or punctuation mark',
+				'enabled'     => '0',
+				'failuremsg'  => 'Must contain at least 1 number or punctuation mark',
+				'grp'         => 'hub',
+				'ordering'    => '2',
+				'rule'        => 'minClassCharacters',
+				'value'       => '1'
+			),
+			array(
+				'class'       => '',
+				'description' => 'Must be at least 8 characters long',
+				'enabled'     => '0',
+				'failuremsg'  => 'Must be at least 8 characters long',
+				'grp'         => 'hub',
+				'ordering'    => '3',
+				'rule'        => 'minPasswordLength',
+				'value'       => '8'
+			),
+			array(
+				'class'       => '',
+				'description' => 'Must be no longer than 16 characters',
+				'enabled'     => '0',
+				'failuremsg'  => 'Must be no longer than 16 characters',
+				'grp'         => 'hub',
+				'ordering'    => '4',
+				'rule'        => 'maxPasswordLength',
+				'value'       => '16'
+			),
+			array(
+				'class'       => '',
+				'description' => 'Must contain more than 4 unique characters',
+				'enabled'     => '0',
+				'failuremsg'  => 'Must contain more than 4 unique characters',
+				'grp'         => 'hub',
+				'ordering'    => '5',
+				'rule'        => 'minUniqueCharacters',
+				'value'       => '5'
+			),
+			array(
+				'class'       => '',
+				'description' => 'Must not contain easily guessed words',
+				'enabled'     => '0',
+				'failuremsg'  => 'Must not contain easily guessed words',
+				'grp'         => 'hub',
+				'ordering'    => '6',
+				'rule'        => 'notBlacklisted',
+				'value'       => ''
+			),
+			array(
+				'class'       => '',
+				'description' => 'Must not contain your name or parts of your name',
+				'enabled'     => '0',
+				'failuremsg'  => 'Must not contain your name or parts of your name',
+				'grp'         => 'hub',
+				'ordering'    => '7',
+				'rule'        => 'notNameBased',
+				'value'       => ''
+			),
+			array(
+				'class'       => '',
+				'description' => 'Must not contain your username',
+				'enabled'     => '0',
+				'failuremsg'  => 'Must not contain your username',
+				'grp'         => 'hub',
+				'ordering'    => '8',
+				'rule'        => 'notUsernameBased',
+				'value'       => ''
+			),
+			array(
+				'class'       => '',
+				'description' => 'Must be different than the previous password (re-use of the same password will not be allowed for one (1) year)',
+				'enabled'     => '0',
+				'failuremsg'  => 'Must be different than the previous password (re-use of the same password will not be allowed for one (1) year)',
+				'grp'         => 'hub',
+				'ordering'    => '9',
+				'rule'        => 'notReused',
+				'value'       => '365'
+			),
+			array(
+				'class'       => '',
+				'description' => 'Must be changed at least every 120 days',
+				'enabled'     => '0',
+				'failuremsg'  => 'Must be changed at least every 120 days',
+				'grp'         => 'hub',
+				'ordering'    => '10',
+				'rule'        => 'notStale',
+				'value'       => '120'
+			)
+		);
+
+
+		if ($restore)
 		{
-			$query .= " AND enabled='1'";
+			// Delete current password rules for manual restore
+			$rows = self::all()->limit(1000)->rows();
+
+			foreach ($rows as $row)
+			{
+				if (!$row->destroy())
+				{
+					return false;
+				}
+			}
 		}
 
-		$query .= " ORDER BY ordering ASC;";
-
-		$db->setQuery($query);
-
-		$result = $db->loadAssocList();
-
-		if (empty($result))
+		// Add default rules
+		foreach ($defaults as $rule)
 		{
-			return array();
+			$row = self::blank()->set($rule);
+
+			if (!$row->save())
+			{
+				return false;
+			}
 		}
 
-		return $result;
+		return true;
 	}
 
 	/**
@@ -96,11 +341,14 @@ class Rule
 	public static function analyze($password)
 	{
 		$stats = array();
+
 		$len = strlen($password);
+
 		$stats['count'][0] = $len;
 		$stats['uniqueCharacters'] = 0;
-		$stats['uniqueClasses'] = 0;
-		$classes = array();
+		$stats['uniqueClasses']    = 0;
+
+		$classes   = array();
 		$histogram = array();
 
 		for ($i = 0; $i < $len; $i++)
@@ -148,7 +396,7 @@ class Rule
 	 * @param   string  $name
 	 * @return  array
 	 */
-	public static function validate($password, $rules, $user, $name=null)
+	public static function verify($password, $rules, $user, $name=null)
 	{
 		if (empty($rules))
 		{
@@ -363,7 +611,7 @@ class Rule
 	 * @param   string  $word
 	 * @return  string
 	 */
-	private static function normalize_word($word)
+	protected static function normalize($word)
 	{
 		$nword = '';
 
@@ -374,12 +622,14 @@ class Rule
 			$o = ord( $word[$i] );
 
 			if ($o < 97)
-			{ // convert to lowercase
+			{
+				// convert to lowercase
 				$o += 32;
 			}
 
 			if ($o > 122 || $o < 97)
-			{ // skip anything not a lowercase letter
+			{
+				// skip anything not a lowercase letter
 				continue;
 			}
 
@@ -398,7 +648,7 @@ class Rule
 	 */
 	public static function isBasedOnName($word, $name)
 	{
-		$word = self::normalize_word($word);
+		$word = self::normalize($word);
 
 		if (empty($word))
 		{
@@ -408,15 +658,16 @@ class Rule
 		$names = explode(" ", $name);
 
 		$count = count($names);
-
 		$words = array();
-		$fullname = self::normalize_word($name);
+
+		$fullname = self::normalize($name);
+
 		$words[] = $fullname;
 		$words[] = strrev($fullname);
 
 		foreach ($names as $e)
 		{
-			$e = self::normalize_word($e);
+			$e = self::normalize($e);
 
 			if (strlen($e) > 3)
 			{
@@ -427,7 +678,8 @@ class Rule
 
 		if ($count > 1)
 		{
-			$e = self::normalize_word($names[0] . $names[$count-1]);
+			$e = self::normalize($names[0] . $names[$count-1]);
+
 			$words[] = $e;
 			$words[] = strrev($e);
 		}
@@ -457,10 +709,10 @@ class Rule
 	 */
 	public static function isBasedOnUsername($word, $username)
 	{
-		$word = self::normalize_word($word);
-		$username = self::normalize_word($username);
+		$word     = self::normalize($word);
+		$username = self::normalize($username);
 
-		$words = array();
+		$words   = array();
 		$words[] = $username;
 		$words[] = strrev($username);
 

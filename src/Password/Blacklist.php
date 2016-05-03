@@ -25,42 +25,193 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Nicholas J. Kisseberth <nkissebe@purdue.edu>
- * @copyright Copyright 2010-2015 HUBzero Foundation, LLC.
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Password;
 
+use Hubzero\Database\Relational;
+
 /**
- * Password Blacklist helper
+ * Password blacklist model
  */
-class Blacklist
+class Blacklist extends Relational
 {
+	/**
+	 * The table namespace
+	 *
+	 * @var  string
+	 */
+	protected $namespace = 'password';
+
+	/**
+	 * The table to which the class pertains
+	 *
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
+	 */
+	protected $table = '#__password_blacklist';
+
+	/**
+	 * Default order by for model
+	 *
+	 * @var  string
+	 */
+	public $orderBy = 'ordering';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'word' => 'notempty'
+	);
+
+	/**
+	 * Load a record by word
+	 *
+	 * @param   string  $word
+	 * @return  object
+	 */
+	public static function oneByWord($word)
+	{
+		$word = trim($word);
+		$word = strtolower($word);
+
+		return self::blank()
+			->whereEquals('word', $word)
+			->row();
+	}
+
 	/**
 	 * Check if a word is in the blacklist
 	 *
 	 * @param   string  $word
 	 * @return  bool
 	 */
-	public static function inBlacklist($word)
+	public static function wordInBlacklist($word)
 	{
-		$db = \App::get('db');
+		$result = self::oneByWord($word);
 
-		if (empty($db))
+		return ($result->get('id') > 0);
+	}
+
+	/**
+	 * Check if a username is in the blacklist
+	 *
+	 * @param   string  $word
+	 * @return  bool
+	 */
+	public static function usernameInBlacklist($word, $username)
+	{
+		$word     = self::normalize($word);
+		$username = self::normalize($username);
+
+		$words   = array();
+		$words[] = $username;
+		$words[] = strrev($username);
+
+		foreach ($words as $w)
 		{
-			return false;
+			if ($w == $word)
+			{
+				return true;
+			}
 		}
 
-		if (empty($word))
+		return false;
+	}
+
+	/**
+	 * Check if a name is in the blacklist
+	 *
+	 * @param   string  $word
+	 * @return  bool
+	 */
+	public static function nameInBlacklist($word, $givenName, $middleName, $surname)
+	{
+		$word       = self::normalize($word);
+		$givenName  = self::normalize($givenName);
+		$middleName = self::normalize($middleName);
+		$surname    = self::normalize($surname);
+
+		$words   = array();
+		$words[] = $givenName;
+		$words[] = strrev($givenName);
+		$words[] = $middleName;
+		$words[] = strrev($middleName);
+		$words[] = $surname;
+		$words[] = strrev($surname);
+		$words[] = $givenName . $middleName . $surname;
+		$words[] = strrev($givenName . $middleName . $surname);
+		$words[] = $givenName . $surname;
+		$words[] = strrev($givenName . $surname);
+		$words[] = $middleName . $surname;
+		$words[] = strrev($middleName . $surname);
+		$words[] = $surname . $givenName;
+		$words[] = strrev($surname . $givenName);
+		$words[] = $surname . $middleName . $givenName;
+		$words[] = strrev($surname . $middleName . $givenName);
+
+		foreach ($words as $w)
 		{
-			$word = '';
+			if ($w == $word)
+			{
+				return true;
+			}
 		}
 
-		$query = 'SELECT 1 FROM `#__password_blacklist` WHERE word=' .  $db->quote($word) . ';';
-		$db->setQuery($query);
+		return false;
+	}
 
-		return $db->loadResult();
+	/**
+	 * Check if a word is based on a blacklisted word
+	 *
+	 * @param   string  $word
+	 * @return  bool
+	 */
+	public static function basedOnBlacklist($word)
+	{
+		$words[] = (string)$word;
+		$words[] = strtolower($word);
+		$words[] = strtolower(strrev($word));
+
+		$len = strlen($word);
+		$word2 = '';
+
+		// @FIXME: badly inefficient
+		for ($i = 0; $i < $len; $i++)
+		{
+			if (preg_match('/[a-zA-Z]/', $word[$i]))
+			{
+				$word2 .= $word[$i];
+			}
+		}
+
+		$words[] = strtolower($word2);
+		$words[] = strtolower(strrev($word2));
+		$words[] = self::toL33t($word);
+		$words[] = strrev(self::toL33t($word));
+		$words[] = self::toSimpleL33t($word);
+		$words[] = strrev(self::toSimpleL33t($word));
+
+		$total = self::all()
+			->whereIn('word', $words)
+			->total();
+
+		return ($total > 1); // returns true if char belongs to class
 	}
 
 	/**
@@ -69,7 +220,7 @@ class Blacklist
 	 * @param   string  $word
 	 * @return  string
 	 */
-	public static function simple_l33t($word)
+	protected static function toSimpleL33t($word)
 	{
 		$subs = array(
 			'4' => 'A',
@@ -112,7 +263,7 @@ class Blacklist
 	 * @param   string  $word
 	 * @return  string
 	 */
-	private static function l33t($word)
+	protected static function toL33t($word)
 	{
 		$subs = array(
 			'][\\//][' => 'M',
@@ -298,6 +449,7 @@ class Blacklist
 		$word2 = str_replace( array_keys($subs), array_values($subs), $word);
 		$word2 = strtolower($word2);
 		$word2 = str_replace( array_keys($wordsubs), array_values($wordsubs), $word2);
+
 		return $word2;
 	}
 
@@ -307,7 +459,7 @@ class Blacklist
 	 * @param   string  $word
 	 * @return  string
 	 */
-	private static function normalize_word($word)
+	protected static function normalize($word)
 	{
 		$nword = '';
 
@@ -333,133 +485,5 @@ class Blacklist
 		}
 
 		return $nword;
-	}
-
-	/**
-	 * Check if a word is based on a blacklisted word
-	 *
-	 * @param   string  $word
-	 * @return  bool
-	 */
-	public static function basedOnBlacklist($word)
-	{
-		$db = \App::get('db');
-
-		if (empty($db))
-		{
-			return false;
-		}
-
-		if (empty($word))
-		{
-			$word = '';
-		}
-
-		$words[] = $word;
-		$words[] = strtolower($word);
-		$words[] = strtolower(strrev($word));
-
-		$len = strlen($word);
-		$word2 = '';
-		// @FIXME: badly inefficient
-		for ($i = 0; $i < $len; $i++)
-		{
-			if (preg_match('/[a-zA-Z]/', $word[$i]))
-			{
-				$word2 .= $word[$i];
-			}
-		}
-		$words[] = strtolower($word2);
-		$words[] = strtolower(strrev($word2));
-		$words[] = self::l33t($word);
-		$words[] = strrev(self::l33t($word));
-		$words[] = self::simple_l33t($word);
-		$words[] = strrev(self::simple_l33t($word));
-
-		$query = "SELECT 1 FROM `#__password_blacklist` WHERE word IN (";
-
-		// Make sure words are quoted
-		foreach ($words as &$word)
-		{
-			$word = $db->quote($word);
-		}
-
-		$query .= implode($words, ',');
-
-		$query .= ");";
-
-		$db->setQuery($query);
-
-		$result = $db->loadResult();
-
-		return $result; // returns true if char belongs to class
-	}
-
-	/**
-	 * Check if a name is in the blacklist
-	 *
-	 * @param   string  $word
-	 * @return  bool
-	 */
-	public static function nameBlacklist($word, $givenName, $middleName, $surname)
-	{
-		$word       = self::normalize_word($word);
-		$givenName  = self::normalize_word($givenName);
-		$middleName = self::normalize_word($middleName);
-		$surname    = self::normalize_word($surname);
-
-		$words   = array();
-		$words[] = $givenName;
-		$words[] = strrev($givenName);
-		$words[] = $middleName;
-		$words[] = strrev($middleName);
-		$words[] = $surname;
-		$words[] = strrev($surname);
-		$words[] = $givenName.$middleName.$surname;
-		$words[] = strrev($givenName.$middleName.$surname);
-		$words[] = $givenName.$surname;
-		$words[] = strrev($givenName.$surname);
-		$words[] = $middleName.$surname;
-		$words[] = strrev($middleName.$surname);
-		$words[] = $surname.$givenName;
-		$words[] = strrev($surname.$givenName);
-		$words[] = $surname.$middleName.$givenName;
-		$words[] = strrev($surname.$middleName.$givenName);
-
-		foreach ($words as $w)
-		{
-			if ($w == $word)
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Check if a username is in the blacklist
-	 *
-	 * @param   string  $word
-	 * @return  bool
-	 */
-	public static function usernameBlacklist($word, $username)
-	{
-		$word     = self::normalize_word($word);
-		$username = self::normalize_word($username);
-
-		$words   = array();
-		$words[] = $username;
-		$words[] = strrev($username);
-
-		foreach ($words as $w)
-		{
-			if ($w == $word)
-			{
-				return true;
-			}
-		}
-
-		return false;
 	}
 }
