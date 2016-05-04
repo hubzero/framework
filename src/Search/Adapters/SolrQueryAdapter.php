@@ -33,9 +33,17 @@ namespace Hubzero\Search\Adapters;
 
 use Hubzero\Search\QueryInterface;
 use Solarium;
+use GuzzleHttp\Client;
 
 class SolrQueryAdapter implements QueryInterface
 {
+	/**
+	 * __construct 
+	 * 
+	 * @param mixed $config 
+	 * @access public
+	 * @return void
+	 */
 	public function __construct($config)
 	{
 		// Some setup information
@@ -60,59 +68,145 @@ class SolrQueryAdapter implements QueryInterface
 		// Create the client
 		$this->connection = new Solarium\Client($solrConfig);
 
+		// Make config accessible
+		$this->config = $solrConfig;
+
 		// Create the Solr Query object
 		$this->query = $this->connection->createSelect();
 	}
 
+	/**
+	 * getSuggestions Returns indexed terms
+	 * 
+	 * @param mixed $terms 
+	 * @access public
+	 * @return array 
+	 */
 	public function getSuggestions($terms)
 	{
-		$this->suggester = $this->connection->createSuggester();
-		$this->suggester->setQuery($terms);
-		$this->suggester->setCount(10);
-		$this->suggester->setOnlyMorePopular(true);
-		$this->suggester->setCollate(true);
+		// Rewrite for easier keyboard typing
+		$config = $this->config['endpoint']['hubsearch'];
+
+		// Create the base URL
+		$url = rtrim(Request::Root(), '/\\');
+
+		// Use the correct port
+		$url .= ':' . $config['port'];
+
+		// Use the correct core
+		$url .= '/solr/' . $config['core'];
+
+		// Perform a select operation
+		$url .= '/select?fl=id';
+
+		// Derive user permission filters
+		$this->restrictAccess();
+		$userPerms = $this->query->getFilterQuery('userPerms')->getQuery();
+		$url .= '&fq=' . $userPerms;
+
+		// Limit rows, not interested in results, just facets
+		$url .= '&rows=0';
+
+		// Select all, honestly doesn't matter
+		$url .= '&q=*:*';
+
+		// Enable Facets, set the mandatory field
+		$url .= '&facet=true&facet.field=author_auto&facet.field=tags_auto&facet.field=title_auto';
+
+		// Set the minimum count, could tweak to only most popular things
+		$url .= '&facet.mincount=1';
+
+		//  The actual searching part
+		$url .= '&facet.prefix=' . strtolower($terms);
+
+		// Make it JSON
+		$url .= '&wt=json';
+
+		$client = new \GuzzleHttp\Client();
+		$res = $client->get($url);
+		$resultSet = $res->json()['facet_counts']['facet_fields'];
+
 		$suggestions = array();
 
-		$resultset = $this->connection->suggester($this->suggester);
-
-		$dicts = (array) json_decode($resultset->getResponse()->getBody())->suggest;
-
-		foreach ($dicts as $dict)
+		foreach ($resultSet as $results)
 		{
-			if ($dict->$terms->numFound > 0)
+			$x = 0;
+			foreach ($results as $i => $result)
 			{
-				foreach ($dict->$terms->suggestions as $suggest)
+				if ($i % 2 == 0)
 				{
-					array_push($suggestions, $suggest->term);
+					// Prevents too many results from being suggested
+					if ($x >= 10)
+					{
+						break;
+					}
+					array_push( $suggestions, $result);
+					$x++;
 				}
+
 			}
 		}
+
 		return $suggestions;
 	}
 
+	/**
+	 * query 
+	 * 
+	 * @param mixed $terms 
+	 * @access public
+	 * @return void
+	 */
 	public function query($terms)
 	{
 		$this->query->setQuery($terms);
 		return $this;
 	}
 
+	/**
+	 * run 
+	 * 
+	 * @access public
+	 * @return void
+	 */
 	public function run()
 	{
 		$this->resultset = $this->connection->execute($this->query);
 		return $this->getResults();
 	}
 
+	/**
+	 * getNumFound 
+	 * 
+	 * @access public
+	 * @return void
+	 */
 	public function getNumFound()
 	{
 		return $this->numFound;
 	}
 
+	/**
+	 * getFacetCount 
+	 * 
+	 * @param mixed $name 
+	 * @access public
+	 * @return void
+	 */
 	public function getFacetCount($name)
 	{
 		$count = $this->resultset->getFacetSet()->getFacet($name)->getValue();
 		return $count;
 	}
 
+	/**
+	 * addFacet 
+	 * 
+	 * @param mixed $name 
+	 * @param array $query 
+	 * @access public
+	 * @return void
+	 */
 	public function addFacet($name, $query = array())
 	{
 		$this->facetSet = $this->query->getFacetSet();
@@ -123,6 +217,14 @@ class SolrQueryAdapter implements QueryInterface
 		return $this;
 	}
 
+	/**
+	 * addFilter 
+	 * 
+	 * @param mixed $name 
+	 * @param array $query 
+	 * @access public
+	 * @return void
+	 */
 	public function addFilter($name, $query = array())
 	{
 		$string = $this->makeQueryString($query);
@@ -130,30 +232,65 @@ class SolrQueryAdapter implements QueryInterface
 		return $this;
 	}
 
+	/**
+	 * fields 
+	 * 
+	 * @param mixed $fieldArray 
+	 * @access public
+	 * @return void
+	 */
 	public function fields($fieldArray)
 	{
 		$this->query->setFields($fieldArray);
 		return $this;
 	}
 
+	/**
+	 * sortBy 
+	 * 
+	 * @param mixed $field 
+	 * @param mixed $direction 
+	 * @access public
+	 * @return void
+	 */
 	public function sortBy($field, $direction)
 	{
 		$this->query->addSort($field, $direction);
 		return $this;
 	}
 
+	/**
+	 * limit 
+	 * 
+	 * @param mixed $limit 
+	 * @access public
+	 * @return void
+	 */
 	public function limit($limit)
 	{
 		$this->query->setRows($limit);
 		return $this;
 	}
 
+	/**
+	 * start 
+	 * 
+	 * @param mixed $offset 
+	 * @access public
+	 * @return void
+	 */
 	public function start($offset)
 	{
 		$this->query->setStart($offset);
 		return $this;
 	}
 
+	/**
+	 * restrictAccess 
+	 * 
+	 * @access public
+	 * @return void
+	 */
 	public function restrictAccess()
 	{
 		if (User::isGuest())
@@ -189,6 +326,12 @@ class SolrQueryAdapter implements QueryInterface
 		$this->query->createFilterQuery('userPerms')->setQuery($accessFilter);
 	}
 
+	/**
+	 * getResults 
+	 * 
+	 * @access public
+	 * @return void
+	 */
 	public function getResults()
 	{
 		if (!isset($this->resultset))
@@ -205,6 +348,13 @@ class SolrQueryAdapter implements QueryInterface
 		return $documents;
 	}
 
+	/**
+	 * makeQueryString 
+	 * 
+	 * @param array $query 
+	 * @access private
+	 * @return void
+	 */
 	private function makeQueryString($query = array())
 	{
 		$subject = $query[0];
