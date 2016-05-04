@@ -584,25 +584,15 @@ class Validate
 	}
 
 	/**
-	 * Validation of an IP address.
+	 * Validates an IP address
 	 *
-	 * @param string $check The string to test.
-	 * @param string $type The IP Protocol version to validate against
-	 * @return boolean Success
+	 * @param   string  $check  The string to test
+	 * @param   string  $type   The IP Protocol version to validate against
+	 * @return  bool
 	 */
 	public static function ip($check, $type = 'both')
 	{
-		$type = strtolower($type);
-		$flags = 0;
-		if ($type === 'ipv4')
-		{
-			$flags = FILTER_FLAG_IPV4;
-		}
-		if ($type === 'ipv6')
-		{
-			$flags = FILTER_FLAG_IPV6;
-		}
-		return (boolean)filter_var($check, FILTER_VALIDATE_IP, array('flags' => $flags));
+		return with(new \Hubzero\Utility\Ip($check))->isValid($type);
 	}
 
 	/**
