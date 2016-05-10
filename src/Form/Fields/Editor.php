@@ -33,6 +33,7 @@ namespace Hubzero\Form\Fields;
 
 use Hubzero\Form\Field;
 use Hubzero\Html\Editor as Wysiwyg;
+use App;
 
 /**
  * An editarea field for content creation
@@ -119,7 +120,7 @@ class Editor extends Field
 				$types = explode('|', $type);
 
 				// Get the database object.
-				$db = \App::get('db');
+				$db = App::get('db');
 
 				// Iterate over teh types looking for an existing editor.
 				foreach ($types as $element)
@@ -145,7 +146,7 @@ class Editor extends Field
 			}
 
 			// Create the JEditor instance based on the given editor.
-			$this->editor = Wysiwyg::getInstance($editor ? $editor : null);
+			$this->editor = Wysiwyg::getInstance($editor ? $editor : App::get('config')->get('editor', 'none'));
 		}
 
 		return $this->editor;
