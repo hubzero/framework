@@ -168,4 +168,56 @@ class Map extends Relational
 
 		return true;
 	}
+
+	/**
+	 * Add a user to access groups
+	 *
+	 * @param   mixed    $user_id   Integer
+	 * @param   mixed    $group_id  Integer or array of integers
+	 * @return  boolean
+	 */
+	public static function addUserToGroup($user_id, $group_id)
+	{
+		// Get the user's existing entries
+		$entries = self::all()
+			->whereEquals('user_id', $user_id)
+			->rows();
+
+		$existing = array();
+		foreach ($entries as $entry)
+		{
+			$existing[] = $entry->get('group_id');
+		}
+
+		$group_id = (is_array($group_id) ? $group_id : array($group_id));
+
+		$blank = self::blank();
+
+		// Loop through groups to be added
+		foreach ($group_id as $group)
+		{
+			$group = intval($group);
+
+			// Is the group already an existing entry?
+			if (in_array($group, $existing))
+			{
+				// Skip.
+				continue;
+			}
+
+			$query = $blank->getQuery()
+				->insert($blank->getTableName())
+				->values(array(
+					'user_id'  => $user_id,
+					'group_id' => $group
+				));
+
+			if (!$query->execute())
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
 }

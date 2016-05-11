@@ -35,6 +35,9 @@ namespace Hubzero\User;
 
 use Hubzero\Config\Registry;
 use Hubzero\Utility\Date;
+use Hubzero\Access\Map;
+use Exception;
+use Event;
 
 /**
  * Users database model
@@ -668,10 +671,6 @@ class User extends \Hubzero\Database\Relational
 	{
 		$timestamp = new Date($timestamp);
 
-		//$this->set('lastvisitDate', $timestamp->toSql());
-
-		//return self::save();
-
 		$query = $this->getQuery()
 			->update($this->getTableName())
 			->set(array('lastvisitDate' => $timestamp->toSql()))
@@ -821,7 +820,7 @@ class User extends \Hubzero\Database\Relational
 			$oldUser = self::oneOrNew($this->get('id'));
 
 			// Trigger the onUserBeforeSave event.
-			$result = \Event::trigger('user.onUserBeforeSave', array($oldUser->toArray(), $isNew, $data));
+			$result = Event::trigger('user.onUserBeforeSave', array($oldUser->toArray(), $isNew, $data));
 
 			if (in_array(false, $result, true))
 			{
@@ -829,18 +828,38 @@ class User extends \Hubzero\Database\Relational
 				return false;
 			}
 
+			// Get any set access groups
+			$groups = null;
+
+			if ($this->hasAttribute('accessgroups'))
+			{
+				$groups = $this->get('accessgroups');
+
+				$this->removeAttribute('accessgroups');
+			}
+
 			// Save record
 			$result = parent::save();
 
 			if (!$result)
 			{
-				throw new \Exception($this->getError());
+				throw new Exception($this->getError());
+			}
+
+			// Update access groups
+			if ($groups && is_array($groups))
+			{
+				Map::destroyByUser($this->get('id'));
+
+				Map::addUserToGroup($this->get('id'), $groups);
 			}
 
 			// Fire the onUserAfterSave event
-			\Event::trigger('user.onUserAfterSave', array($data, $isNew, $result, $this->getError()));
+			Event::trigger('user.onUserAfterSave', array($data, $isNew, $result, $this->getError()));
+
+			$this->purgeCache();
 		}
-		catch (\Exception $e)
+		catch (Exception $e)
 		{
 			$this->addError($e->getMessage());
 
@@ -860,7 +879,7 @@ class User extends \Hubzero\Database\Relational
 		$data = $this->toArray();
 
 		// Trigger the onUserBeforeDelete event
-		\Event::trigger('user.onUserBeforeDelete', array($data));
+		Event::trigger('user.onUserBeforeDelete', array($data));
 
 		// Remove associated data
 		if (!$this->reputation->destroy())
@@ -884,7 +903,7 @@ class User extends \Hubzero\Database\Relational
 		if ($result)
 		{
 			// Trigger the onUserAfterDelete event
-			\Event::trigger('user.onUserAfterDelete', array($data, true, $this->getError()));
+			Event::trigger('user.onUserAfterDelete', array($data, true, $this->getError()));
 		}
 
 		return $result;
