@@ -75,6 +75,8 @@ class Checkboxes extends Field
 		// Get the field options.
 		$options = $this->getOptions();
 
+		$found = false;
+
 		// Build the checkbox field output.
 		$html[] = '<ul>';
 		foreach ($options as $i => $option)
@@ -85,6 +87,11 @@ class Checkboxes extends Field
 			$class = !empty($option->class) ? ' class="' . $option->class . '"' : '';
 			$disabled = !empty($option->disable) ? ' disabled="disabled"' : '';
 
+			if ($checked)
+			{
+				$found = true;
+			}
+
 			// Initialize some JavaScript option attributes.
 			$onclick = !empty($option->onclick) ? ' onclick="' . $option->onclick . '"' : '';
 
@@ -94,6 +101,21 @@ class Checkboxes extends Field
 			$html[] = '<label for="' . $this->id . $i . '"' . $class . '>' . App::get('language')->txt($option->text) . '</label>';
 			$html[] = '</li>';
 		}
+
+		if ($this->element['option_other'])
+		{
+			$checked = '';
+			if (!$found && $this->value)
+			{
+				$checked = ' checked="checked"';
+			}
+			$html[] = '<li>';
+			$html[] = '<input type="checkbox" id="' . $this->id . ($i + 1) . '" name="' . $this->name . '" value=""' . $checked . $class . $onclick . $disabled . '/>';
+			$html[] = '<label for="' . $this->id . ($i + 1) . '"' . $class . '>' . App::get('language')->txt('JOTHER') . '</label>';
+			$html[] = '<input type="text" id="' . $this->id . '_other" name="' . substr($this->getName($this->fieldname . '_other'), 0, -2) . '" value="' . ($checked ? htmlspecialchars($this->value, ENT_COMPAT, 'UTF-8') : '') . '"' . $class . $onclick . $disabled . '/>';
+			$html[] = '</li>';
+		}
+
 		$html[] = '</ul>';
 
 		// End the checkbox field output.
