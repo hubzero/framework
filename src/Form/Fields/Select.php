@@ -90,7 +90,17 @@ class Select extends Field
 
 			if ($this->element['option_other'])
 			{
-				$html[] = '<input type="text" name="' . $this->getName($this->fieldname . '_other') . '" value="' . htmlspecialchars($this->value, ENT_COMPAT, 'UTF-8') . '" placeholder="' . App::get('language')->txt('Other...') . '" />';
+				$found = false;
+
+				foreach ($options as $option)
+				{
+					if ($option->value == $this->value)
+					{
+						$found = true;
+					}
+				}
+
+				$html[] = '<input type="text" name="' . $this->getName($this->fieldname . '_other') . '" value="' . ($found ? '' : htmlspecialchars($this->value, ENT_COMPAT, 'UTF-8')) . '" placeholder="' . App::get('language')->txt('Other...') . '" />';
 			}
 		}
 

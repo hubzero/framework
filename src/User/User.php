@@ -897,6 +897,8 @@ class User extends \Hubzero\Database\Relational
 			}
 		}
 
+		Map::destroyByUser($this->get('id'));
+
 		// Attempt to delete the record
 		$result = parent::destroy();
 

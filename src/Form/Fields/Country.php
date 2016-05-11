@@ -76,7 +76,7 @@ class Country extends Select
 			}
 		}
 
-		if ($this->element['includeBlank'])
+		if ($this->element['option_blank'])
 		{
 			$options[] = Dropdown::option('', App::get('language')->txt('- Select -'), 'value', 'text');
 		}
