@@ -351,12 +351,12 @@ abstract class Field
 			{
 				if (strpos($class, 'required') === false)
 				{
-					$this->element['class'] = $class . ' required';
+					$this->element['class'] = $class . ' required-field';
 				}
 			}
 			else
 			{
-				$this->element->addAttribute('class', 'required');
+				$this->element->addAttribute('class', 'required-field');
 			}
 		}
 
@@ -496,7 +496,7 @@ abstract class Field
 
 		// Build the class for the label.
 		$class = !empty($this->description) ? 'hasTip' : '';
-		$class = $this->required == true ? $class . ' required' : $class;
+		$class = $this->required == true ? $class . ' required-field' : $class;
 		$class = !empty($this->labelClass) ? $class . ' ' . $this->labelClass : $class;
 
 		// Add the opening label tag and main attributes attributes.
@@ -515,7 +515,7 @@ abstract class Field
 		// Add the label text and closing tag.
 		if ($this->required)
 		{
-			$label .= '>' . $text . '<span class="required star">' . Lang::txt('JOPTION_REQUIRED'). '</span></label>';
+			$label .= '>' . $text . ' <span class="required star">' . Lang::txt('JOPTION_REQUIRED'). '</span></label>';
 		}
 		else
 		{

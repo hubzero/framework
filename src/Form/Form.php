@@ -32,6 +32,8 @@
 
 namespace Hubzero\Form;
 
+use Hubzero\Form\Exception\InvalidData;
+use Hubzero\Form\Exception\MissingData;
 use Hubzero\Config\Registry;
 use Hubzero\Utility\Date;
 use Hubzero\Utility\Arr;
@@ -1063,17 +1065,15 @@ class Form
 			// Check for an error.
 			if ($valid instanceof Exception)
 			{
-				switch ($valid->get('level'))
+				if ($valid instanceof MissingData || $valid instanceof InvalidData)
 				{
-					case E_ERROR:
-						throw new Exception(0, $valid->getMessage());
-						return false;
-						break;
-
-					default:
-						array_push($this->errors, $valid);
-						$return = false;
-						break;
+					$this->errors[$name] = $valid;
+					$return = false;
+				}
+				else
+				{
+					throw new Exception($valid->getMessage());
+					return false;
 				}
 			}
 		}
@@ -1753,7 +1753,7 @@ class Form
 		// Make sure there is a valid SimpleXMLElement.
 		if (!$element instanceof SimpleXMLElement)
 		{
-			return new Exception(Lang::txt('JLIB_FORM_ERROR_VALIDATE_FIELD'), -1, E_ERROR);
+			return new Exception(Lang::txt('JLIB_FORM_ERROR_VALIDATE_FIELD'));
 		}
 
 		// Initialise variables.
@@ -1784,7 +1784,7 @@ class Form
 					}
 					$message = Lang::txt('JLIB_FORM_VALIDATE_FIELD_REQUIRED', $message);
 				}
-				return new Exception($message, 2, E_WARNING);
+				return new MissingData($message);
 			}
 		}
 
@@ -1797,7 +1797,7 @@ class Form
 			// If the object could not be loaded return an error message.
 			if ($rule === false)
 			{
-				return new Exception(Lang::txt('JLIB_FORM_VALIDATE_FIELD_RULE_MISSING', $type), -2, E_ERROR);
+				return new Exception(Lang::txt('JLIB_FORM_VALIDATE_FIELD_RULE_MISSING', $type));
 			}
 
 			// Run the field validation rule test.
@@ -1818,12 +1818,14 @@ class Form
 
 			if ($message)
 			{
-				return new Exception(Lang::txt($message), 1, E_WARNING);
+				$message = Lang::txt($message);
 			}
 			else
 			{
-				return new Exception(Lang::txt('JLIB_FORM_VALIDATE_FIELD_INVALID', Lang::txt((string) $element['label'])), 1, E_WARNING);
+				$message = Lang::txt('JLIB_FORM_VALIDATE_FIELD_INVALID', Lang::txt((string) $element['label']));
 			}
+
+			return new InvalidData($message);
 		}
 
 		return true;
@@ -1886,7 +1888,7 @@ class Form
 
 			if (empty($data))
 			{
-				throw new Exception(Lang::txt('JLIB_FORM_ERROR_NO_DATA'));
+				throw new MissingData(Lang::txt('JLIB_FORM_ERROR_NO_DATA'));
 			}
 
 			// Instantiate the form.
