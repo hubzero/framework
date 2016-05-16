@@ -68,7 +68,7 @@ class Profiler extends Object
 	 *
 	 * @var  array
 	 */
-	protected $events = array();
+	protected $marks = array();
 
 	/**
 	 * Constructor
@@ -139,7 +139,7 @@ class Profiler extends Object
 	 */
 	public function started()
 	{
-		return isset($this->marks[0]) ? $this->marks[0]->started() : $this->started;
+		return $this->started;
 	}
 
 	/**
@@ -192,7 +192,7 @@ class Profiler extends Object
 	}
 
 	/**
-	 * Returns a summary of all timer activity so far
+	 * Get all marks
 	 *
 	 * @return  array
 	 */

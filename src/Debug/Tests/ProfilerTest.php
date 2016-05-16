@@ -153,9 +153,9 @@ class ProfilerTest extends Basic
 	}
 
 	/**
-	 * Tests the now() method.
+	 * Tests the reset() method.
 	 *
-	 * @covers  \Hubzero\Debug\Profiler::now
+	 * @covers  \Hubzero\Debug\Profiler::reset
 	 * @return  void
 	 **/
 	public function testReset()
@@ -172,6 +172,75 @@ class ProfilerTest extends Basic
 
 		$this->assertTrue(empty($marks));
 		$this->assertEquals($instance->label(), '');
+	}
+
+	/**
+	 * Tests the started() method.
+	 *
+	 * @covers  \Hubzero\Debug\Profiler::started
+	 * @return  void
+	 **/
+	public function testStarted()
+	{
+		$instance = new Profiler('test');
+
+		$this->assertTrue($instance->started() >= time());
+	}
+
+	/**
+	 * Tests the ended() method.
+	 *
+	 * @covers  \Hubzero\Debug\Profiler::ended
+	 * @return  void
+	 **/
+	public function testEnded()
+	{
+		$instance = new Profiler('test');
+
+		$started = $instance->started();
+
+		sleep(0.1);
+
+		$this->assertEquals($instance->ended(), $started);
+
+		$instance->mark('one');
+		$instance->mark('two');
+		$instance->mark('three');
+
+		$this->assertNotEquals($instance->ended(), $started);
+		$this->assertTrue($instance->ended() > $started);
+	}
+
+	/**
+	 * Tests the memory() method.
+	 *
+	 * @covers  \Hubzero\Debug\Profiler::memory
+	 * @return  void
+	 **/
+	public function testMemory()
+	{
+		$instance = $this->instance;
+
+		$memory1 = $instance->memory();
+
+		$instance->mark('foo');
+
+		$data = array();
+		for ($i = 0; $i < 300; $i++)
+		{
+			$jnk = new \stdClass;
+			$jnk->bar = array_fill(0, 100, str_repeat('bar', 10));
+
+			$data[] = $jnk;
+		}
+
+		$instance->mark('bar');
+
+		unset($data);
+
+		$memory2 = $instance->memory();
+
+		$this->assertTrue($memory2 > $memory1);
 	}
 
 	/**
