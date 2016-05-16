@@ -36,7 +36,7 @@ use Hubzero\Console\Arguments;
 use Hubzero\Console\Config;
 use Hubzero\Search\Query;
 use Hubzero\Search\Index;
-use Hubzero\Utility\Sanitize;
+use Hubzero\Database\Html;
 use stdClass;
 
 /**
@@ -125,7 +125,23 @@ class Search extends Base implements CommandInterface
 		// @TODO adjust the size of the chunk for delta-indexing
 		$blocksize = 5000;
 
-		$model = Event::trigger('search.onGetModel', $item->subject)[0];
+		$model = Event::trigger('search.onGetModel', $item->subject);
+
+		if (!isset($model[0]) || empty($model[0]))
+		{
+			echo "nothing to do.\n";
+
+			// Mark queue item as complete
+			$item->set('complete', 1);
+			$item->save();
+
+			exit();
+		}
+		else
+		{
+			$model = $model[0];
+		}
+
 		$total = $model->total();
 
 		// Bail early
@@ -135,12 +151,15 @@ class Search extends Base implements CommandInterface
 			$item->set('complete', 1);
 			$item->save();
 
-			return 1;
-			exit();
+			// Move to next item
+			$this->processQueue();
 		}
 
 		$rows = $model::all()->start($item->start)->limit($blocksize);
-		$mapping = Event::trigger('search.onGetMapping', $item->subject)[0];
+		//$mapping = Event::trigger('search.onGetMapping', $item->subject)[0];
+
+		// Used for ancillary querying
+		$db = App::get('db');
 
 		$config = Component::params('com_search');
 		$index = new Index($config);
@@ -153,7 +172,7 @@ class Search extends Base implements CommandInterface
 
 			// Process the mapping
 			// @TODO move this to class itself
-			foreach ($mapping as $searchField => $dbField)
+			/*foreach ($mapping as $searchField => $dbField)
 			{
 				$dbField = ltrim($dbField, "{");
 				$dbField = rtrim($dbField, "}");
@@ -182,25 +201,15 @@ class Search extends Base implements CommandInterface
 				// Match fields
 				$document->$searchField = $data;
 			}
+			*/
 
-			// Mandatory field
+			// Mandatory fields
+			$document->hubid = $row->id;
 			$document->hubtype = $item->subject;
 			$document->id = $item->subject . '-' . $row->id;
 
-			// Build out URL for easy locating
-			$path = Event::trigger('search.onBuildPath', array($item->subject, $row))[0];
-			$document->url = $path;
-
-			// Calculate Permission Set
-			$permissionSet = Event::trigger('search.onCalculatePermissions', array($item->subject, $row))[0];
-
-			$document->owner_type = $permissionSet->owner->owner_type;
-			$document->owner = $permissionSet->owner->id;
-			$document->access_level = $permissionSet->access;
-
 			// Processed fields
-			$processedFields = Event::trigger('search.onProcessFields', array($item->subject, $row))[0];
-
+			$processedFields = Event::trigger('search.onProcessFields', array($item->subject, $row, $db))[0];
 			foreach ($processedFields as $key => $value)
 			{
 				$document->$key = $value;
