@@ -545,7 +545,7 @@ class Query
 	{
 		// Build and hash query
 		$query    = $this->buildQuery();
-		$key      = hash('md5', $query . serialize($this->syntax->getBindings()));
+		$key      = hash('md5', $structure . $query . serialize($this->syntax->getBindings()));
 
 		// Check cache for results first
 		if ($noCache || !isset(self::$cache[$key]))
