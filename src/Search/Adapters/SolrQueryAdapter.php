@@ -172,7 +172,9 @@ class SolrQueryAdapter implements QueryInterface
 	public function run()
 	{
 		$this->resultset = $this->connection->execute($this->query);
-		return $this->getResults();
+		$this->numFound = $this->resultset->getNumFound();
+		$this->results = $this->getResults();
+		return $this;
 	}
 
 	/**
@@ -343,6 +345,11 @@ class SolrQueryAdapter implements QueryInterface
 		foreach($this->resultset as $document)
 		{
 			array_push($documents, $document);
+		}
+
+		foreach ($documents as &$document)
+		{
+			$document = $document->getFields();
 		}
 
 		return $documents;

@@ -83,6 +83,16 @@
 			return $this;
 		}
 
+		public function getResults()
+		{
+			return $this->adapter->getResults();
+		}
+
+		public function getNumFound()
+		{
+			return $this->adapter->getNumFound();
+		}
+
 		public function start($start)
 		{
 			$this->adapter->start($start);

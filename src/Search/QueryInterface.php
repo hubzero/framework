@@ -51,6 +51,10 @@ interface QueryInterface
 
 	public function run();
 
+	public function getNumFound();
+
+	public function getResults();
+
 	public function getSuggestions($terms);
 }
 
