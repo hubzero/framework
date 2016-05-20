@@ -68,7 +68,7 @@ class Language extends Select
 		// Merge any additional options in the XML definition.
 		$options = array_merge(
 			parent::getOptions(),
-			App::get('language')->createLanguageList($this->value, $path, true, true)
+			App::get('language')->getList($this->value, $path, true, true)
 		);
 
 		return $options;
