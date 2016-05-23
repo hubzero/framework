@@ -867,6 +867,9 @@ class User extends \Hubzero\Database\Relational
 				Map::addUserToGroup($this->get('id'), $groups);
 			}
 
+			// In case it's a new user, we need to grab the ID
+			$data['id'] = $this->get('id');
+
 			// Fire the onUserAfterSave event
 			Event::trigger('user.onUserAfterSave', array($data, $isNew, $result, $this->getError()));
 
