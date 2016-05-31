@@ -112,6 +112,12 @@ class Search extends Base implements CommandInterface
 			->limit(1)
 			->row();
 
+		// Bail early if nothing next
+		if (count($item) < 1)
+		{
+			return true;
+		}
+
 		if ($item->action == 'index')
 		{
 			$this->processRows($item);
@@ -134,8 +140,7 @@ class Search extends Base implements CommandInterface
 			// Mark queue item as complete
 			$item->set('complete', 1);
 			$item->save();
-
-			exit();
+			return true;
 		}
 		else
 		{
