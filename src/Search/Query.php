@@ -33,86 +33,86 @@
 
 	use Hubzero\Search\Adapters;
 
-	class Query
+class Query
+{
+	public function __construct($config)
 	{
-		public function __construct($config)
-		{
-			$engine = $config->get('engine');
-			$adapter = "\\Hubzero\\Search\\Adapters\\" . ucfirst($engine) . 'QueryAdapter';
-			$this->adapter = new $adapter($config);
-			return $this;
-		}
-
-		public function getSuggestions($terms)
-		{
-			$suggestions = $this->adapter->getSuggestions($terms);
-			return $suggestions;
-		}
-
-		public function query($terms)
-		{
-			$this->adapter->query($terms);
-			return $this;
-		}
-
-		public function fields($fields)
-		{
-			$this->adapter->fields($fields);
-			return $this;
-		}
-
-		public function addFilter($name, $query = array())
-		{
-			$this->adapter->addFilter($name, $query);
-			return $this;
-		}
-		public function addFacet($name, $query = array())
-		{
-			$this->adapter->addFacet($name, $query);
-			return $this;
-		}
-
-		public function getFacetCount($name)
-		{
-			return $this->adapter->getFacetCount($name);
-		}
-
-		public function limit($limit)
-		{
-			$this->adapter->limit($limit);
-			return $this;
-		}
-
-		public function getResults()
-		{
-			return $this->adapter->getResults();
-		}
-
-		public function getNumFound()
-		{
-			return $this->adapter->getNumFound();
-		}
-
-		public function start($start)
-		{
-			$this->adapter->start($start);
-			return $this;
-		}
-
-		public function sortBy($field, $direction)
-		{
-			$this->adapter->sortBy($field, $direction);
-			return $this;
-		}
-
-		public function run()
-		{
-			return $this->adapter->run();
-		}
-
-		public function restrictAccess()
-		{
-			$this->adapter->restrictAccess();
-			return $this;
-		}
+		$engine = $config->get('engine');
+		$adapter = "\\Hubzero\\Search\\Adapters\\" . ucfirst($engine) . 'QueryAdapter';
+		$this->adapter = new $adapter($config);
+		return $this;
 	}
+
+	public function getSuggestions($terms)
+	{
+		$suggestions = $this->adapter->getSuggestions($terms);
+		return $suggestions;
+	}
+
+	public function query($terms)
+	{
+		$this->adapter->query($terms);
+		return $this;
+	}
+
+	public function fields($fields)
+	{
+		$this->adapter->fields($fields);
+		return $this;
+	}
+
+	public function addFilter($name, $query = array())
+	{
+		$this->adapter->addFilter($name, $query);
+		return $this;
+	}
+	public function addFacet($name, $query = array())
+	{
+		$this->adapter->addFacet($name, $query);
+		return $this;
+	}
+
+	public function getFacetCount($name)
+	{
+		return $this->adapter->getFacetCount($name);
+	}
+
+	public function limit($limit)
+	{
+		$this->adapter->limit($limit);
+		return $this;
+	}
+
+	public function getResults()
+	{
+		return $this->adapter->getResults();
+	}
+
+	public function getNumFound()
+	{
+		return $this->adapter->getNumFound();
+	}
+
+	public function start($start)
+	{
+		$this->adapter->start($start);
+		return $this;
+	}
+
+	public function sortBy($field, $direction)
+	{
+		$this->adapter->sortBy($field, $direction);
+		return $this;
+	}
+
+	public function run()
+	{
+		return $this->adapter->run();
+	}
+
+	public function restrictAccess()
+	{
+		$this->adapter->restrictAccess();
+		return $this;
+	}
+
