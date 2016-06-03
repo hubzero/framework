@@ -57,4 +57,3 @@ interface QueryInterface
 
 	public function getSuggestions($terms);
 }
-
