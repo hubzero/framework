@@ -342,7 +342,7 @@ class SolrQueryAdapter implements QueryInterface
 		}
 
 		$documents = array();
-		foreach($this->resultset as $document)
+		foreach ($this->resultset as $document)
 		{
 			array_push($documents, $document);
 		}
