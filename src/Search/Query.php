@@ -115,4 +115,4 @@ class Query
 		$this->adapter->restrictAccess();
 		return $this;
 	}
-
+}
