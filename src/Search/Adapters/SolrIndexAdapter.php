@@ -98,11 +98,11 @@ class SolrIndexAdapter implements IndexInterface
 	 * @access public
 	 * @return void
 	 */
-	public function deleteById($id = NULL)
+	public function deleteById($id = null)
 	{
 		// @FIXME Perhaps consider using addDeleteById(1234)?
 
-		if ($id != NULL)
+		if ($id != null)
 		{
 			$update = $this->connection->createUpdate();
 			$update->addDeleteQuery('id:'.$id);
@@ -111,7 +111,7 @@ class SolrIndexAdapter implements IndexInterface
 
 			// @FIXME: logical fallicy
 			// Wild assumption that the update was successful
-			return TRUE;
+			return true;
 		}
 		else
 		{
@@ -201,7 +201,7 @@ class SolrIndexAdapter implements IndexInterface
 	{
 		$log = Filesystem::read($this->logPath);
 		$levels = array();
-		$this->logs = explode("\n",$log);
+		$this->logs = explode("\n", $log);
 
 		return $this->logs;
 	}
