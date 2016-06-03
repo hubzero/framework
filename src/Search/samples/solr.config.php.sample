@@ -1,0 +1,10 @@
+<?php
+
+$config = array('core' => array(
+	'localhost' => array(
+	'host' => '',
+	'port' =>,
+	'path' => '',
+	'log_path' => '')));
+
+return $config;
