@@ -96,7 +96,7 @@ class Csv implements Adapter
 			if ($data !== null)
 			{
 				$data = array_map('trim', (array)$data);
-				
+
 				if (array_filter($data))
 				{
 					$this->data_count++;
