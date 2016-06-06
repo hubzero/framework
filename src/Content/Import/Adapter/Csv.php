@@ -95,7 +95,12 @@ class Csv implements Adapter
 			// if we got back null for a row dont count
 			if ($data !== null)
 			{
-				$this->data_count++;
+				$data = array_map('trim', (array)$data);
+				
+				if (array_filter($data))
+				{
+					$this->data_count++;
+				}
 			}
 		}
 
@@ -141,6 +146,13 @@ class Csv implements Adapter
 		{
 			// make sure we have a record
 			if ($record === null)
+			{
+				continue;
+			}
+
+			// Make sure we didn't get an empty row
+			$data = array_map('trim', (array)$record);
+			if (!array_filter($data))
 			{
 				continue;
 			}
