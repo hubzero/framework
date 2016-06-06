@@ -91,9 +91,20 @@ class Import extends Relational
 	 * @var  array
 	 **/
 	public $initiate = array(
-		'created',
+		'created_at',
 		'created_by'
 	);
+
+	/**
+	 * Generates automatic created field value
+	 *
+	 * @return  string
+	 * @since   2.0.0
+	 **/
+	public function automaticCreatedAt()
+	{
+		return Date::toSql();
+	}
 
 	/**
 	 * Get a list of runs
