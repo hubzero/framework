@@ -198,6 +198,14 @@ class User extends \Hubzero\Database\Relational
 		{
 			$username = $data['username'];
 
+			// We do this here because we need to allow one possible
+			// "invalid" username to pass through, used when creating
+			// temp accounts during the 3rd party auth registration
+			if (is_numeric($username) && $username < 0)
+			{
+				return false;
+			}
+
 			if (preg_match('#[<>"\'%;()&\\\\]|\\.\\./#', $username)
 			 || strlen(utf8_decode($username)) < 2
 			 || trim($username) != $username)
@@ -224,7 +232,7 @@ class User extends \Hubzero\Database\Relational
 		// Check for valid email address
 		// We do this here because we need to allow one possible
 		// "invalid" address to pass through, used when creating
-		// temp accounts durint the 3rd party auth registration
+		// temp accounts during the 3rd party auth registration
 		$this->addRule('email', function($data)
 		{
 			$email = $data['email'];
@@ -234,7 +242,7 @@ class User extends \Hubzero\Database\Relational
 				return false;
 			}
 
-			return (\Hubzero\Utility\Validate::email($email)) ? false : "Email does not appear to be valid";
+			return (\Hubzero\Utility\Validate::email($email) ? false : 'Email does not appear to be valid');
 		});
 	}
 
