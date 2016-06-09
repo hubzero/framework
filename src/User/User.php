@@ -78,7 +78,7 @@ class User extends \Hubzero\Database\Relational
 	 */
 	protected $rules = array(
 		'name'     => 'notempty',
-		'email'    => 'notempty|email',
+		'email'    => 'notempty',
 		'username' => 'notempty'
 	);
 
@@ -219,6 +219,22 @@ class User extends \Hubzero\Database\Relational
 			}
 
 			return false;
+		});
+
+		// Check for valid email address
+		// We do this here because we need to allow one possible
+		// "invalid" address to pass through, used when creating
+		// temp accounts durint the 3rd party auth registration
+		$this->addRule('email', function($data)
+		{
+			$email = $data['email'];
+
+			if (preg_match('/^-[0-9]+@invalid$/', $email))
+			{
+				return false;
+			}
+
+			return (\Hubzero\Utility\Validate::email($email)) ? false : "Email does not appear to be valid";
 		});
 	}
 
