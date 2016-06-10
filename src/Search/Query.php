@@ -33,8 +33,19 @@
 
 	use Hubzero\Search\Adapters;
 
+/**
+ * Query - Class to provide search engine query functionality
+ *
+ */
 class Query
 {
+	/**
+	 * __construct - Set the adapter
+	 * 
+	 * @param mixed $config - Configuration object
+	 * @access public
+	 * @return void
+	 */
 	public function __construct($config)
 	{
 		$engine = $config->get('engine');
@@ -43,73 +54,164 @@ class Query
 		return $this;
 	}
 
+	/**
+	 * getSuggestions  - Returns an array of suggested terms given terms
+	 * 
+	 * @param mixed $terms 
+	 * @access public
+	 * @return void
+	 */
 	public function getSuggestions($terms)
 	{
 		$suggestions = $this->adapter->getSuggestions($terms);
 		return $suggestions;
 	}
 
+	/**
+	 * query - Sets the query string
+	 * 
+	 * @param mixed $terms 
+	 * @access public
+	 * @return void
+	 */
 	public function query($terms)
 	{
 		$this->adapter->query($terms);
 		return $this;
 	}
 
+	/**
+	 * fields - Sets the fields to be returned by the query.
+	 * 
+	 * @param  array $fields 
+	 * @access public
+	 * @return void
+	 */
 	public function fields($fields)
 	{
 		$this->adapter->fields($fields);
 		return $this;
 	}
 
+	/**
+	 * addFilter - Adds a filter to the query
+	 * 
+	 * @param mixed $name 
+	 * @param array $query 
+	 * @access public
+	 * @return void
+	 */
 	public function addFilter($name, $query = array())
 	{
 		$this->adapter->addFilter($name, $query);
 		return $this;
 	}
+
+	/**
+	 * addFacet - Adds a facet to the query object.
+	 * 
+	 * @param string $name - Used to identify facet when result is returned.
+	 * @param array $query - The query array with a indexes of name, operator, and value 
+	 * @access public
+	 * @return void
+	 */
 	public function addFacet($name, $query = array())
 	{
 		$this->adapter->addFacet($name, $query);
 		return $this;
 	}
 
+	/**
+	 * getFacetCount 
+	 * 
+	 * @param mixed $name - Returns an integer value of a defined facet.
+	 * @access public
+	 * @return void
+	 */
 	public function getFacetCount($name)
 	{
 		return $this->adapter->getFacetCount($name);
 	}
 
+	/**
+	 * limit - Set the number of results to be returned
+	 * 
+	 * @param int $limit 
+	 * @access public
+	 * @return void
+	 */
 	public function limit($limit)
 	{
 		$this->adapter->limit($limit);
 		return $this;
 	}
 
+	/**
+	 * getResults  - Executes the query and returns an array of results.
+	 * 
+	 * @access public
+	 * @return void
+	 */
 	public function getResults()
 	{
 		return $this->adapter->getResults();
 	}
 
+	/**
+	 * getNumFound - Returns the total number of matching results, even outside of limit.
+	 * 
+	 * @access public
+	 * @return void
+	 */
 	public function getNumFound()
 	{
 		return $this->adapter->getNumFound();
 	}
 
+	/**
+	 * start - Offset of search index results. Warning: non-deterministic.
+	 * 
+	 * @param mixed $start 
+	 * @access public
+	 * @return void
+	 */
 	public function start($start)
 	{
 		$this->adapter->start($start);
 		return $this;
 	}
 
+	/**
+	 * sortBy - Order results by a field in a given direction.
+	 * 
+	 * @param mixed $field  name of a field
+	 * @param mixed $direction  (ASC or DESC)
+	 * @access public
+	 * @return void
+	 */
 	public function sortBy($field, $direction)
 	{
 		$this->adapter->sortBy($field, $direction);
 		return $this;
 	}
 
+	/**
+	 * run  - Performs the query, does not return results.
+	 * 
+	 * @access public
+	 * @return void
+	 */
 	public function run()
 	{
 		return $this->adapter->run();
 	}
 
+	/**
+	 * restrictAccess - Applies CMS permissions for the current user.
+	 * 
+	 * @access public
+	 * @return void
+	 */
 	public function restrictAccess()
 	{
 		$this->adapter->restrictAccess();

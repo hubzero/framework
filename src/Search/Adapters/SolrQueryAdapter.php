@@ -35,6 +35,13 @@ use Hubzero\Search\QueryInterface;
 use Solarium;
 use GuzzleHttp\Client;
 
+/**
+ * SolrQueryAdapter - Adapter for Solr Querying
+ * 
+ * @uses QueryInterface
+ * @uses Solarium 
+ * @uses GuzzleHttp\Client 
+ */
 class SolrQueryAdapter implements QueryInterface
 {
 	/**

@@ -34,8 +34,21 @@ namespace Hubzero\Search\Adapters;
 use Hubzero\Search\IndexInterface;
 use Solarium;
 
+/**
+ * SolrIndexAdapter - Index adapter for Solr using the Solarium library
+ * 
+ * @uses IndexInterface
+ * @uses Solarium 
+ */
 class SolrIndexAdapter implements IndexInterface
 {
+	/**
+	 * __construct - Constructor for adapter, sets config and established connection
+	 * 
+	 * @param mixed $config - Configuration object
+	 * @access public
+	 * @return void
+	 */
 	public function __construct($config)
 	{
 		// Some setup information
@@ -65,8 +78,23 @@ class SolrIndexAdapter implements IndexInterface
 	}
 
 	/**
-	 * lastInsert - Returns the timestamp of the latest indexed document
-	 *
+	 * getLogs - Returns an array of search engine query log entries
+	 * 
+	 * @access public
+	 * @return void
+	 */
+	public function getLogs()
+	{
+		$log = Filesystem::read($this->logPath);
+		$levels = array();
+		$this->logs = explode("\n", $log);
+
+		return $this->logs;
+	}
+
+	/**
+	 * lastInsert - Returns the timestamp of the last document indexed
+	 * 
 	 * @access public
 	 * @return void
 	 */
@@ -90,7 +118,77 @@ class SolrIndexAdapter implements IndexInterface
 		}
 	}
 
-	/* Update */
+	/**
+	 * status - Checks whether or not the search engine is responding 
+	 *
+	 * @access public
+	 * @return void
+	 */
+	public function status()
+	{
+		try
+		{
+			$pingRequest = $this->connection->createPing();
+			$ping = $this->connection->ping($pingRequest);
+			$pong = $ping->getData();
+			$alive = false;
+
+			if (isset($pong['status']) && $pong['status'] === "OK")
+			{
+				return true;
+			}
+		}
+		catch (\Solarium\Exception $e)
+		{
+			return false;
+		}
+	}
+
+
+	/**
+	 * index - Stores a document within an index
+	 * 
+	 * @param mixed $document 
+	 * @access public
+	 * @return void
+	 */
+	public function index($document)
+	{
+		// Instantiate an update object
+		$update = $this->connection->createUpdate();
+
+		// Create the document for updating
+		$solrDoc = $update->createDocument();
+
+		// Iterate through and set the appropriate fields
+		foreach ($document as $key => $value)
+		{
+			$solrDoc->$key = $value;
+		}
+
+		if (!isset($solrDoc->id))
+		{
+			// Generate a unique ID, hopefully
+			$solrDoc->id = hash('md5', time()*rand());
+		}
+
+		// Add the document to the update
+		$update->addDocuments(array($solrDoc));
+
+		// Create a commit
+		$update->addCommit();
+
+		// Run the update query
+		if ($this->connection->update($update))
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
 	/**
 	 * deleteById - Removes a single document from the search index
 	 *
@@ -117,50 +215,6 @@ class SolrIndexAdapter implements IndexInterface
 		{
 			return Lang::txt('No record specified.');
 		}
-	}
-
-	/**
-	 * index - Adds a document to the search engine index
-	 *
-	 * @param mixed $document
-	 * @access public
-	 * @return void
-	 */
-	public function index($document)
-	{
-			// Instantiate an update object
-			$update = $this->connection->createUpdate();
-
-			// Create the document for updating
-			$solrDoc = $update->createDocument();
-
-			// Iterate through and set the appropriate fields
-			foreach ($document as $key => $value)
-			{
-				$solrDoc->$key = $value;
-			}
-
-			if (!isset($solrDoc->id))
-			{
-				// Generate a unique ID, hopefully
-				$solrDoc->id = hash('md5', time()*rand());
-			}
-
-			// Add the document to the update
-			$update->addDocuments(array($solrDoc));
-
-			// Create a commit
-			$update->addCommit();
-
-			// Run the update query
-			if ($this->connection->update($update))
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
 	}
 
 	/**
@@ -192,20 +246,12 @@ class SolrIndexAdapter implements IndexInterface
 	}
 
 	/**
-	 * getLog - Returns a plaintext log for administrative purposes
+	 * parseQuery - Translates symbols from query string
 	 *
-	 * @access public
+	 * @param  array $query - Passes in the query array
+	 * @access private
 	 * @return void
 	 */
-	public function getLogs()
-	{
-		$log = Filesystem::read($this->logPath);
-		$levels = array();
-		$this->logs = explode("\n", $log);
-
-		return $this->logs;
-	}
-
 	private function parseQuery($query)
 	{
 		switch ($query['operator'])
@@ -215,31 +261,5 @@ class SolrIndexAdapter implements IndexInterface
 			break;
 		}
 		return $string;
-	}
-
-	/**
-	 * status  - Detemines whether the search service is responsive.
-	 *
-	 * @access public
-	 * @return void
-	 */
-	public function status()
-	{
-		try
-		{
-			$pingRequest = $this->connection->createPing();
-			$ping = $this->connection->ping($pingRequest);
-			$pong = $ping->getData();
-			$alive = false;
-
-			if (isset($pong['status']) && $pong['status'] === "OK")
-			{
-				return true;
-			}
-		}
-		catch (\Solarium\Exception $e)
-		{
-			return false;
-		}
 	}
 }
