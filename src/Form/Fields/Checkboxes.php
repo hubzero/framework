@@ -75,20 +75,27 @@ class Checkboxes extends Field
 		// Get the field options.
 		$options = $this->getOptions();
 
-		$found = false;
+		$found  = false;
+		$values = (array)$this->value;
 
 		// Build the checkbox field output.
 		$html[] = '<ul>';
 		foreach ($options as $i => $option)
 		{
-
 			// Initialize some option attributes.
-			$checked = (in_array((string) $option->value, (array) $this->value) ? ' checked="checked"' : '');
+			$checked = (in_array((string) $option->value, $values) ? ' checked="checked"' : '');
 			$class = !empty($option->class) ? ' class="' . $option->class . '"' : '';
 			$disabled = !empty($option->disable) ? ' disabled="disabled"' : '';
 
 			if ($checked)
 			{
+				foreach ($values as $k => $v)
+				{
+					if ($v == $option->value)
+					{
+						unset($values[$k]);
+					}
+				}
 				$found = true;
 			}
 
@@ -104,15 +111,18 @@ class Checkboxes extends Field
 
 		if ($this->element['option_other'])
 		{
+			$values = implode('', $values);
+			$values = trim($values);
+
 			$checked = '';
-			if (!$found && $this->value)
+			if (!empty($values))
 			{
 				$checked = ' checked="checked"';
 			}
 			$html[] = '<li>';
 			$html[] = '<input type="checkbox" id="' . $this->id . ($i + 1) . '" name="' . $this->name . '" value=""' . $checked . $class . $onclick . $disabled . '/>';
 			$html[] = '<label for="' . $this->id . ($i + 1) . '"' . $class . '>' . App::get('language')->txt('JOTHER') . '</label>';
-			$html[] = '<input type="text" id="' . $this->id . '_other" name="' . substr($this->getName($this->fieldname . '_other'), 0, -2) . '" value="' . ($checked ? htmlspecialchars($this->value, ENT_COMPAT, 'UTF-8') : '') . '"' . $class . $onclick . $disabled . '/>';
+			$html[] = '<input type="text" id="' . $this->id . '_other" name="' . substr($this->getName($this->fieldname . '_other'), 0, -2) . '" value="' . ($checked ? htmlspecialchars($values, ENT_COMPAT, 'UTF-8') : '') . '"' . $class . $onclick . $disabled . '/>';
 			$html[] = '</li>';
 		}
 
