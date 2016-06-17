@@ -125,27 +125,26 @@ class Search extends Base implements CommandInterface
 
 	}
 
+	/**
+	 * processRows - Fires plugin events to facilitate indexing data 
+	 * 
+	 * @param mixed $item 
+	 * @access private
+	 * @return void
+	 */
 	private function processRows($item)
 	{
+		// @TODO dynamically determine blocksize? 
 		// Size of chunk
-		// @TODO adjust the size of the chunk for delta-indexing
 		$blocksize = 5000;
 
+		// Fire plugin event to get the model to process
 		$model = Event::trigger('search.onGetModel', $item->subject);
 
-		if (!isset($model[0]) || empty($model[0]))
-		{
-			echo "nothing to do.\n";
-
-			// Mark queue item as complete
-			$item->set('complete', 1);
-			$item->save();
-			return true;
-		}
-		else
-		{
-			$model = $model[0];
-		}
+		// We only process one model at a time
+		ddie($model);
+		$model = $model[0];
+		ddie($model);
 
 		$total = $model->total();
 
@@ -161,7 +160,6 @@ class Search extends Base implements CommandInterface
 		}
 
 		$rows = $model::all()->start($item->start)->limit($blocksize);
-		//$mapping = Event::trigger('search.onGetMapping', $item->subject)[0];
 
 		// Used for ancillary querying
 		$db = App::get('db');
@@ -174,39 +172,6 @@ class Search extends Base implements CommandInterface
 		{
 			// Instantiate a new Search Document
 			$document = new stdClass;
-
-			// Process the mapping
-			// @TODO move this to class itself
-			/*foreach ($mapping as $searchField => $dbField)
-			{
-				$dbField = ltrim($dbField, "{");
-				$dbField = rtrim($dbField, "}");
-
-				if (method_exists($row, 'get'))
-				{
-					$document->hubid = $row->get('id', 0);
-					$data = $row->get($dbField, '');
-				}
-				else
-				{
-					$row = (object) $row;
-					$data = isset($row->$dbField) ? $row->$dbField : '';
-					if (isset($row->id))
-					{
-						$document->hubid = $row->id;
-					}
-				}
-
-				// Scrub the input
-				$data = Sanitize::clean($data);
-				$data = Sanitize::stripAll($data);
-				$data = Sanitize::stripTags($data);
-				$data = strip_tags($data);
-
-				// Match fields
-				$document->$searchField = $data;
-			}
-			*/
 
 			// Mandatory fields
 			$document->hubid = $row->id;
@@ -223,6 +188,12 @@ class Search extends Base implements CommandInterface
 			// Index the document
 			$index->index($document);
 		} // end foreach
+
+		// Are we done processing rows for this model?
+		if ($item->get('start') + $blocksize >= $total)
+		{
+			$item->set('complete', 1);
+		}
 
 		$item->set('start', $item->start + $blocksize);
 		$item->save();
