@@ -205,6 +205,7 @@ class Translator extends Object
 		$paths[0] = PATH_APP . "/bootstrap/$client/language/overrides/$lang.localise.php";
 		$paths[1] = PATH_APP . "/bootstrap/$client/language/$lang/$lang.localise.php";
 		$paths[2] = PATH_CORE . "/bootstrap/$client/language/$lang/$lang.localise.php";
+		$paths[3] = PATH_CORE . "/bootstrap/" . ucfirst($client) . "/language/$lang/$lang.localise.php";
 
 		ksort($paths);
 		$path = reset($paths);
@@ -1022,7 +1023,7 @@ class Translator extends Object
 
 		if (!is_file("$path/$file"))
 		{
-			$path = self::getLanguagePath(PATH_CORE . DS . 'bootstrap' . DS . \App::get('client')->name, $lang);
+			$path = self::getLanguagePath(PATH_CORE . DS . 'bootstrap' . DS . ucfirst(\App::get('client')->name), $lang);
 		}
 
 		if (is_file("$path/$file"))
