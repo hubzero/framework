@@ -402,6 +402,13 @@ class User extends \Hubzero\Database\Relational
 			$key = 'id';
 		}
 
+		// Legacy code expects get('id') to always
+		// return an integer, even if user is logged out
+		if ($key == 'id' && is_null($default))
+		{
+			$default = 0;
+		}
+
 		return parent::get($key, $default);
 	}
 
