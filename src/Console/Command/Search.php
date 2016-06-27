@@ -148,7 +148,7 @@ class Search extends Base implements CommandInterface
 		}
 		else
 		{
-			$this->output->addLine('Check to see if plugin is enabled.', ['color' => 'yellow', 'format' => 'bold']);  
+			$this->output->addLine('Check to see if plugin is enabled.', ['color' => 'yellow', 'format' => 'bold']);
 			return false;
 		}
 
