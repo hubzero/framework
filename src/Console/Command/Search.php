@@ -139,12 +139,18 @@ class Search extends Base implements CommandInterface
 		$blocksize = 5000;
 
 		// Fire plugin event to get the model to process
-		$model = Event::trigger('search.onGetModel', $item->subject);
+		$models = Event::trigger('search.onGetModel', $item->hubtype);
 
 		// We only process one model at a time
-		ddie($model);
-		$model = $model[0];
-		ddie($model);
+		if (count($models) > 0)
+		{
+			$model = $models[0];
+		}
+		else
+		{
+			$this->output->addLine('Check to see if plugin is enabled.', ['color' => 'yellow', 'format' => 'bold']);  
+			return false;
+		}
 
 		$total = $model->total();
 
@@ -175,11 +181,11 @@ class Search extends Base implements CommandInterface
 
 			// Mandatory fields
 			$document->hubid = $row->id;
-			$document->hubtype = $item->subject;
-			$document->id = $item->subject . '-' . $row->id;
+			$document->hubtype = $item->hubtype;
+			$document->id = $item->hubtype . '-' . $row->id;
 
 			// Processed fields
-			$processedFields = Event::trigger('search.onProcessFields', array($item->subject, $row, $db))[0];
+			$processedFields = Event::trigger('search.onProcessFields', array($item->hubtype, $row, $db))[0];
 			foreach ($processedFields as $key => $value)
 			{
 				$document->$key = $value;
@@ -193,9 +199,12 @@ class Search extends Base implements CommandInterface
 		if ($item->get('start') + $blocksize >= $total)
 		{
 			$item->set('complete', 1);
+			$item->set('start', $total);
 		}
-
-		$item->set('start', $item->start + $blocksize);
+		else
+		{
+			$item->set('start', $item->start + $blocksize);
+		}
 		$item->save();
 	} // end processRows()
 
