@@ -22,7 +22,7 @@
  *
  * HUBzero is a registered trademark of Purdue University.
  *
- * @package   hubzero-cms
+ * @package   framework
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
  */
@@ -33,11 +33,17 @@ use Hubzero\Spam\Detector\Service;
 
 /**
  * Mock spam detector
+ *
+ * @codeCoverageIgnore
  */
 class Detector extends Service
 {
 	/**
-	 * {@inheritDocs}
+	 * Run content through spam detection
+	 *
+	 * @codeCoverageIgnore
+	 * @param   array  $data
+	 * @return  bool
 	 */
 	public function detect($data)
 	{
@@ -45,40 +51,13 @@ class Detector extends Service
 		{
 			return false;
 		}
+
 		if (stristr($data['text'], 'spam'))
 		{
 			$this->message = 'Text contained the word "spam".';
 			return true;
 		}
+
 		return false;
-	}
-
-	/**
-	 * Train the service
-	 *
-	 * @param   string   $data
-	 * @param   boolean  $isSpam
-	 * @return  boolean
-	 */
-	public function learn($data, $isSpam)
-	{
-		if (!$data)
-		{
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Forget a trained value
-	 *
-	 * @param   string   $data
-	 * @param   boolean  $isSpam
-	 * @return  boolean
-	 */
-	public function forget($data, $isSpam)
-	{
-		return true;
 	}
 }
