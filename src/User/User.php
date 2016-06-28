@@ -282,7 +282,7 @@ class User extends \Hubzero\Database\Relational
 	 */
 	public function tokens()
 	{
-		return $this->oneToMany('Token');
+		return $this->oneToMany('Hubzero\User\Token');
 	}
 
 	/**
@@ -293,7 +293,7 @@ class User extends \Hubzero\Database\Relational
 	 */
 	public function reputation()
 	{
-		return $this->oneToOne('Reputation');
+		return $this->oneToOne('Hubzero\User\Reputation');
 	}
 
 	/**
