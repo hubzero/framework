@@ -108,21 +108,48 @@ class Search extends Base implements CommandInterface
 		// Get the type needed to be indexed;
 		$item = \Components\Search\Models\IndexQueue::all()
 			->where('complete', '=', 0)
+			->where('lock', '=', 0)
 			->order('created', 'ASC')
 			->limit(1)
 			->row();
 
+		// Check to see if anything need to be processed
+		$itemArr = $item->toArray();
+
 		// Bail early if nothing next
-		if (count($item) < 1)
+		if (empty($itemArr))
 		{
-			return true;
+			// Create some work
+			$item = \Components\Search\Models\IndexQueue::all()
+				->where('complete', '=', 1)
+				->where('lock', '=', 0)
+				->order('modified', 'ASC')
+				->limit(1)
+				->row();
+
+			// Prevent another process from working on it 
+			$item->set('lock', 1);
+
+			// Clear complete status
+			$item->set('complete', 0);
+
+			// Do another full-index
+			$item->set('start', 0);
+			$item->save();
 		}
 
 		if ($item->action == 'index')
 		{
+			$item->set('lock', 1);
+			$item->save();
 			$this->processRows($item);
 		}
 
+		// Remove lock. 
+		$timestamp = \Hubzero\Utility\Date::of()->toSql();
+		$item->set('modified', $timestamp);
+		$item->set('lock', 0);
+		$item->save();
 	}
 
 	/**
@@ -148,7 +175,7 @@ class Search extends Base implements CommandInterface
 		}
 		else
 		{
-			$this->output->addLine('Check to see if plugin is enabled.', ['color' => 'yellow', 'format' => 'bold']);
+			$this->output->addLine('Check to see if Search - ' . $item->hubtype . ' plugin is enabled.', ['color' => 'yellow', 'format' => 'bold']);
 			return false;
 		}
 
