@@ -43,7 +43,7 @@ final class Version
 	/**
 	 * HUBzero CMS version identification - see compareVersion()
 	 */
-	const VERSION = '2.0.0';
+	const VERSION = '2.1.0';
 
 	/**
 	 * Github Service Identifier for version information is retreived from
@@ -103,7 +103,7 @@ final class Version
 			static::$latestVersion = 'not available';
 			if ($service == self::VERSION_SERVICE_GITHUB)
 			{
-				$url = 'https://api.github.com/repos/hubzero/hzcms1/git/refs/tags/release-';
+				$url = 'https://api.github.com/repos/hubzero/hubzero-cms/git/refs/tags/release-';
 
 				$apiResponse = json_decode(file_get_contents($url), true);
 
