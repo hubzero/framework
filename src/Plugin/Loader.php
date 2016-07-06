@@ -130,13 +130,18 @@ class Loader implements LoaderInterface
 			// Is this the right plugin?
 			if ($p->type == $type)
 			{
-				if ($plugin && $p->name == $plugin)
+				if ($plugin)
 				{
-					$result = $p;
-					break;
+					if ($p->name == $plugin)
+					{
+						$result = $p;
+						break;
+					}
 				}
-
-				$result[] = $p;
+				else
+				{
+					$result[] = $p;
+				}
 			}
 		}
 
