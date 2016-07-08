@@ -121,13 +121,33 @@ class Handler
 	 */
 	public function message($message, $type = 'info', $domain = null)
 	{
-		$this->storage->store(
-			array(
-				'message' => $message,
-				'type'    => $type
-			),
-			$domain
-		);
+		$messages = $this->storage->retrieve($domain);
+
+		$duplicate = false;
+
+		foreach ($messages as $m)
+		{
+			// If all the data is the same,
+			// it's a duplicate message. Skip.
+			if ($m['message'] == $message
+			 && $m['type'] == $type)
+			{
+				$duplicate = true;
+			}
+
+			$this->storage->store($m, $domain);
+		}
+
+		if (!$duplicate)
+		{
+			$this->storage->store(
+				array(
+					'message' => $message,
+					'type'    => $type
+				),
+				$domain
+			);
+		}
 
 		return $this;
 	}
