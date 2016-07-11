@@ -230,13 +230,25 @@ class SolrQueryAdapter implements QueryInterface
 	 * addFilter 
 	 * 
 	 * @param mixed $name 
-	 * @param array $query 
+	 * @param mixed $query
 	 * @access public
 	 * @return void
 	 */
 	public function addFilter($name, $query = array())
 	{
-		$string = $this->makeQueryString($query);
+		if (is_array($query))
+		{
+			$string = $this->makeQueryString($query);
+		}
+		elseif (is_string($query))
+		{
+			$string = $query;
+			if ($name == 'BoundingBox')
+			{
+				$this->query->setOptions(array('geo'=> true));
+			}
+		}
+
 		$this->query->createFilterQuery($name)->setQuery($string);
 		return $this;
 	}
