@@ -504,60 +504,6 @@ class User extends \Hubzero\Database\Relational
 	}
 
 	/**
-	 * Checks to see if the current user has exceeded the site
-	 * password reset request limit for a given time period
-	 *
-	 * @return  bool
-	 */
-	public function hasExceededResetLimit()
-	{
-		$params     = \Component::params('com_users');
-		$resetCount = (int)$params->get('reset_count', 10);
-		$resetHours = (int)$params->get('reset_time', 1);
-		$result     = true;
-
-		// Get the user's tokens
-		$threshold = date("Y-m-d H:i:s", strtotime(\Date::toSql() . " {$resetHours} hours ago"));
-		$tokens    = $this->tokens()->where('created', '>=', $threshold)->rows();
-
-		if ($tokens->count() < $resetCount)
-		{
-			$result = false;
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Checks to see if the current user has exceeded the site
-	 * login attempt limit for a given time period
-	 *
-	 * @return  bool
-	 */
-	public function hasExceededLoginLimit()
-	{
-		$params    = \Component::params('com_users');
-		$limit     = (int)$params->get('login_attempts_limit', 10);
-		$timeframe = (int)$params->get('login_attempts_timeframe', 1);
-		$result    = true;
-
-		// Get the user's tokens
-		$threshold = date("Y-m-d H:i:s", strtotime(\Date::toSql() . " {$timeframe} hours ago"));
-		$auths     = new \Hubzero\User\Log\Auth;
-
-		$auths->whereEquals('username', $this->username)
-		      ->whereEquals('status', 'failure')
-		      ->where('logged', '>=', $threshold);
-
-		if ($auths->count() < $limit)
-		{
-			$result = false;
-		}
-
-		return $result;
-	}
-
-	/**
 	 * Get a user's picture
 	 *
 	 * @param   integer  $anonymous  Is user anonymous?
