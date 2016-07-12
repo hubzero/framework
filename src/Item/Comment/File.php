@@ -113,9 +113,7 @@ class File extends Relational
 	}
 
 	/**
-	 * Ensure no conflicting file names by
-	 * renaming the incoming file if the name
-	 * already exists
+	 * Ensure no invalid characters
 	 *
 	 * @param   array  $data
 	 * @return  string
@@ -123,18 +121,39 @@ class File extends Relational
 	public function automaticFilename($data)
 	{
 		$filename = $data['filename'];
+		$filename = preg_replace("/[^A-Za-z0-9.]/i", '-', $filename);
 
-		$ext = strrchr($filename, '.');
-		$prefix = substr($filename, 0, -strlen($ext));
+		$data['filename'] = $filename;
 
-		$i = 1;
+		return $data['filename'];
+	}
 
-		while (is_file($this->getUploadDir() . DS . $data['comment_id'] . DS . $filename))
+	/**
+	 * Ensure no conflicting file names by
+	 * renaming the incoming file if the name
+	 * already exists
+	 *
+	 * @param   array  $data
+	 * @return  string
+	 */
+	public function uniqueFilename($data)
+	{
+		$filename = $this->automaticFilename($data);
+
+		if (file_exists($this->getUploadDir() . DS . $data['comment_id'] . DS . $filename))
 		{
-			$filename = $prefix . ++$i . $ext;
+			$ext = strrchr($filename, '.');
+			$prefix = substr($filename, 0, -strlen($ext));
+
+			$i = 1;
+
+			while (is_file($this->getUploadDir() . DS . $data['comment_id'] . DS . $filename))
+			{
+				$filename = $prefix . ++$i . $ext;
+			}
 		}
 
-		$data['filename'] = preg_replace("/[^A-Za-z0-9.]/i", '-', $filename);
+		$data['filename'] = $filename;
 
 		return $data['filename'];
 	}
@@ -182,7 +201,7 @@ class File extends Relational
 			}
 		}
 
-		$filename = $this->automaticFilename(array(
+		$filename = $this->uniqueFilename(array(
 			'filename'   => $name,
 			'comment_id' => $this->get('comment_id')
 		));
@@ -254,7 +273,7 @@ class File extends Relational
 		{
 			$this->dimensions = array(0, 0);
 
-			if ($this->isImage())
+			if ($this->isImage() && file_exists($this->path()))
 			{
 				$this->dimensions = getimagesize($this->path());
 			}
