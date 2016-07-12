@@ -140,7 +140,9 @@ class Sanitize
 	{
 		return self::stripScripts(
 			self::stripImages(
-				self::stripWhitespace($str)
+				self::stripTags(
+					self::stripWhitespace($str)
+				)
 			)
 		);
 	}
@@ -148,6 +150,7 @@ class Sanitize
 	/**
 	 * Strips the specified tags from output. First parameter is string from
 	 * where to remove tags. All subsequent parameters are tags.
+	 * If no tags defined, ALL tags will be stripped.
 	 *
 	 * Ex.`$clean = Sanitize::stripTags($dirty, 'b', 'p', 'div');`
 	 *
@@ -159,6 +162,11 @@ class Sanitize
 	public static function stripTags($str)
 	{
 		$params = func_get_args();
+
+		if (count($params) <= 1)
+		{
+			return strip_tags($str);
+		}
 
 		for ($i = 1, $count = count($params); $i < $count; $i++)
 		{
