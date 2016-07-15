@@ -123,6 +123,15 @@ class File extends Relational
 		$filename = $data['filename'];
 		$filename = preg_replace("/[^A-Za-z0-9.]/i", '-', $filename);
 
+		$ext = strrchr($filename, '.');
+		$prefix = substr($filename, 0, -strlen($ext));
+
+		if (strlen($prefix) > 240)
+		{
+			$prefix = substr($prefix, 0, 240);
+			$filename = $prefix . $ext;
+		}
+
 		$data['filename'] = $filename;
 
 		return $data['filename'];
