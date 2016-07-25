@@ -51,7 +51,7 @@ class View extends AbstractView
 	/**
 	 * Folder
 	 *
-	 * @var	 string
+	 * @var  string
 	 */
 	protected $_element = null;
 
@@ -63,6 +63,18 @@ class View extends AbstractView
 	 */
 	public function __construct($config = array())
 	{
+		// Set the override path
+		if (!array_key_exists('override_path', $config))
+		{
+			$config['override_path'] = '';
+
+			if (\App::has('template'))
+			{
+				$config['override_path'] = \App::get('template')->path;
+			}
+		}
+		$this->_overridePath = $config['override_path'];
+
 		// Set the view name
 		if (!array_key_exists('folder', $config))
 		{
