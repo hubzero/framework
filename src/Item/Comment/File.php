@@ -180,7 +180,7 @@ class File extends Relational
 		{
 			if (!\Filesystem::delete($path))
 			{
-				$this->setError('Unable to delete file.');
+				$this->addError('Unable to delete file.');
 
 				return false;
 			}
@@ -204,7 +204,7 @@ class File extends Relational
 		{
 			if (!\Filesystem::makeDirectory($destination))
 			{
-				$this->setError('Unable to create upload path.');
+				$this->addError('Unable to create upload path.');
 
 				return false;
 			}
@@ -219,7 +219,7 @@ class File extends Relational
 
 		if (!\Filesystem::upload($temp, $destination))
 		{
-			$this->setError('Unable to upload file.');
+			$this->addError('Unable to upload file.');
 
 			return false;
 		}
