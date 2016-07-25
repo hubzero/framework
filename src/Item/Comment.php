@@ -341,13 +341,13 @@ class Comment extends Relational
 	{
 		if (!$this->get('id'))
 		{
-			$this->setError(Lang::txt('No record found'));
+			$this->addError(Lang::txt('No record found'));
 			return false;
 		}
 
 		if (!$vote)
 		{
-			$this->setError(Lang::txt('No vote provided'));
+			$this->addError(Lang::txt('No vote provided'));
 			return false;
 		}
 
@@ -361,7 +361,7 @@ class Comment extends Relational
 
 		if ($this->get('created_by') == $user_id)
 		{
-			$this->setError(Lang::txt('Cannot vote for your own entry'));
+			$this->addError(Lang::txt('Cannot vote for your own entry'));
 			return false;
 		}
 
@@ -393,7 +393,7 @@ class Comment extends Relational
 
 			if (!$al->save())
 			{
-				$this->setError($al->getError());
+				$this->addError($al->getError());
 				return false;
 			}
 		}
