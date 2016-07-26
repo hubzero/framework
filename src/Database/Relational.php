@@ -84,6 +84,13 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	private $modelName = null;
 
 	/**
+	 * The database model namespace
+	 *
+	 * @var  string
+	 **/
+	private $modelNamespace = null;
+
+	/**
 	 * The internal array of methods of this model
 	 *
 	 * We do a lot of reflection checks on the model,
@@ -267,8 +274,11 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function __construct()
 	{
+		$r = new \ReflectionClass($this);
+
 		// Set model name
-		$this->modelName = with(new \ReflectionClass($this))->getShortName();
+		$this->modelName = $r->getShortName();
+		$this->modelNamespace = $r->getNamespaceName();
 
 		// If table name isn't explicitly set, build it
 		$namespace   = (!$this->namespace ? '' : $this->namespace . '_');
@@ -953,6 +963,17 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	public function getModelName()
 	{
 		return $this->modelName;
+	}
+
+	/**
+	 * Retrieves the model's name
+	 *
+	 * @return  string
+	 * @since   2.1.0
+	 **/
+	public function getModelNamespace()
+	{
+		return $this->modelNamespace;
 	}
 
 	/**
@@ -1703,7 +1724,8 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function getState($var, $default = null)
 	{
-		return User::getState($this->getModelName() . ".{$var}", $default);
+		$key = str_replace('\\', '.', $this->getModelNamespace()) . '.' . $this->getModelName() . ".{$var}";
+		return User::getState($key, $default);
 	}
 
 	/**
@@ -1716,7 +1738,8 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function setState($key, $value)
 	{
-		User::setState($this->getModelName() . ".{$key}", $value);
+		$key = str_replace('\\', '.', $this->getModelNamespace()) . '.' . $this->getModelName() . ".{$key}";
+		User::setState($key, $value);
 	}
 
 	/**
@@ -1751,7 +1774,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		if (!class_exists($name))
 		{
 			// Get the scope of the current class and check there too
-			$name = with(new \ReflectionClass($this))->getNamespaceName() . '\\' . $name;
+			$name = $this->getModelNamespace() . '\\' . $name;
 
 			if (!class_exists($name))
 			{
