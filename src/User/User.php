@@ -309,7 +309,8 @@ class User extends \Hubzero\Database\Relational
 	/**
 	 * Get groups
 	 *
-	 * @return  object
+	 * @param   string  $role
+	 * @return  array
 	 */
 	public function groups($role = 'all')
 	{
@@ -326,10 +327,12 @@ class User extends \Hubzero\Database\Relational
 				'managers'   => array(),
 				'all'        => array()
 			);
-			$groups['all'] = Helper::getGroups($this->get('id'), 'all', 1);
+			$all = Helper::getGroups($this->get('id'), 'all', 1);
 
-			if ($groups['all'])
+			if ($all)
 			{
+				$groups['all'] = $all;
+
 				foreach ($groups['all'] as $item)
 				{
 					if ($item->registered)
@@ -360,7 +363,7 @@ class User extends \Hubzero\Database\Relational
 
 		if ($role)
 		{
-			return (isset($groups[$role])) ? $groups[$role] : false;
+			return (isset($groups[$role])) ? $groups[$role] : array();
 		}
 
 		return $groups;
