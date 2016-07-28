@@ -878,10 +878,13 @@ class User extends \Hubzero\Database\Relational
 		Event::trigger('user.onUserBeforeDelete', array($data));
 
 		// Remove associated data
-		if (!$this->reputation->destroy())
+		if ($this->reputation->get('id'))
 		{
-			$this->addError($this->reputation->getError());
-			return false;
+			if (!$this->reputation->destroy())
+			{
+				$this->addError($this->reputation->getError());
+				return false;
+			}
 		}
 
 		foreach ($this->tokens()->rows() as $token)
