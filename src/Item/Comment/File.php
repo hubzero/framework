@@ -113,9 +113,7 @@ class File extends Relational
 	}
 
 	/**
-	 * Ensure no conflicting file names by
-	 * renaming the incoming file if the name
-	 * already exists
+	 * Ensure no invalid characters
 	 *
 	 * @param   array  $data
 	 * @return  string
@@ -123,18 +121,48 @@ class File extends Relational
 	public function automaticFilename($data)
 	{
 		$filename = $data['filename'];
+		$filename = preg_replace("/[^A-Za-z0-9.]/i", '-', $filename);
 
 		$ext = strrchr($filename, '.');
 		$prefix = substr($filename, 0, -strlen($ext));
 
-		$i = 1;
-
-		while (is_file($this->getUploadDir() . DS . $data['comment_id'] . DS . $filename))
+		if (strlen($prefix) > 240)
 		{
-			$filename = $prefix . ++$i . $ext;
+			$prefix = substr($prefix, 0, 240);
+			$filename = $prefix . $ext;
 		}
 
-		$data['filename'] = preg_replace("/[^A-Za-z0-9.]/i", '-', $filename);
+		$data['filename'] = $filename;
+
+		return $data['filename'];
+	}
+
+	/**
+	 * Ensure no conflicting file names by
+	 * renaming the incoming file if the name
+	 * already exists
+	 *
+	 * @param   array  $data
+	 * @return  string
+	 */
+	public function uniqueFilename($data)
+	{
+		$filename = $this->automaticFilename($data);
+
+		if (file_exists($this->getUploadDir() . DS . $data['comment_id'] . DS . $filename))
+		{
+			$ext = strrchr($filename, '.');
+			$prefix = substr($filename, 0, -strlen($ext));
+
+			$i = 1;
+
+			while (is_file($this->getUploadDir() . DS . $data['comment_id'] . DS . $filename))
+			{
+				$filename = $prefix . ++$i . $ext;
+			}
+		}
+
+		$data['filename'] = $filename;
 
 		return $data['filename'];
 	}
@@ -152,7 +180,7 @@ class File extends Relational
 		{
 			if (!\Filesystem::delete($path))
 			{
-				$this->setError('Unable to delete file.');
+				$this->addError('Unable to delete file.');
 
 				return false;
 			}
@@ -176,13 +204,13 @@ class File extends Relational
 		{
 			if (!\Filesystem::makeDirectory($destination))
 			{
-				$this->setError('Unable to create upload path.');
+				$this->addError('Unable to create upload path.');
 
 				return false;
 			}
 		}
 
-		$filename = $this->automaticFilename(array(
+		$filename = $this->uniqueFilename(array(
 			'filename'   => $name,
 			'comment_id' => $this->get('comment_id')
 		));
@@ -191,7 +219,7 @@ class File extends Relational
 
 		if (!\Filesystem::upload($temp, $destination))
 		{
-			$this->setError('Unable to upload file.');
+			$this->addError('Unable to upload file.');
 
 			return false;
 		}
@@ -254,7 +282,7 @@ class File extends Relational
 		{
 			$this->dimensions = array(0, 0);
 
-			if ($this->isImage())
+			if ($this->isImage() && file_exists($this->path()))
 			{
 				$this->dimensions = getimagesize($this->path());
 			}

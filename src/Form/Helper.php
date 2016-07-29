@@ -32,8 +32,6 @@
 
 namespace Hubzero\Form;
 
-use Filesystem;
-
 /**
  * Provides a storage for filesystem's paths where Form's entities reside and methods for creating those entities.
  * Also stores objects with entities' prototypes for further reusing.
@@ -169,44 +167,6 @@ class Helper
 	 */
 	protected static function loadClass($entity, $type)
 	{
-		/*if (strpos($type, '.'))
-		{
-			list($prefix, $type) = explode('.', $type);
-		}
-		else
-		{
-			$prefix = 'J';
-		}
-
-		$class = ucfirst($prefix, '_') . 'Form' . ucfirst($entity, '_') . ucfirst($type, '_');
-
-		if (class_exists($class))
-		{
-			return $class;
-		}
-
-		// Get the field search path array.
-		$paths = self::addPath($entity);
-
-		// If the type is complex, add the base type to the paths.
-		if ($pos = strpos($type, '_'))
-		{
-
-			// Add the complex type prefix to the paths.
-			for ($i = 0, $n = count($paths); $i < $n; $i++)
-			{
-				// Derive the new path.
-				$path = $paths[$i] . '/' . strtolower(substr($type, 0, $pos));
-
-				// If the path does not exist, add it.
-				if (!in_array($path, $paths))
-				{
-					$paths[] = $path;
-				}
-			}
-			// Break off the end of the complex type.
-			$type = substr($type, $pos + 1);
-		}*/
 		$class = __NAMESPACE__ . '\\' . ucfirst($entity) . 's' . '\\' . ucfirst($type);
 
 		if (class_exists($class))
@@ -222,7 +182,7 @@ class Helper
 
 		foreach ($paths as $path)
 		{
-			if ($file = Filesystem::find($path, $type))
+			if ($file = \Filesystem::find($path, $type))
 			{
 				require_once $file;
 

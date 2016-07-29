@@ -78,7 +78,6 @@ class MarketHistory extends Relational
 	 * @var  array
 	 */
 	protected $rules = array(
-		'itemid'   => 'positive|nonzero',
 		'category' => 'notempty'
 	);
 
