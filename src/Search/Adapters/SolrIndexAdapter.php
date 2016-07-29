@@ -85,9 +85,16 @@ class SolrIndexAdapter implements IndexInterface
 	 */
 	public function getLogs()
 	{
-		$log = Filesystem::read($this->logPath);
-		$levels = array();
-		$this->logs = explode("\n", $log);
+		if (file_exists($this->logPath))
+		{
+			$log = Filesystem::read($this->logPath);
+			$levels = array();
+			$this->logs = explode("\n", $log);
+		}
+		else
+		{
+			return array();
+		}
 
 		return $this->logs;
 	}
