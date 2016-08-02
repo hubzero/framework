@@ -321,27 +321,30 @@ class SolrQueryAdapter implements QueryInterface
 		else
 		{
 			$user = User::get('id');
+			$userFilter = 'OR (access_level:private AND owner_type:user AND owner:' . $user . ')';
+			$accessFilter = "(access_level:public) OR (access_level:registered) " . $userFilter;
+
 			$userGroups = \Hubzero\User\Helper::getGroups($user);
 
-			$groupFilter = '(access_level:private AND owner_type:group AND (owner:';
-			$i = 0;
-			foreach ($userGroups as $group)
+			if (!empty($userGroups))
 			{
-				$groupFilter .= $group->gidNumber;
-				if ($i >= count($userGroups) - 1)
+				$groupFilter = 'OR (access_level:private AND owner_type:group AND (owner:';
+				$i = 0;
+				foreach ($userGroups as $group)
 				{
-					$groupFilter .= '))';
+					$groupFilter .= $group->gidNumber;
+					if ($i >= count($userGroups) - 1)
+					{
+						$groupFilter .= '))';
+					}
+					else
+					{
+						$groupFilter .= ' ';
+					}
+					$i++;
 				}
-				else
-				{
-					$groupFilter .= ' ';
-				}
-				$i++;
+				$accessFilter .= ' ' . $groupFilter;
 			}
-
-			$userFilter = '(access_level:private AND owner_type:user AND owner:' . $user . ')';
-
-			$accessFilter = "(access_level:public) (access_level:registered)" . $userFilter . ' ' . $groupFilter;
 		}
 
 		$this->query->createFilterQuery('userPerms')->setQuery($accessFilter);
