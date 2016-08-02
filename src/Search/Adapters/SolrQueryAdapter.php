@@ -321,7 +321,6 @@ class SolrQueryAdapter implements QueryInterface
 		else
 		{
 			$user = User::get('id');
-		
 			$userFilter = 'OR (access_level:private AND owner_type:user AND owner:' . $user . ')';
 			$accessFilter = "(access_level:public) OR (access_level:registered) " . $userFilter;
 
