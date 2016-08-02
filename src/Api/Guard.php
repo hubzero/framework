@@ -109,7 +109,12 @@ class Guard
 		if (isset($this->token['uidNumber']))
 		{
 			$response['user_id'] = $this->token['uidNumber'];
-			$this->app['session']->set('user', User::oneOrNew($response['user_id']));
+			$user = User::oneOrNew($response['user_id']);
+			if ($user->get('id'))
+			{
+				$user->set('guest', false);
+			}
+			$this->app['session']->set('user', $user);
 		}
 
 		// Fire after auth event
