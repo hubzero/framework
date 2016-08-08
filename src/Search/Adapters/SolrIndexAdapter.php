@@ -218,7 +218,7 @@ class SolrIndexAdapter implements IndexInterface
 		}
 		else
 		{
-			return false; 
+			return false;
 		}
 	}
 
