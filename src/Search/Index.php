@@ -103,4 +103,16 @@ class Index
 	{
 		return $this->adapter->index($document);
 	}
+
+	/**
+	 * delete - Deletes a document from the index
+	 * 
+	 * @param string $id 
+	 * @access public
+	 * @return void
+	 */
+	public function delete($id)
+	{
+		return $this->adapter->delete($id);
+	}
 }

@@ -69,4 +69,12 @@ interface IndexInterface
 	 * @return void
 	 */
 	public function index($document);
+
+	/**
+	 * delete 
+	 * 
+	 * @param string $id 
+	 * @return void
+	 */
+	public function delete($id);
 }

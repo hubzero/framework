@@ -199,14 +199,12 @@ class SolrIndexAdapter implements IndexInterface
 	/**
 	 * deleteById - Removes a single document from the search index
 	 *
-	 * @param mixed $id
+	 * @param string $id
 	 * @access public
-	 * @return void
+	 * @return boolean 
 	 */
-	public function deleteById($id = null)
+	public function delete($id)
 	{
-		// @FIXME Perhaps consider using addDeleteById(1234)?
-
 		if ($id != null)
 		{
 			$update = $this->connection->createUpdate();
@@ -214,13 +212,13 @@ class SolrIndexAdapter implements IndexInterface
 			$update->addCommit();
 			$response = $this->connection->update($update);
 
-			// @FIXME: logical fallicy
+			// @FIXME: Increase error checking 
 			// Wild assumption that the update was successful
 			return true;
 		}
 		else
 		{
-			return Lang::txt('No record specified.');
+			return false;
 		}
 	}
 
