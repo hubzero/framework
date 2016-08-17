@@ -32,7 +32,6 @@
 namespace Hubzero\Content;
 
 use App;
-use Config;
 
 /**
  * Content negotiator for files application
@@ -88,8 +87,17 @@ class Moderator
 
 		// We assume that if session_id and secret aren't included, that we're
 		// in an environement where we can easily grab them.
-		$this->session_id = $session_id ?: App::get('session')->getId();
-		$this->secret     = $secret     ?: Config::get('secret');
+		if (!$session_id && App::has('session'))
+		{
+			$session_id = App::get('session')->getId();
+		}
+		$this->session_id = $session_id;
+
+		if (!$secret && App::has('config'))
+		{
+			$secret = App::get('config')->get('secret');
+		}
+		$this->secret = $secret;
 	}
 
 	/**
