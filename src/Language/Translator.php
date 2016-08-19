@@ -184,7 +184,8 @@ class Translator extends Object
 		$this->setLanguage($lang);
 		$this->setDebug($debug);
 
-		$filename = PATH_APP . "/bootstrap/$client/language/overrides/$lang.override.ini";
+		// Client directories are all lowercase under PATH_APP
+		$filename = PATH_APP . "/bootstrap/" . strtolower($client) . "/language/overrides/$lang.override.ini";
 
 		if (file_exists($filename) && $contents = $this->parse($filename))
 		{
@@ -202,9 +203,11 @@ class Translator extends Object
 		$class = str_replace('-', '_', $lang . 'Localise');
 		$paths = array();
 
-		$paths[0] = PATH_APP . "/bootstrap/$client/language/overrides/$lang.localise.php";
-		$paths[1] = PATH_APP . "/bootstrap/$client/language/$lang/$lang.localise.php";
-		$paths[2] = PATH_CORE . "/bootstrap/$client/language/$lang/$lang.localise.php";
+		// Client directories are all lowercase under PATH_APP (for now)
+		$paths[0] = PATH_APP . "/bootstrap/" . strtolower($client) . "/language/overrides/$lang.localise.php";
+		$paths[1] = PATH_APP . "/bootstrap/" . strtolower($client) . "/language/$lang/$lang.localise.php";
+		// Client directories are ucfirst (PSR-4) under PATH_CORE
+		$paths[2] = PATH_CORE . "/bootstrap/" . strtolower($client) . "/language/$lang/$lang.localise.php";
 		$paths[3] = PATH_CORE . "/bootstrap/" . ucfirst($client) . "/language/$lang/$lang.localise.php";
 
 		ksort($paths);
