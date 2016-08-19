@@ -34,12 +34,16 @@ namespace Hubzero\Spam;
 use Hubzero\Spam\Detector\DetectorInterface;
 use Hubzero\Spam\StringProcessor\StringProcessorInterface;
 use Hubzero\Error\Exception\RuntimeException;
+use Hubzero\Base\Traits\ErrorBag;
+use Exception;
 
 /**
  * Spam checker
  */
 class Checker
 {
+	use ErrorBag;
+
 	/**
 	 * Holds registered spam detectors
 	 *
@@ -117,20 +121,30 @@ class Checker
 		foreach ($this->detectors as $id => $detector)
 		{
 			$spam = false;
+			$msg  = null;
 
-			if ($detector->detect($data))
+			try
 			{
-				$spam = true;
-
-				if ($detector->message())
+				if ($detector->detect($data))
 				{
-					$messages[] = $detector->message();
+					$spam = true;
+
+					if ($detector->message())
+					{
+						$messages[] = $detector->message();
+					}
+
+					$failure++;
 				}
 
-				$failure++;
+				$msg = $detector->message();
+			}
+			catch (Exception $e)
+			{
+				$this->setError($e->getMessage());
 			}
 
-			$this->mark($id, $spam, $detector->message());
+			$this->mark($id, $spam, $msg);
 		}
 
 		$result = new Result($failure > 0, $messages);
