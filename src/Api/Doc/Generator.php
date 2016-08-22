@@ -69,6 +69,8 @@ class Generator
 	 */
 	public function __construct($cache = true)
 	{
+		$this->cache = (bool) $cache;
+
 		// create all needed keys in output
 		$this->output = array(
 			'sections' => array(),
