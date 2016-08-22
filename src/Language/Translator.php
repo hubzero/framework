@@ -1227,7 +1227,7 @@ class Translator extends Object
 		if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
 		{
 			$browserLangs = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
-			$systemLangs  = $this->getLanguages();
+			$systemLangs  = $this->available();
 			foreach ($browserLangs as $browserLang)
 			{
 				// Slice out the part before ; on first step, the part before - on second, place into array
