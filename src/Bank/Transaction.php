@@ -112,7 +112,7 @@ class Transaction extends Relational
 			$model->whereEquals('uid', $uid);
 		}
 
-		return $model->rows();
+		return $model->order('created', 'desc')->rows();
 	}
 
 	/**
