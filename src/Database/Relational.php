@@ -1024,10 +1024,12 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		// Note that we do not need to parse includes at this stage, as includes do not effect
 		// the primary result set, and thus do not effect the count.  whereRelated could effect
 		// the count, but that method is not currently in use.
-		$total = $this->select($this->getQualifiedFieldName($this->getPrimaryKey()), 'count', true)
+		$first = $this->select($this->getQualifiedFieldName($this->getPrimaryKey()), 'count', true)
 		              ->rows(false)
-		              ->first()
-		              ->count;
+		              ->first();
+		              //->count;
+
+		$total = $first ? (int)$first->count : 0;
 
 		$this->reset();
 

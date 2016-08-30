@@ -51,7 +51,7 @@ class Rows implements Iterator, Countable
 	 *
 	 * @var  array
 	 **/
-	private $rows = null;
+	private $rows = array();
 
 	/**
 	 * Order by used to retrieve these rows
@@ -129,7 +129,7 @@ class Rows implements Iterator, Countable
 	 **/
 	public function clear()
 	{
-		$this->rows = null;
+		$this->rows = array();
 	}
 
 	/**
