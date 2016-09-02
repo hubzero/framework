@@ -234,8 +234,8 @@ class Ldap
 			return false;
 		}
 
-		$query = "SELECT p.uidNumber AS uidNumber, p.username AS uid, p.name AS cn, " .
-				" p.gidNumber, p.homeDirectory, p.loginShell, " .
+		$query = "SELECT u.id AS uidNumber, u.username AS uid, u.name AS cn, " .
+				" p.gidNumber, u.homeDirectory, u.loginShell, " .
 				" pwd.passhash AS userPassword, pwd.shadowLastChange, pwd.shadowMin, pwd.shadowMax, pwd.shadowWarning, " .
 				" pwd.shadowInactive, pwd.shadowExpire, pwd.shadowFlag " .
 				" FROM #__users AS u " .
@@ -262,7 +262,7 @@ class Ldap
 
 		if (!empty($dbinfo))
 		{
-			$query = "SELECT host FROM #__xprofiles_host WHERE uidNumber = " . $db->quote($dbinfo['uidNumber']) . ";";
+			$query = "SELECT host FROM `#__xprofiles_host` WHERE uidNumber = " . $db->quote($dbinfo['uidNumber']) . ";";
 			$db->setQuery($query);
 			$dbinfo['host'] = $db->loadColumn();
 		}
