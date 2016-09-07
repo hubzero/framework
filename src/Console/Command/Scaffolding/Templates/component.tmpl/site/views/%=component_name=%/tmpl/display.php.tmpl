@@ -29,16 +29,10 @@
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
-namespace Components\%=component_name+ucf=%\Models;
 
-use Hubzero\Database\Relational;
+$this->css()
+     ->js();
+?>
 
-/**
- * %=component_name+ucfp=% database model
- *
- * @uses  \Hubzero\Database\Relational
- */
-class %=component_name+ucf=% extends Relational
-{
-
-}
+<?php foreach ($this->%=component_name+p=% as $%=component_name=%) { ?>
+<?php } // end foreach ?>
