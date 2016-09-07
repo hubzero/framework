@@ -32,10 +32,13 @@
 
 namespace Components\%=component_name+ucf=%\Site\Controllers;
 
+use Hubzero\Component\SiteController;
+use Components\%=component_name+ucf=%\Models\%=component_name+ucfp=%;
+
 /**
- * %=component_name+ucfp=% controller for time component
+ * %=component_name+ucf=% controller for time component
  */
-class %=component_name+ucfp=% extends Base
+class %=component_name+ucf=% extends SiteController 
 {
 	/**
 	 * Default view function
@@ -44,7 +47,7 @@ class %=component_name+ucfp=% extends Base
 	 */
 	public function displayTask()
 	{
-		$%=component_name+p=% = %=component_name+ucf=%::all();
+		$%=component_name+p=% = %=component_name+ucfp=%::all();
 
 		// Display
 		$this->view->%=component_name+p=% = $%=component_name+p=%->paginated()->ordered();
