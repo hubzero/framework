@@ -38,6 +38,8 @@ use Hubzero\Base\ServiceProvider;
 
 /**
  * Plugin loader service provider
+ *
+ * @codeCoverageIgnore
  */
 class PluginServiceProvider extends ServiceProvider
 {

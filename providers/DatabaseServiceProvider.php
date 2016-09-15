@@ -37,6 +37,8 @@ use Hubzero\Base\ServiceProvider;
 
 /**
  * Database service provider
+ *
+ * @codeCoverageIgnore
  */
 class DatabaseServiceProvider extends ServiceProvider
 {

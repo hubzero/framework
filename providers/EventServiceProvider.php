@@ -39,6 +39,8 @@ use Hubzero\Base\ServiceProvider;
 
 /**
  * Event service provider
+ *
+ * @codeCoverageIgnore
  */
 class EventServiceProvider extends ServiceProvider
 {

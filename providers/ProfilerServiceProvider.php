@@ -37,6 +37,8 @@ use Hubzero\Base\ServiceProvider;
 
 /**
  * Profiler service provider
+ *
+ * @codeCoverageIgnore
  */
 class ProfilerServiceProvider extends ServiceProvider
 {
