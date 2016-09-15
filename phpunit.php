@@ -111,20 +111,22 @@ $app['config'] = new \Hubzero\Config\Repository('test', new \Hubzero\Config\File
 */
 
 $services = [
-	'Hubzero\Base\JoomlaServiceProvider',
-	'Hubzero\Events\EventServiceProvider',
-	'Hubzero\Language\TranslationServiceProvider',
-	'Hubzero\Database\DatabaseServiceProvider',
-	'Hubzero\Plugin\PluginServiceProvider',
-	'Hubzero\Debug\ProfilerServiceProvider',
-	'Hubzero\Log\LogServiceProvider',
-	'Hubzero\Routing\RouterServiceProvider',
-	'Hubzero\Filesystem\FilesystemServiceProvider',
+	'JoomlaServiceProvider',
+	'EventServiceProvider',
+	'TranslationServiceProvider',
+	'DatabaseServiceProvider',
+	'PluginServiceProvider',
+	'ProfilerServiceProvider',
+	'LogServiceProvider',
+	'RouterServiceProvider',
+	'FilesystemServiceProvider',
 ];
 
 foreach ($services as $service)
 {
-	$app->register($service);
+	require_once __DIR__ . '/providers/' . $service . '.php';
+
+	$app->register('Framework\\Providers\\' . $service);
 }
 
 /*
