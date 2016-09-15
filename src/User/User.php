@@ -90,7 +90,8 @@ class User extends \Hubzero\Database\Relational
 	 */
 	public $initiate = array(
 		'registerDate',
-		'registerIP'
+		'registerIP',
+		'access'
 	);
 
 	/**
@@ -272,6 +273,21 @@ class User extends \Hubzero\Database\Relational
 			$data['registerIP'] = \Request::ip();
 		}
 		return $data['registerIP'];
+	}
+
+	/**
+	 * Generates automatic access field value
+	 *
+	 * @param   array   $data  the data being saved
+	 * @return  string
+	 */
+	public function automaticAccess($data)
+	{
+		if (!isset($data['access']) || !$data['access'])
+		{
+			$data['access'] = 1;
+		}
+		return $data['access'];
 	}
 
 	/**
