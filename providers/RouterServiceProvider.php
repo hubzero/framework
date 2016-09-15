@@ -39,6 +39,8 @@ use Hubzero\Http\Request;
 
 /**
  * Router service provider
+ *
+ * @codeCoverageIgnore
  */
 class RouterServiceProvider extends Middleware
 {

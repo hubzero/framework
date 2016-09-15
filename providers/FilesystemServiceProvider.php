@@ -43,6 +43,8 @@ use Hubzero\Base\ServiceProvider;
 
 /**
  * Filesystem service provider
+ *
+ * @codeCoverageIgnore
  */
 class FilesystemServiceProvider extends ServiceProvider
 {

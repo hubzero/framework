@@ -39,6 +39,8 @@ use Hubzero\Base\ServiceProvider;
  * 
  * This loads in the core Joomla framework and instantiates
  * the base application class.
+ *
+ * @codeCoverageIgnore
  */
 class JoomlaServiceProvider extends ServiceProvider
 {

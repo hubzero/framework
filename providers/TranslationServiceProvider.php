@@ -37,6 +37,8 @@ use Hubzero\Base\ServiceProvider;
 
 /**
  * Language translation service provider
+ *
+ * @codeCoverageIgnore
  */
 class TranslationServiceProvider extends ServiceProvider
 {
