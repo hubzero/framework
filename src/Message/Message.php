@@ -32,40 +32,57 @@
 
 namespace Hubzero\Message;
 
+use Hubzero\Database\Relational;
+use Hubzero\Utility\String;
+
 /**
- * Table class for a message
+ * Model class for a message
  */
-class Message extends \JTable
+class Message extends Relational
 {
 	/**
-	 * Constructor
+	 * The table to which the class pertains
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
-	 */
-	public function __construct(&$db)
-	{
-		parent::__construct('#__xmessage', 'id', $db);
-	}
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
+	 **/
+	protected $table = '#__xmessage';
 
 	/**
-	 * Validate data
+	 * Default order by for model
 	 *
-	 * @return  boolean  True if data is valid
+	 * @var  string
 	 */
-	public function check()
+	public $orderBy = 'id';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'desc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'message'    => 'notempty',
+		'created_by' => 'positive|nonzero'
+	);
+
+	/**
+	 * Defines a belongs to one relationship between entry and user
+	 *
+	 * @return  object
+	 */
+	public function creator()
 	{
-		$this->message = trim($this->message);
-		if (!$this->message)
-		{
-			$this->setError(\Lang::txt('Please provide a message.'));
-			return false;
-		}
-
-		$this->group_id   = intval($this->group_id);
-		$this->created_by = intval($this->created_by);
-
-		return true;
+		return $this->belongsToOne('Hubzero\User\User', 'created_by');
 	}
 
 	/**
@@ -76,10 +93,8 @@ class Message extends \JTable
 	 */
 	public function getCount($filters=array())
 	{
-		$query = "SELECT COUNT(*) FROM $this->_tbl";
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadResult();
+		return self::all()
+			->total();
 	}
 
 	/**
@@ -90,10 +105,8 @@ class Message extends \JTable
 	 */
 	public function getRecords($filters=array())
 	{
-		$query = "SELECT * FROM $this->_tbl ORDER BY created DESC";
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
+		return self::all()
+			->rows();
 	}
 
 	/**
@@ -104,43 +117,45 @@ class Message extends \JTable
 	 */
 	private function buildQuery($filters=array())
 	{
+		$entries = self::all();
+
+		$m = $entries->getTableName();
+		$u = '#__users';
+
 		if (isset($filters['group_id']) && $filters['group_id'] != 0)
 		{
-			$query  = "FROM $this->_tbl AS m
-						JOIN #__users AS u ON u.id=m.created_by";
+			$entries
+				->select($m . '.*,' . $u . '.name')
+				->join($u, $u . '.id', $m . '.created_by', 'inner');
 		}
 		else
 		{
-			$query  = "FROM $this->_tbl AS m
-						JOIN #__xmessage_recipient AS r ON r.mid=m.id
-						JOIN #__users AS u ON u.id=r.uid";
-		}
+			$r = Recipient::blank()->getTableName();
 
-		$where = array();
+			$entries
+				->select($m . '.*,' . $u . '.name')
+				->join($r, $r . '.mid', $m . '.id', 'inner')
+				->join($u, $u . '.id', $r . '.uid', 'inner');
+		}
 
 		if (isset($filters['created_by']) && $filters['created_by'] != 0)
 		{
-			$where[] = "m.created_by=" . $this->_db->quote($filters['created_by']);
+			$entries->whereEquals('created_by', $filters['created_by']);
 		}
 		if (isset($filters['daily_limit']) && $filters['daily_limit'] != 0)
 		{
 			$start = date('Y-m-d', mktime(0, 0, 0, date('m'), date('d'), date('Y'))) . " 00:00:00";
 			$end   = date('Y-m-d', mktime(0, 0, 0, date('m'), date('d'), date('Y'))) . " 23:59:59";
 
-			$where[] = "m.created >= " . $this->_db->quote($start);
-			$where[] = "m.created <= " . $this->_db->quote($end);
+			$entries->where('created', '>=', $start);
+			$entries->where('created', '<=', $end);
 		}
 		if (isset($filters['group_id']) && $filters['group_id'] != 0)
 		{
-			$where[] = "m.group_id=" . $this->_db->quote($filters['group_id']);
+			$entries->whereEquals('group_id', (int)$filters['group_id']);
 		}
 
-		if (count($where) > 0)
-		{
-			$query .= " WHERE " . implode(" AND ", $where);
-		}
-
-		return $query;
+		return $entries;
 	}
 
 	/**
@@ -151,25 +166,16 @@ class Message extends \JTable
 	 */
 	public function getSentMessages($filters=array())
 	{
-		if (isset($filters['group_id']) && $filters['group_id'] != 0)
-		{
-			$query = "SELECT m.*, u.name ";
-		}
-		else
-		{
-			$query = "SELECT m.*, u.name, r.uid ";
-		}
-
-		$query .= $this->buildQuery($filters);
+		$entries = $this->buildQuery($filters);
+		$entries->order($entries->getTableName() . '.created', 'desc');
 
 		if (isset($filters['limit']) && $filters['limit'] != 0)
 		{
-			$query .= " ORDER BY created DESC";
-			$query .= " LIMIT " . $filters['start'] . "," . $filters['limit'];
+			$entries->limit($filters['limit'])
+				->start($filters['start']);
 		}
 
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
+		return $entries->rows();
 	}
 
 	/**
@@ -180,9 +186,63 @@ class Message extends \JTable
 	 */
 	public function getSentMessagesCount($filters=array())
 	{
-		$query = "SELECT COUNT(*) " . $this->buildQuery($filters);
+		$entries = $this->buildQuery($filters);
 
-		$this->_db->setQuery($query);
-		return $this->_db->loadResult();
+		return $entries->total();
+	}
+
+	/**
+	 * Transform and prepare content
+	 *
+	 * @return  string
+	 */
+	public function transformMessage()
+	{
+		$UrlPtrn  = "[^=\"\'](https?:|mailto:|ftp:|gopher:|news:|file:)" . "([^ |\\/\"\']*\\/)*([^ |\\t\\n\\/\"\']*[A-Za-z0-9\\/?=&~_])";
+
+		$message = str_replace("\n","\n ",stripslashes($this->get('message')));
+		$message = preg_replace_callback("/$UrlPtrn/", array($this,'autolink'), $message);
+		$message = nl2br($message);
+		$message = str_replace("\t",'&nbsp;&nbsp;&nbsp;&nbsp;', $message);
+
+		return $message;
+	}
+
+	/**
+	 * Auto-link mailto, ftp, and http strings in text
+	 *
+	 * @param   array  $matches  Text to autolink
+	 * @return  string
+	 */
+	protected function autolink($matches)
+	{
+		$href = $matches[0];
+
+		if (substr($href, 0, 1) == '!')
+		{
+			return substr($href, 1);
+		}
+
+		$href = str_replace('"', '', $href);
+		$href = str_replace("'", '', $href);
+		$href = str_replace('&#8221', '', $href);
+
+		$h = array('h', 'm', 'f', 'g', 'n');
+		if (!in_array(substr($href,0,1), $h))
+		{
+			$href = substr($href, 1);
+		}
+		$name = trim($href);
+		if (substr($name, 0, 7) == 'mailto:')
+		{
+			$name = substr($name, 7, strlen($name));
+			$name = String::obfuscate($name);
+
+			$href = 'mailto:' . $name;
+		}
+		$l = sprintf(
+			' <a class="ext-link" href="%s" rel="external">%s</a>', $href, $name
+		);
+		return $l;
 	}
 }

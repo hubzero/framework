@@ -32,36 +32,62 @@
 
 namespace Hubzero\Message;
 
+use Hubzero\Database\Relational;
+
 /**
- * Table class for message notification
+ * Model class for message notification
  */
-class Notify extends \JTable
+class Notify extends Relational
 {
 	/**
-	 * Constructor
+	 * The table namespace
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
+	 * @var  string
 	 */
-	public function __construct(&$db)
-	{
-		parent::__construct('#__xmessage_notify', 'id', $db);
-	}
+	protected $namespace = 'xmessage';
 
 	/**
-	 * Validate data
+	 * The table to which the class pertains
 	 *
-	 * @return  boolean  True if data is valid
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
+	 **/
+	protected $table = '#__xmessage_notify';
+
+	/**
+	 * Default order by for model
+	 *
+	 * @var  string
 	 */
-	public function check()
+	public $orderBy = 'priority';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'uid' => 'positive|nonzero'
+	);
+
+	/**
+	 * Defines a belongs to one relationship between entry and user
+	 *
+	 * @return  object
+	 */
+	public function user()
 	{
-		$this->uid = intval($this->uid);
-		if (!$this->uid)
-		{
-			$this->setError(\Lang::txt('Please provide a user ID.'));
-			return false;
-		}
-		return true;
+		return $this->belongsToOne('Hubzero\User\User', 'uid');
 	}
 
 	/**
@@ -71,22 +97,19 @@ class Notify extends \JTable
 	 * @param   string   $type  Record type
 	 * @return  mixed    False if errors, array on success
 	 */
-	public function getRecords($uid=null, $type=null)
+	public function getRecords($uid, $type=null)
 	{
-		$uid  = $uid  ?: $this->uid;
-		$type = $type ?: $this->type;
+		$entries = self::all()
+			->whereEquals('uid', $uid);
 
-		if (!$uid)
+		if ($type)
 		{
-			return false;
+			$entries->whereEquals('type', $type);
 		}
 
-		$query  = "SELECT * FROM $this->_tbl WHERE `uid`=" . $this->_db->quote($uid);
-		$query .= ($type) ? " AND `type`=" . $this->_db->quote($type) : "";
-		$query .= " ORDER BY `priority` ASC";
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
+		return $entries
+			->order('priority', 'asc')
+			->rows();
 	}
 
 	/**
@@ -95,22 +118,11 @@ class Notify extends \JTable
 	 * @param   integer  $uid  User ID
 	 * @return  boolean  True on success
 	 */
-	public function clearAll($uid=null)
+	public function deleteByUser($uid)
 	{
-		$uid = $uid ?: $this->uid;
-
-		if (!$uid)
-		{
-			return false;
-		}
-
-		$query  = "DELETE FROM $this->_tbl WHERE `uid`=" . $this->_db->quote($uid);
-		$this->_db->setQuery($query);
-		if (!$this->_db->query())
-		{
-			return false;
-		}
-		return true;
+		return $this->delete()
+			->whereEquals('uid', $uid)
+			->execute();
 	}
 
 	/**
@@ -119,19 +131,10 @@ class Notify extends \JTable
 	 * @param   string   $type
 	 * @return  boolean  True on success, False on error
 	 */
-	public function deleteType($type)
+	public function deleteByType($type)
 	{
-		if (!$type)
-		{
-			return false;
-		}
-
-		$query  = "DELETE FROM $this->_tbl WHERE `type`=" . $this->_db->quote($type);
-		$this->_db->setQuery($query);
-		if (!$this->_db->query())
-		{
-			return false;
-		}
-		return true;
+		return $this->delete()
+			->whereEquals('type', $type)
+			->execute();
 	}
 }
