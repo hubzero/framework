@@ -32,37 +32,53 @@
 
 namespace Hubzero\Message;
 
+use Hubzero\Database\Relational;
+
 /**
- * Table class for message actions
+ * Model class for message actions
  */
-class Action extends \JTable
+class Action extends Relational
 {
 	/**
-	 * Constructor
+	 * The table namespace
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
+	 * @var  string
 	 */
-	public function __construct(&$db)
-	{
-		parent::__construct('#__xmessage_action', 'id', $db);
-	}
+	protected $namespace = 'xmessage';
 
 	/**
-	 * Validate data
+	 * The table to which the class pertains
 	 *
-	 * @return  boolean  True if data is valid
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
+	 **/
+	protected $table = '#__xmessage_action';
+
+	/**
+	 * Default order by for model
+	 *
+	 * @var  string
 	 */
-	public function check()
-	{
-		$this->element = intval($this->element);
-		if (!$this->element)
-		{
-			$this->setError(\Lang::txt('Please provide an element.'));
-			return false;
-		}
-		return true;
-	}
+	public $orderBy = 'id';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'element' => 'notempty'
+	);
 
 	/**
 	 * Get records for specific type, element, component, and user
@@ -71,24 +87,24 @@ class Action extends \JTable
 	 * @param   string   $component  Component name
 	 * @param   integer  $element    ID of element that needs action
 	 * @param   integer  $uid        User ID
-	 * @return  mixed    False if errors, array on success
+	 * @return  object
 	 */
-	public function getActionItems($type=null, $component=null, $element=null, $uid=null)
+	public static function getActionItems($type, $component, $element, $uid)
 	{
-		$component = $component ?: $this->class;
-		$element   = $element   ?: $this->element;
+		$entries = self::all();
 
-		if (!$component || !$element || !$uid || !$type)
-		{
-			$this->setError(\Lang::txt('Missing argument.'));
-			return false;
-		}
+		$a = $entries->getTableName();
+		$m = Message::blank()->getTableName();
+		$r = Recipient::blank()->getTableName();
 
-		$query = "SELECT m.id
-				FROM `#__xmessage_recipient` AS r, $this->_tbl AS a, `#__xmessage` AS m
-				WHERE m.id=r.mid AND r.actionid = a.id AND m.type=" . $this->_db->quote($type) . " AND r.uid=" . $this->_db->quote($uid) . " AND a.class=" . $this->_db->quote($component) . " AND a.element=" . $this->_db->quote($element);
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadColumn();
+		return $entries
+			->select($m . '.id')
+			->join($r, $r . '.actionid', $a . '.id', 'inner')
+			->join($m, $m . '.id', $r . '.mid', 'inner')
+			->whereEquals($m . '.type', $type)
+			->whereEquals($r . '.uid', $uid)
+			->whereEquals($a . '.class', $component)
+			->whereEquals($a . '.element', $element)
+			->rows();
 	}
 }

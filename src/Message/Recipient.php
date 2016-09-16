@@ -32,59 +32,98 @@
 
 namespace Hubzero\Message;
 
+use Hubzero\Database\Relational;
+use Hubzero\Utility\Date;
+
 /**
- * Table class for recipient of message
+ * Model class for recipient of message
  */
-class Recipient extends \JTable
+class Recipient extends Relational
 {
 	/**
-	 * Constructor
+	 * The table namespace
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
+	 * @var  string
 	 */
-	public function __construct(&$db)
+	protected $namespace = 'xmessage';
+
+	/**
+	 * The table to which the class pertains
+	 *
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
+	 **/
+	protected $table = '#__xmessage_recipient';
+
+	/**
+	 * Default order by for model
+	 *
+	 * @var  string
+	 */
+	public $orderBy = 'id';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'mid' => 'positive|nonzero'
+	);
+
+	/**
+	 * Defines a belongs to one relationship between entry and message
+	 *
+	 * @return  object
+	 */
+	public function message()
 	{
-		parent::__construct('#__xmessage_recipient', 'id', $db);
+		return $this->belongsToOne('Message', 'mid');
 	}
 
 	/**
-	 * Validate data
+	 * Defines a belongs to one relationship between entry and user
 	 *
-	 * @return  boolean  True if data is valid
+	 * @return  object
 	 */
-	public function check()
+	public function user()
 	{
-		$this->mid = intval($this->mid);
-		if (!$this->mid)
-		{
-			$this->setError(\Lang::txt('Please provide a message ID.'));
-			return false;
-		}
-		return true;
+		return $this->belongsToOne('Hubzero\User\User', 'uid');
 	}
 
 	/**
-	 * Load a record by message ID and user ID and bind to $this
+	 * Defines a belongs to one relationship between entry and user
+	 *
+	 * @return  object
+	 */
+	public function action()
+	{
+		return $this->belongsToOne('Action', 'actionid');
+	}
+
+	/**
+	 * Load a record by message ID and user ID
 	 *
 	 * @param   integer  $mid  Message ID
 	 * @param   integer  $uid  User ID
 	 * @return  boolean  True on success
 	 */
-	public function loadRecord($mid=null, $uid=null)
+	public static function oneByMessageAndUser($mid, $uid)
 	{
-		$mid = $mid ?: $this->mid;
-		$uid = $uid ?: $this->uid;
-
-		if (!$mid || !$uid)
-		{
-			return false;
-		}
-
-		return parent::load(array(
-			'mid' => $mid,
-			'uid' => $uid
-		));
+		return self::all()
+			->whereEquals('mid', $mid)
+			->whereEquals('uid', $uid)
+			->row();
 	}
 
 	/**
@@ -95,23 +134,26 @@ class Recipient extends \JTable
 	 */
 	private function buildQuery($uid, $filters=array())
 	{
-		$query  = "FROM #__xmessage AS m LEFT JOIN #__xmessage_seen AS s ON s.mid=m.id AND s.uid=" . $this->_db->quote($uid) . ", $this->_tbl AS r
-					WHERE r.uid=" . $this->_db->quote($uid) . "
-					AND r.mid=m.id ";
+		$r = $this->getTableName();
+		$m = Message::blank()->getTableName();
+		$s = Seen::blank()->getTableName();
+
+		$entries = self::all()
+			->join($m, $m . '.id', $r . '.mid', 'inner')
+			//->join($s, $s . '.mid', $m . '.id', 'left')
+			->joinRaw($s, $s . '.mid=' . $m . '.id AND ' . $s . '.uid=' . $uid, 'left')
+			->whereEquals($r . '.uid', $uid);
+
 		if (isset($filters['state']))
 		{
-			$query .= "AND r.state=" . $this->_db->quote($filters['state']);
+			$entries->whereEquals($r . '.state', $filters['state']);
 		}
 		if (isset($filters['filter']) && $filters['filter'] != '')
 		{
-			$query .= "AND m.component=" . $this->_db->quote($filters['filter']);
+			$entries->whereEquals($m . '.component', $filters['filter']);
 		}
-		if (isset($filters['limit']) && $filters['limit'] != 0)
-		{
-			$query .= " ORDER BY importance DESC, created DESC";
-			$query .= " LIMIT " . $filters['start'] . "," . $filters['limit'];
-		}
-		return $query;
+
+		return $entries;
 	}
 
 	/**
@@ -127,14 +169,21 @@ class Recipient extends \JTable
 
 		if (!$uid)
 		{
-			return false;
+			return array();
 		}
 
-		$query = "SELECT m.*, s.whenseen, r.expires, r.actionid, r.state,
-					(CASE WHEN r.actionid > 0 AND s.whenseen IS NULL THEN 1 ELSE 0 END) AS importance " . $this->buildQuery($uid, $filters);
+		$r = $this->getTableName();
+		$m = Message::blank()->getTableName();
+		$s = Seen::blank()->getTableName();
 
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
+		$entries = $this->buildQuery($uid, $filters);
+
+		return $entries
+			->select($m . '.*,' . $r . '.expires,' . $r . '.actionid,' . $r . '.state,' . $s . '.whenseen')
+			->order($r . '.created', 'desc')
+			->limit($filters['limit'])
+			->start($filters['start'])
+			->rows();
 	}
 
 	/**
@@ -144,21 +193,16 @@ class Recipient extends \JTable
 	 * @param   array    $filters  Filters to build query from
 	 * @return  mixed    False if errors, integer on success
 	 */
-	public function getMessagesCount($uid=null, $filters=array())
+	public function getMessagesCount($uid, $filters=array())
 	{
-		$uid = $uid ?: $this->uid;
-
 		if (!$uid)
 		{
-			return false;
+			return 0;
 		}
 
-		$filters['limit'] = 0;
+		$entries = $this->buildQuery($uid, $filters);
 
-		$query = "SELECT COUNT(*) " . $this->buildQuery($uid, $filters);
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadResult();
+		return $entries->total();
 	}
 
 	/**
@@ -168,26 +212,31 @@ class Recipient extends \JTable
 	 * @param   integer  $limit  Number of records to return
 	 * @return  mixed    False if errors, array on success
 	 */
-	public function getUnreadMessages($uid=null, $limit=null)
+	public function getUnreadMessages($uid, $limit=null)
 	{
-		$uid = $uid ?: $this->uid;
-
 		if (!$uid)
 		{
-			return false;
+			return array();
 		}
 
-		$query = "SELECT " . ($limit ? "DISTINCT m.*, r.expires, r.actionid" : "DISTINCT m.id") . "
-				FROM #__xmessage AS m, $this->_tbl AS r
-				WHERE m.id = r.mid AND r.uid=" . $this->_db->quote($uid) . " AND r.state!=2 AND m.id NOT IN (SELECT s.mid FROM #__xmessage_seen AS s WHERE s.uid=" . $this->_db->quote($uid) . ")";
+		$r = $this->getTableName();
+		$m = Message::blank()->getTableName();
+		$s = Seen::blank()->getTableName();
+
+		$entries = self::all()
+			->select($m . '.*,' . $r . '.expires,' . $r . '.actionid')
+			->join($m, $m . '.id', $r . '.mid', 'inner')
+			->whereEquals($r . '.uid', $uid)
+			->where($r . '.state', '!=', 2)
+			->whereRaw($m . ".id NOT IN (SELECT s.mid FROM `" . $s . "` AS s WHERE s.uid=" . $uid . ")")
+			->order($r . '.created', 'desc');
+
 		if ($limit)
 		{
-			$query .= " ORDER BY r.created DESC";
-			$query .= " LIMIT $limit";
+			$entries->limit($limit);
 		}
 
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
+		return $entries->rows();
 	}
 
 	/**
@@ -196,24 +245,12 @@ class Recipient extends \JTable
 	 * @param   integer  $uid  User ID
 	 * @return  boolean  True on success
 	 */
-	public function deleteTrash($uid=null)
+	public function deleteTrash($uid)
 	{
-		$uid = $uid ?: $this->uid;
-
-		if (!$uid)
-		{
-			return false;
-		}
-
-		$query = "DELETE FROM $this->_tbl WHERE uid=" . $this->_db->quote($uid) . " AND state='2'";
-
-		$this->_db->setQuery($query);
-		if (!$this->_db->query())
-		{
-			$this->setError($this->_db->getError());
-			return false;
-		}
-		return true;
+		return $this->delete()
+			->whereEquals('uid', $uid)
+			->whereEquals('state', 2)
+			->execute();
 	}
 
 	/**
@@ -231,15 +268,71 @@ class Recipient extends \JTable
 		}
 
 		$ids = array_map('intval', $ids);
-		$ids = implode(',', $ids);
-		$query = "UPDATE $this->_tbl SET state=" . $this->_db->quote($state) . " WHERE id IN ($ids)";
 
-		$this->_db->setQuery($query);
-		if (!$this->_db->query())
+		return $this->update()
+			->set(array('state' => $state))
+			->whereIn('id', $ids)
+			->execute();
+	}
+
+	/**
+	 * Mark a message as being read by the recipient
+	 *
+	 * @return  boolean  True on success
+	 */
+	public function markAsRead()
+	{
+		if (!$this->get('id'))
 		{
-			$this->setError($this->_db->getError());
+			$this->addError('Recipient record not found');
 			return false;
 		}
+
+		$xseen = Seen::oneByMessageAndUser($this->get('mid'), $this->get('uid'));
+
+		if ($xseen->get('whenseen') == ''
+		 || $xseen->get('whenseen') == '0000-00-00 00:00:00'
+		 || $xseen->get('whenseen') == null)
+		{
+			$dt = new Date('now');
+
+			$xseen->set('mid', $this->get('mid'));
+			$xseen->set('uid', $this->get('uid'));
+			$xseen->set('whenseen', $dt->toSql());
+			if (!$xseen->save())
+			{
+				$this->addError($xseen->getError());
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Mark a message as not being read by the recipient
+	 *
+	 * @return  boolean  True on success
+	 */
+	public function markAsUnread()
+	{
+		if (!$this->get('id'))
+		{
+			$this->addError('Recipient record not found');
+			return false;
+		}
+
+		$xseen = Seen::oneByMessageAndUser($this->get('mid'), $this->get('uid'));
+
+		if ($xseen->get('id'))
+		{
+			if (!$xseen->destroy())
+			{
+				$this->addError($xseen->getError());
+				return false;
+			}
+		}
+
 		return true;
 	}
 }
