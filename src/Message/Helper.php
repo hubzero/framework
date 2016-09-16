@@ -63,19 +63,17 @@ class Helper extends Object
 		// Do we have any user IDs?
 		if (count($uids) > 0)
 		{
-			$database = \App::get('db');
-
 			// Loop through each ID
 			foreach ($uids as $uid)
 			{
 				// Find any actions the user needs to take for this $component and $element
-				$action = new Action($database);
+				$action = Action::blank();
 				$mids = $action->getActionItems($component, $element, $uid, $type);
 
 				// Check if the user has any action items
 				if (count($mids) > 0)
 				{
-					$recipient = new Recipient($database);
+					$recipient = Recipient::blank();
 					if (!$recipient->setState(1, $mids))
 					{
 						$this->setError(Lang::txt('Unable to update recipient records %s for user %s', implode(',', $mids), $uid));
@@ -119,26 +117,25 @@ class Helper extends Object
 			}
 		}
 
-		$database = \App::get('db');
-
 		// Create the message object and store it in the database
-		$xmessage = new Message($database);
-		$xmessage->subject    = $subject;
-		$xmessage->message    = $message;
-		$xmessage->created    = Date::toSql();
-		$xmessage->created_by = User::get('id');
-		$xmessage->component  = $component;
-		$xmessage->type       = $type;
-		$xmessage->group_id   = $group_id;
-		if (!$xmessage->store())
+		$xmessage = Message::blank();
+		$xmessage->set('subject', $subject);
+		$xmessage->set('message', $message);
+		$xmessage->set('created', Date::toSql());
+		$xmessage->set('created_by', User::get('id'));
+		$xmessage->set('component', $component);
+		$xmessage->set('type', $type);
+		$xmessage->set('group_id', $group_id);
+
+		if (!$xmessage->save())
 		{
 			return $xmessage->getError();
 		}
 
 		// Does this message require an action?
 		// **DEPRECATED**
-		$action = new Action($database);
-		/*if ($element || $description)
+		/*$action = new Action($database);
+		if ($element || $description)
 		{
 			$action->class       = $component;
 			$action->element     = $element;
@@ -156,19 +153,19 @@ class Helper extends Object
 			foreach ($to as $uid)
 			{
 				// Create a recipient object that ties a user to a message
-				$recipient = new Recipient($database);
-				$recipient->uid      = $uid;
-				$recipient->mid      = $xmessage->id;
-				$recipient->created  = Date::toSql();
-				$recipient->expires  = Date::of(time() + (168 * 24 * 60 * 60))->toSql();
-				$recipient->actionid = $action->id;
-				if (!$recipient->store())
+				$recipient = Recipient::blank();
+				$recipient->set('uid',  $uid);
+				$recipient->set('mid', $xmessage->id);
+				$recipient->set('created', Date::toSql());
+				$recipient->set('expires', Date::of(time() + (168 * 24 * 60 * 60))->toSql());
+				$recipient->set('actionid', 0); //$action->id
+				if (!$recipient->save())
 				{
 					return $recipient->getError();
 				}
 
 				// Get the user's methods for being notified
-				$notify = new Notify($database);
+				$notify = Notify::blank();
 				$methods = $notify->getRecords($uid, $type);
 
 				$user = User::getInstance($uid);

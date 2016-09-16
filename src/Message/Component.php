@@ -32,114 +32,101 @@
 
 namespace Hubzero\Message;
 
+use Hubzero\Database\Relational;
+use Lang;
+
 /**
- * Table class for message component list
+ * Model class for message component list
  * These are action items that are message-able
  */
-class Component extends \JTable
+class Component extends Relational
 {
 	/**
-	 * Constructor
+	 * The table namespace
 	 *
-	 * @param   object  &$db  Database
+	 * @var  string
+	 */
+	protected $namespace = 'xmessage';
+
+	/**
+	 * The table to which the class pertains
+	 *
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
+	 **/
+	protected $table = '#__xmessage_component';
+
+	/**
+	 * Default order by for model
+	 *
+	 * @var  string
+	 */
+	public $orderBy = 'component';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'component' => 'notempty',
+		'action'    => 'notempty'
+	);
+
+	/**
+	 * Sets up additional custom rules
+	 *
 	 * @return  void
 	 */
-	public function __construct(&$db)
+	public function setup()
 	{
-		parent::__construct('#__xmessage_component', 'id', $db);
+		$this->addRule('component', function($data)
+		{
+			self::$connection->setQuery("SELECT element FROM `#__extensions` AS e WHERE e.type = 'component' ORDER BY e.name ASC");
+			$extensions = self::$connection->loadColumn();
+			if (!in_array($data['component'], $extensions))
+			{
+				return Lang::txt('Component does not exist.');
+			}
+			return false;
+		});
 	}
 
 	/**
-	 * Validate data
+	 * Defines a belongs to one relationship between newsletter and story
 	 *
-	 * @return  boolean  True if data is valid
-	 */
-	public function check()
-	{
-		$this->component = trim($this->component);
-		if (!$this->component)
-		{
-			$this->setError(\Lang::txt('Please provide a component.'));
-			return false;
-		}
-		$this->_db->setQuery("SELECT element FROM `#__extensions` AS e WHERE e.type = 'component' ORDER BY e.name ASC");
-		$extensions = $this->_db->loadColumn();
-		if (!in_array($this->component, $extensions))
-		{
-			$this->setError(\Lang::txt('Component does not exist.'));
-			return false;
-		}
-		$this->action = trim($this->action);
-		if (!$this->action)
-		{
-			$this->setError(\Lang::txt('Please provide an action.'));
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Get a record count based on filters passed
-	 *
-	 * @param   array    $filters  Filters to build query from
-	 * @return  integer
-	 */
-	public function getCount($filters = array())
-	{
-		$query  = "SELECT COUNT(*)" . $this->_buildQuery($filters);
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
-	}
-
-	/**
-	 * Get records based on filters passed
-	 *
-	 * @param   array  $filters  Filters to build query from
-	 * @return  array
+	 * @return  object
 	 */
 	public function getRecords($filters = array())
 	{
-		$query  = "SELECT x.*, c.name" . $this->_buildQuery($filters);
+		$entries = self::all();
 
-		$this->_db->setQuery($query);
-		return $this->_db->loadObjectList();
-	}
+		$c = $entries->getTableName();
+		$e = '#__extensions';
 
-	/**
-	 * Builds a query string based on filters passed
-	 *
-	 * @param   array   $filters  Filters to build query from
-	 * @return  string  SQL
-	 */
-	protected function _buildQuery($filters = array())
-	{
-		$query  = " FROM $this->_tbl AS x";
+		$entries
+			->select($c . '.*,' . $e . '.name')
+			->join($e, $e . '.element', $c . '.component', 'inner')
+			->whereEquals($e . '.type', 'component');
 
-		$where = array();
-
-		$query .= ", #__extensions AS c";
-
-		$where[] = "x.component = c.element";
-		$where[] = "c.type = 'component'";
 		if (isset($filters['component']) && $filters['component'])
 		{
-			$where[] = "c.element=" . $this->_db->quote($filters['component']);
+			$entries->whereEquals($e . '.element', $filters['component']);
 		}
 
-		$query .= " WHERE " . implode(" AND ", $where);
-
-		if (!isset($filters['sort']) || !$filters['sort'])
-		{
-			$filters['sort'] = 'c.name';
-		}
-		if (!isset($filters['sort_Dir']) || !$filters['sort_Dir'])
-		{
-			$filters['sort_Dir'] = 'DESC';
-		}
-		$query .= " ORDER BY " . $filters['sort'] . " " . $filters['sort_Dir'] . ", x.action DESC";
-
-		return $query;
+		return $entries
+			->ordered($c . '.component', 'asc')
+			->rows();
 	}
 
 	/**
@@ -149,11 +136,9 @@ class Component extends \JTable
 	 */
 	public function getComponents()
 	{
-		$query  = "SELECT DISTINCT x.component
-					FROM $this->_tbl AS x
-					ORDER BY x.component ASC";
-
-		$this->_db->setQuery($query);
-		return $this->_db->loadColumn();
+		return self::all()
+			->order('component', 'asc')
+			->group('component')
+			->rows();
 	}
 }
