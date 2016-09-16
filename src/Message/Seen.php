@@ -32,42 +32,73 @@
 
 namespace Hubzero\Message;
 
+use Hubzero\Database\Relational;
+
 /**
- * Table class for recording if a user has viewed a message
+ * Model class for recording if a user has viewed a message
  */
-class Seen extends \JTable
+class Seen extends Relational
 {
 	/**
-	 * Constructor
+	 * The table namespace
 	 *
-	 * @param   object  &$db  Database
-	 * @return  void
+	 * @var  string
 	 */
-	public function __construct(&$db)
+	protected $namespace = 'xmessage';
+
+	/**
+	 * The table to which the class pertains
+	 *
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
+	 *
+	 * @var  string
+	 **/
+	protected $table = '#__xmessage_seen';
+
+	/**
+	 * Default order by for model
+	 *
+	 * @var  string
+	 */
+	public $orderBy = 'id';
+
+	/**
+	 * Default order direction for select queries
+	 *
+	 * @var  string
+	 */
+	public $orderDir = 'asc';
+
+	/**
+	 * Fields and their validation criteria
+	 *
+	 * @var  array
+	 */
+	protected $rules = array(
+		'mid' => 'positive|nonzero',
+		'uid' => 'positive|nonzero'
+	);
+
+	/**
+	 * Defines a belongs to one relationship between entry and message
+	 *
+	 * @return  object
+	 */
+	public function message()
 	{
-		parent::__construct('#__xmessage_seen', 'uid', $db);
+		return $this->belongsToOne('Message', 'mid');
 	}
 
 	/**
-	 * Validate data
+	 * Defines a belongs to one relationship between entry and user
 	 *
-	 * @return  boolean  True if data is valid
+	 * @return  object
 	 */
-	public function check()
+	public function user()
 	{
-		$this->mid = intval($this->mid);
-		if (!$this->mid)
-		{
-			$this->setError(\Lang::txt('Please provide a message ID.'));
-			return false;
-		}
-		$this->uid = intval($this->uid);
-		if (!$this->uid)
-		{
-			$this->setError(\Lang::txt('Please provide a user ID.'));
-			return false;
-		}
-		return true;
+		return $this->belongsToOne('Hubzero\User\User', 'uid');
 	}
 
 	/**
@@ -75,57 +106,13 @@ class Seen extends \JTable
 	 *
 	 * @param   integer  $mid  Message ID
 	 * @param   integer  $uid  User ID
-	 * @return  boolean  True on success
+	 * @return  object
 	 */
-	public function loadRecord($mid=null, $uid=null)
+	public static function oneByMessageAndUser($mid, $uid)
 	{
-		$mid = $mid ?: $this->mid;
-		$uid = $uid ?: $this->uid;
-
-		if (!$mid || !$uid)
-		{
-			return false;
-		}
-
-		return parent::load(array(
-			'mid' => $mid,
-			'uid' => $uid
-		));
-	}
-
-	/**
-	 * Save a record
-	 *
-	 * @param   boolean  $new  Create a new record? (updates by default)
-	 * @return  boolean  True on success, false on errors
-	 */
-	public function store($new=false)
-	{
-		$ret = false;
-
-		if (!$new)
-		{
-			$this->_db->setQuery("UPDATE $this->_tbl SET whenseen=" . $this->_db->quote($this->whenseen) . " WHERE mid=" . $this->_db->quote($this->mid) . " AND uid=" . $this->_db->quote($this->uid));
-			if ($this->_db->query())
-			{
-				$ret = true;
-			}
-		}
-		else
-		{
-			$this->_db->setQuery("INSERT INTO $this->_tbl (mid, uid, whenseen) VALUES (" . $this->_db->quote($this->mid) . ", " . $this->_db->quote($this->uid). ", " . $this->_db->quote($this->whenseen) . ")");
-			if ($this->_db->query())
-			{
-				$ret = true;
-			}
-		}
-
-		if (!$ret)
-		{
-			$this->setError(__CLASS__ . '::store failed <br />' . $this->_db->getErrorMsg());
-			return false;
-		}
-
-		return true;
+		return self::all()
+			->whereEquals('mid', $mid)
+			->whereEquals('uid', $uid)
+			->row();
 	}
 }
