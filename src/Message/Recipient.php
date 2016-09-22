@@ -223,9 +223,10 @@ class Recipient extends Relational
 		$m = Message::blank()->getTableName();
 		$s = Seen::blank()->getTableName();
 
-		$entries = self::all()
+		$entries = Message::all()
 			->select($m . '.*,' . $r . '.expires,' . $r . '.actionid')
-			->join($m, $m . '.id', $r . '.mid', 'inner')
+			//->join($m, $m . '.id', $r . '.mid', 'inner')
+			->join($r, $m . '.id', $r . '.mid', 'inner')
 			->whereEquals($r . '.uid', $uid)
 			->where($r . '.state', '!=', 2)
 			->whereRaw($m . ".id NOT IN (SELECT s.mid FROM `" . $s . "` AS s WHERE s.uid=" . $uid . ")")
@@ -237,6 +238,32 @@ class Recipient extends Relational
 		}
 
 		return $entries->rows();
+	}
+
+	/**
+	 * Get a count of unread messages for a user
+	 *
+	 * @param   integer  $uid    User ID
+	 * @return  integer
+	 */
+	public function getUnreadMessagesCount($uid)
+	{
+		if (!$uid)
+		{
+			return 0;
+		}
+
+		$r = $this->getTableName();
+		$m = Message::blank()->getTableName();
+		$s = Seen::blank()->getTableName();
+
+		$entries = Message::blank()
+			->join($r, $m . '.id', $r . '.mid', 'inner')
+			->whereEquals($r . '.uid', $uid)
+			->where($r . '.state', '!=', 2)
+			->whereRaw($m . ".id NOT IN (SELECT s.mid FROM `" . $s . "` AS s WHERE s.uid=" . $uid . ")");
+
+		return $entries->total();
 	}
 
 	/**
