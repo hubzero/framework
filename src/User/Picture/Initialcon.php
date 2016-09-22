@@ -31,14 +31,14 @@
 
 namespace Hubzero\User\Picture;
 
-use Hubzero\Image\Identicon as Processor;
+use Hubzero\Image\Initialcon as Processor;
 use Hubzero\Content\Moderator;
 use Hubzero\Utility\String;
 
 /**
- * Identicon User picture
+ * Initialcon User picture
  */
-class Identicon implements Resolver
+class Initialcon implements Resolver
 {
 	/**
 	 * Primary color
@@ -151,7 +151,24 @@ class Identicon implements Resolver
 			return with(new Moderator($path))->getUrl();
 		}
 
-		$image = $processor->getImageData($email, $size, $this->color);
+		// If the name has a space
+		if (strstr($name, ' '))
+		{
+			$parts = explode(' ', $name);
+			$first = array_shift($parts);
+			$last  = array_pop($parts);
+
+			$initials = substr($first, 0, 1) . substr($last, 0, 1);
+		}
+		// One word name? (e.g., "Madonna")
+		// Take the first two letters
+		else
+		{
+			$initials = substr($name, 0, 2);
+		}
+		$initials = strtoupper(trim($initials));
+
+		$image = $processor->getImageData($initials, $size, $this->color);
 
 		if (!is_dir($dir))
 		{
