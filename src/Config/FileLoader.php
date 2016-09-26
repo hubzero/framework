@@ -102,7 +102,7 @@ class FileLoader
 
 			if ($client)
 			{
-				$paths = $this->getPath($this->defaultPath . DS . $client);
+				$paths = $this->getPath($this->defaultPath . DIRECTORY_SEPARATOR . $client);
 
 				foreach ($paths as $path)
 				{
@@ -186,16 +186,14 @@ class FileLoader
 	 *
 	 * @param   mixed  $path
 	 * @return  array
-	 * @throws  EmptyDirectoryException  If `$path` is an empty directory
-	 * @throws  FileNotFoundException    If a file is not found at `$path`
 	 */
 	protected function getPath($path)
 	{
-		// If `$path` is array
+		$paths = array();
+
+		// If `$path` is an array
 		if (is_array($path))
 		{
-			$paths = array();
-
 			foreach ($path as $unverifiedPath)
 			{
 				$paths = array_merge($paths, $this->getPath($unverifiedPath));
@@ -209,21 +207,15 @@ class FileLoader
 		{
 			$paths = glob($path . '/*.*');
 
-			/*if (empty($paths))
-			{
-				throw new EmptyDirectoryException("Configuration directory: [$path] is empty");
-			}*/
-
 			return $paths;
 		}
 
-		// If `$path` is not a file, throw an exception
+		// If `$path` is a file
 		if (file_exists($path))
 		{
-			//throw new FileNotFoundException("Configuration file: [$path] cannot be found");
-			return array($path);
+			$paths[] = $path;
 		}
 
-		return array();
+		return $paths;
 	}
 }
