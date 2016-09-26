@@ -267,6 +267,13 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	public $associated = null;
 
 	/**
+	 * Cached list of class methods
+	 *
+	 * @var  array
+	 **/
+	private static $classMethods = [];
+
+	/**
 	 * Constructs an object instance
 	 *
 	 * @return  void
@@ -289,7 +296,18 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		$this->newQuery();
 
 		// Store methods for later
-		$this->methods = get_class_methods($this);
+		//
+		// Here we store the methods per class name. This allows for quicker
+		// lookup and less memory usage when dealing with multiple classes
+		// of the same type (i.e., a listing of records).
+		$key = $r->getName();
+		if (!isset(self::$classMethods[$key]))
+		{
+			self::$classMethods[$key] = get_class_methods($this);
+
+			$this->methods = self::$classMethods[$key];
+		}
+		$this->methods = self::$classMethods[$key];
 
 		// Run extra setup. This is so subclasses don't have to overwrite
 		// the constructor and then call parent::__construct().
