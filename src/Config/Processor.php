@@ -69,7 +69,7 @@ abstract class Processor
 
 			if (!class_exists($class))
 			{
-				$path = __DIR__ . DS . 'Processor' . DS . $type . '.php';
+				$path = __DIR__ . DIRECTORY_SEPARATOR . 'Processor' . DIRECTORY_SEPARATOR . $type . '.php';
 
 				if (!is_file($path))
 				{
@@ -92,7 +92,7 @@ abstract class Processor
 	 */
 	public static function all()
 	{
-		foreach (glob(__DIR__ . DS . 'Processor' . DS . '*.php') as $path)
+		foreach (glob(__DIR__ . DIRECTORY_SEPARATOR . 'Processor' . DIRECTORY_SEPARATOR . '*.php') as $path)
 		{
 			$type = basename($path, '.php');
 
