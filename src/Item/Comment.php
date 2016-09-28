@@ -323,7 +323,10 @@ class Comment extends Relational
 			$vote->set('item_type', 'comment');
 			$vote->set('item_id', $this->get('id'));
 			$vote->set('created_by', $user_id);
-			$vote->set('ip', $ip);
+			if ($ip)
+			{
+				$vote->set('ip', $ip);
+			}
 		}
 
 		return $vote;
@@ -351,11 +354,16 @@ class Comment extends Relational
 			return false;
 		}
 
+		$ip = $ip ?: Request::ip();
+
 		$al = $this->ballot($user_id, $ip);
 		$al->set('item_type', 'comment');
 		$al->set('item_id', $this->get('id'));
 		$al->set('created_by', $user_id);
-		$al->set('ip', $ip);
+		if ($ip)
+		{
+			$al->set('ip', $ip);
+		}
 
 		$vote = $al->automaticVote(['vote' => $vote]);
 
