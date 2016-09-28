@@ -241,7 +241,7 @@ class Loader
 		// Make sure we found something
 		if (!$found)
 		{
-			$this->app->abort(404, $lang->translate('JLIB_APPLICATION_ERROR_COMPONENT_NOT_FOUND'));
+			$this->app->abort(404, $lang->translate('JLIB_APPLICATION_ERROR_COMPONENT_NOT_FOUND_OR_ENABLED'));
 		}
 
 		// Load base language file
@@ -314,7 +314,7 @@ class Loader
 	 * @param   string  $client  Client to load the router for
 	 * @return  object  Component router
 	 */
-	public function router($option, $client = null)
+	public function router($option, $client = null, $version = null)
 	{
 		$option = $this->canonical($option);
 		$client = ($client ? $client : $this->app['client']->alias);
@@ -333,6 +333,10 @@ class Loader
 			{
 				// Use the component routing handler if it exists
 				$paths = array();
+				if (!is_null($version))
+				{
+					$paths[] = $this->path($option) . DS . strtolower($client) . DS . 'routerv' . $version . '.php';
+				}
 				$paths[] = $this->path($option) . DS . strtolower($client) . DS . 'router.php';
 				$paths[] = $this->path($option) . DS . 'router.php';
 
