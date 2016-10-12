@@ -83,7 +83,9 @@ class Flavor extends Base implements CommandInterface
 					'{"module":33,"col":2,"row":1,"size_x":1,"size_y":2}',
 					'{"module":42,"col":2,"row":3,"size_x":1,"size_y":2}',
 					'{"module":34,"col":2,"row":5,"size_x":1,"size_y":2}',
-					'{"module":37,"col":3,"row":1,"size_x":1,"size_y":2}'
+					'{"module":41,"col":3,"row":1,"size_x":1,"size_y":2}',
+					'{"module":36,"col":3,"row":3,"size_x":1,"size_y":2}',
+					'{"module":37,"col":3,"row":5,"size_x":1,"size_y":2}'
 				);
 
 				$params = array(
