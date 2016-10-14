@@ -67,9 +67,9 @@ class Helper
 
 		//query
 		$sql = "SELECT g.gidNumber, g.cn, g.description, g.public_desc,
-				(SELECT COUNT(*) FROM #__xgroups_members AS gm WHERE gm.gidNumber=g.gidNumber) AS members
-				FROM #__xgroups AS g
-				WHERE g.type=1
+				(SELECT COUNT(*) FROM `#__xgroups_members` AS gm WHERE gm.gidNumber=g.gidNumber) AS members
+				FROM `#__xgroups` AS g
+				WHERE g.type IN (1, 3)
 				AND g.published=1
 				AND g.approved=1
 				AND g.discoverability=0
@@ -111,7 +111,7 @@ class Helper
 
 		//query to get groups
 		$sql = "SELECT g.gidNumber, g.cn, g.description, g.public_desc
-				FROM jos_xgroups AS g
+				FROM `#__xgroups` AS g
 				WHERE (g.type=1
 				OR g.type=3)
 				AND g.published=1
@@ -273,7 +273,7 @@ class Helper
 
 		$db =  \App::get('db');
 
-		$query = "SELECT uidNumber FROM #__xgroups_roles as r, #__xgroups_member_roles as m WHERE r.id='" . $role . "' AND r.id=m.roleid AND r.gidNumber='" . $group->gidNumber . "'";
+		$query = "SELECT uidNumber FROM `#__xgroups_roles` as r, `#__xgroups_member_roles` as m WHERE r.id='" . $role . "' AND r.id=m.roleid AND r.gidNumber='" . $group->gidNumber . "'";
 
 		$db->setQuery($query);
 
