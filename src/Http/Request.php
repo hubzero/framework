@@ -100,18 +100,10 @@ class Request extends BaseRequest
 				$hash = 'files';
 			break;
 
-			case 'post':
-			case 'request':
-			case 'delete':
-				$hash = 'request';
-				//$this->request->set($name, $value);
-			break;
-
 			case 'head':
 			case 'get':
 			case 'query':
 				$hash = 'query';
-				//$this->request->set($name, $value);
 			break;
 
 			case 'header':
@@ -119,11 +111,15 @@ class Request extends BaseRequest
 				$hash = 'headers';
 			break;
 
+			case 'post':
+			case 'request':
+			case 'delete':
 			case 'put':
 				$hash = 'request';
 			break;
 
 			default:
+				$hash = 'query';
 			break;
 		}
 
