@@ -532,7 +532,7 @@ class Ldap
 
 		$reqattr = array('gidNumber','cn','description','memberUid');
 
-		$entry = ldap_search($conn, $dn, $filter, $reqattr, 0, 1, 0);
+		$entry = ldap_search($conn, $dn, $filter, $reqattr, 0, 0, 0);
 		$count = ($entry) ? ldap_count_entries($conn, $entry) : 0;
 
 		// If there was a database entry, but there was no ldap entry, create the ldap entry
@@ -768,7 +768,7 @@ class Ldap
 
 		$reqattr = array('gidNumber','cn');
 
-		$entry = ldap_search($conn, $dn, $filter, $reqattr, 0, 1, 0);
+		$entry = ldap_search($conn, $dn, $filter, $reqattr, 0, 0, 0);
 
 		$count = ldap_count_entries($conn, $entry);
 
