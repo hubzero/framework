@@ -105,11 +105,16 @@ class Pagination
 		$instance = new self;
 
 		$instance->total = $total;
-		$instance->start = \Request::getInt($start, 0);
+		$instance->start = \Request::getInt(
+			$start,
+			User::getState($namespace . '.start', 0)
+		);
 		$instance->limit = \Request::getInt(
 			$limit,
 			User::getState($namespace . '.limit', \Config::get('list_limit'))
 		);
+
+		$instance->start = ($instance->limit != 0 ? (floor($instance->start / $instance->limit) * $instance->limit) : 0);
 
 		User::setState($namespace . '.start', $instance->start);
 		User::setState($namespace . '.limit', $instance->limit);
