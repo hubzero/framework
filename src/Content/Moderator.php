@@ -160,9 +160,12 @@ class Moderator
 	{
 		$identifier = base64_decode($identifier);
 
-		list($token, $path) = explode(':', $identifier, 2);
+		if (strstr($identifier, ':'))
+		{
+			list($token, $path) = explode(':', $identifier, 2);
 
-		$this->token = $token;
-		$this->path  = $path;
+			$this->token = $token;
+			$this->path  = $path;
+		}
 	}
 }
