@@ -345,6 +345,12 @@ class SolrQueryAdapter implements QueryInterface
 				}
 				$accessFilter .= ' ' . $groupFilter;
 			}
+
+			$addon = Event::trigger('search.onAddPermissionSet');
+			foreach ($addon as $add)
+			{
+				$accessFilter .= $add;
+			}
 		}
 
 		$this->query->createFilterQuery('userPerms')->setQuery($accessFilter);
