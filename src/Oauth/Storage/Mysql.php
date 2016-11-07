@@ -556,7 +556,7 @@ class Mysql
 			return false;
 		}
 
-		$ip = \Hubzero\Utility\Ip(\App::get('request')->ip());
+		$ip = new \Hubzero\Utility\Ip(\App::get('request')->ip());
 		// ip should be coming from a private address
 		if (!$ip->isPrivate())
 		{
