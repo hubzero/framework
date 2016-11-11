@@ -756,15 +756,17 @@ class Behavior
 			return;
 		}
 
-		Asset::script('assets/jquery.highlighter.js', true, true);
+		$script = 'assets/jquery.highlight.js';
+		if (App::get('config')->get('debug'))
+		{
+			$script = 'assets/jquery.highlight.min.js';
+		}
+		Asset::script($script, true, true);
 
 		$terms = str_replace('"', '\"', $terms);
 
 		$options = "{
-			/*startElement: start,
-			endElement: end,*/
 			className: '" . $className . "',
-			wordsOnly: false,
 			element: '" . $tag . "'
 		}";
 
