@@ -149,7 +149,7 @@ class Message extends \Swift_Message
 					{
 						$transport = \Swift_SmtpTransport::newInstance($options['host'], $options['port']);
 						$transport->setUsername($options['username'])
-						          ->setUsername($options['password']);
+						          ->setPassword($options['password']);
 					}
 				break;
 
