@@ -432,16 +432,15 @@ class Helper
 	/**
 	 * Get common groups between two users
 	 *
-	 * @param   string   $uid
-	 * @param   string   $pid
+	 * @param   integer  $uid
+	 * @param   integer  $pid
 	 * @return  boolean
 	 */
 	public static function getCommonGroups($uid, $pid)
 	{
-		$uprofile = Profile::getInstance($uid);
-
 		// Get the groups the visiting user
-		$xgroups = (is_object($uprofile)) ? $uprofile->getGroups('all') : array();
+		$xgroups = self::getGroups($uid, 'all', 1);
+
 		$usersgroups = array();
 		if (!empty($xgroups))
 		{
@@ -455,8 +454,7 @@ class Helper
 		}
 
 		// Get the groups of the profile
-		$pprofile = Profile::getInstance($pid);
-		$pgroups = (is_object($pprofile)) ? $pprofile->getGroups('all') : array();
+		$pgroups = self::getGroups($pid, 'all', 1);
 
 		// Get the groups the user has access to
 		$profilesgroups = array();
@@ -472,9 +470,6 @@ class Helper
 		}
 
 		// Find the common groups
-		$common = array_intersect($usersgroups, $profilesgroups);
-
-		//return common groups
-		return $common;
+		return array_intersect($usersgroups, $profilesgroups);
 	}
 }
