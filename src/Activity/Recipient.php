@@ -116,11 +116,66 @@ class Recipient extends Relational
 
 		$this->set('viewed', $dt->toSql());
 
-		if (!$this->save())
-		{
-			return false;
-		}
+		return $this->save();
+	}
 
-		return true;
+	/**
+	 * Mark entry as NOT having been viewed
+	 *
+	 * @return  boolean
+	 */
+	public function markAsNotViewed()
+	{
+		$this->set('viewed', '0000-00-00 00:00:00');
+
+		return $this->save();
+	}
+
+	/**
+	 * Mark entry as being published
+	 *
+	 * @return  boolean
+	 */
+	public function markAsPublished()
+	{
+		$this->set('state', self::STATE_PUBLISHED);
+
+		return $this->save();
+	}
+
+	/**
+	 * Mark entry as being unpublished
+	 *
+	 * @return  boolean
+	 */
+	public function markAsUnpublished()
+	{
+		$this->set('state', self::STATE_UNPUBLISHED);
+
+		return $this->save();
+	}
+
+	/**
+	 * Mark entry as starred
+	 *
+	 * @return  boolean
+	 */
+	public function markAsStarred()
+	{
+		$this->set('starred', 1);
+
+		return $this->save();
+	}
+
+	/**
+	 * Mark entry as not starred
+	 *
+	 * @return  boolean
+	 */
+	public function markAsNotStarred()
+	{
+		$this->set('starred', 0);
+
+		return $this->save();
 	}
 }

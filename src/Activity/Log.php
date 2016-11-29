@@ -32,6 +32,7 @@
 namespace Hubzero\Activity;
 
 use Hubzero\Database\Relational;
+use Hubzero\Config\Registry;
 use Exception;
 use Event;
 
@@ -67,8 +68,8 @@ class Log extends Relational
 	 * @var  array
 	 */
 	protected $rules = array(
-		'details' => 'notempty',
-		'action'  => 'notempty'
+		'action' => 'notempty',
+		'scope'  => 'notempty'
 	);
 
 	/**
@@ -92,6 +93,13 @@ class Log extends Relational
 	);
 
 	/**
+	 * Container for details
+	 *
+	 * @var  object
+	 */
+	protected $entryDetails = null;
+
+	/**
 	 * Generate a UUID
 	 *
 	 * @param   array  $data
@@ -99,7 +107,8 @@ class Log extends Relational
 	 */
 	public function automaticUuid($data)
 	{
-		return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+		return sprintf(
+			'%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
 			mt_rand(0, 0xffff), mt_rand(0, 0xffff),
 			mt_rand(0, 0xffff),
 			mt_rand(0, 0x0fff) | 0x4000,
@@ -124,16 +133,6 @@ class Log extends Relational
 	}
 
 	/**
-	 * Defines a belongs to one relationship between exposure and user
-	 *
-	 * @return  object
-	 */
-	public function user()
-	{
-		return $this->belongsToOne('Hubzero\User\User', 'user_id');
-	}
-
-	/**
 	 * Get recipients
 	 *
 	 * @return  object
@@ -144,13 +143,33 @@ class Log extends Relational
 	}
 
 	/**
-	 * Defines a belongs to one relationship between article and user
+	 * Defines a belongs to one relationship between entry and user
 	 *
 	 * @return  object
 	 */
 	public function creator()
 	{
 		return $this->belongsToOne('Hubzero\User\User', 'created_by');
+	}
+
+	/**
+	 * Defines a belongs to one relationship between entry and another entry
+	 *
+	 * @return  object
+	 */
+	public function parent()
+	{
+		return $this->belongsToOne('Hubzero\Activity\Log', 'parent');
+	}
+
+	/**
+	 * Get children
+	 *
+	 * @return  object
+	 */
+	public function children()
+	{
+		return $this->oneToMany('Hubzero\Activity\Log', 'parent');
 	}
 
 	/**
@@ -165,6 +184,15 @@ class Log extends Relational
 			if (!$recipient->destroy())
 			{
 				$this->addError($recipient->getError());
+				return false;
+			}
+		}
+
+		foreach ($this->children()->rows() as $child)
+		{
+			if (!$child->destroy())
+			{
+				$this->addError($child->getError());
 				return false;
 			}
 		}
@@ -188,7 +216,11 @@ class Log extends Relational
 	{
 		if ($data = $this->get('details'))
 		{
-			if (!is_string($data))
+			if ($data instanceof Registry)
+			{
+				$this->set('details', $data->toString());
+			}
+			else if (!is_string($data))
 			{
 				$this->set('details', json_encode($data));
 			}
@@ -202,6 +234,21 @@ class Log extends Relational
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Transform details into object
+	 *
+	 * @return  object  Hubzero\Config\Registry
+	 */
+	public function transformDetails()
+	{
+		if (!isset($this->entryDetails))
+		{
+			$this->entryDetails = new Registry($this->get('details'));
+		}
+
+		return $this->entryDetails;
 	}
 
 	/**
