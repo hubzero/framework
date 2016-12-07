@@ -108,7 +108,7 @@ class File extends Entity
 	 **/
 	public function getDisplayName()
 	{
-		return str_replace('.' . $this->getExtension(), '', $this->getName());
+		return str_replace('.' . $this->getExtension(), '', parent::getDisplayName());
 	}
 
 	/**
@@ -156,6 +156,21 @@ class File extends Entity
 		}
 
 		return $this->extension;
+	}
+
+	/**
+	 * Grabs the name of a file with its extension
+	 *
+	 * @return string
+	 **/
+	public function getFilename()
+	{
+		$filename = $this->getDisplayName();
+		if ($this->getExtension() != '')
+		{
+			$filename .= '.' . $this->getExtension();
+		}
+		return $filename;
 	}
 
 	/**

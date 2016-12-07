@@ -32,11 +32,14 @@
 
 namespace Hubzero\Filesystem;
 
+use StdClass;
+
 /**
  * Directory model
  */
 class Directory extends Entity
 {
+	public $subDirs;
 	/**
 	 * Grabs the entity extension
 	 *
@@ -76,5 +79,36 @@ class Directory extends Entity
 	public function delete()
 	{
 		return $this->hasAdapterOrFail()->adapter->deleteDir($this->getPath());
+	}
+
+	public function hasSubDirs()
+	{
+		return count($this->subDirectories()) > 0;
+	}
+
+	/**
+	 * Gets a list of directory objects with a depth for walking a directory structure
+	 *
+	 * @param		int	$depth	How deep you currently are since beginning to walk
+	 * @return	array
+	 **/
+	public function getSubDirs($depth = 0)
+	{
+		$dirs = [];
+
+		$contents = $this->hasAdapterOrFail()->adapter->listContents($this->getPath(), false);
+		foreach ($contents as $item)
+		{
+			if ($item->isDir())
+			{
+				$thisDir = new stdClass();
+				$thisDir->depth = $depth;
+				$thisDir->subdirs = $item->getSubDirs($depth+1);
+				$thisDir->name = $item->getDisplayName();
+				$thisDir->path = $item->getPath();
+				$dirs[] = $thisDir;
+			}
+		}
+		return $dirs;
 	}
 }

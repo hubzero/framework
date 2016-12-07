@@ -330,6 +330,32 @@ class Entity extends Object
 	}
 
 	/**
+	 * Grabs the item name
+	 *
+	 * @return  string
+	 **/
+	public function getDisplayName()
+	{
+		if (isset($this->filename))
+		{
+			return $this->filename;
+		}
+
+		if (isset($this->basename))
+		{
+			return $this->basename;
+		}
+
+		if (isset($this->path))
+		{
+			$bits = explode('/', $this->path);
+			return end($bits);
+		}
+
+		return '';
+	}
+
+	/**
 	 * Grabs the parent element, if applicable
 	 *
 	 * @param   bool  $raw  Whether or not to return raw string or applicable object
