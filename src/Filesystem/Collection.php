@@ -312,7 +312,7 @@ class Collection extends ItemList
 			{
 				if ($entity->isFile())
 				{
-					$zip->addFromString($structure ? $entity->getPath() : $entity->getName(), $entity->read());
+					$zip->addFromString($structure ? $entity->getPath() : $entity->getFileName(), $entity->read());
 				}
 				else if ($entity->isDir() && $structure)
 				{
