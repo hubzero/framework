@@ -339,7 +339,7 @@ class File extends Entity
 			$server->filename($this->getAbsolutePath());
 		}
 
-		$server->saveas($as ?: $this->getName());
+		$server->saveas($as ?: $this->getFileName());
 
 		// Serve up the file
 		$result = $server->serve();
