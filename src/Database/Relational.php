@@ -1324,6 +1324,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		if ($this->isNew())
 		{
 			$this->set($this->getPrimaryKey(), $result);
+			Event::trigger($this->getTableName() . '_new', ['model' => $this]);
 		}
 
 		Event::trigger('system.onContentSave', array($this->getTableName(), $this));
