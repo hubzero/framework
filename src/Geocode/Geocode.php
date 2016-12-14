@@ -257,7 +257,7 @@ class Geocode
 			$geodb_params = \Component::params('com_system');
 
 			$options = array();
-			$options['driver']   = $geodb_params->get('geodb_driver', 'mysql');
+			$options['driver']   = $geodb_params->get('geodb_driver', 'pdo');
 			$options['host']     = $geodb_params->get('geodb_host', 'localhost');
 			$options['port']     = $geodb_params->get('geodb_port', '');
 			$options['user']     = $geodb_params->get('geodb_user', '');
