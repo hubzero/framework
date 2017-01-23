@@ -140,7 +140,14 @@ class Application extends Container
 	 */
 	public function version()
 	{
-		return static::VERSION;
+		if (!defined('HVERSION'))
+		{
+			return static::VERSION;
+		}
+		else
+		{
+			return HVERSION;
+		}
 	}
 
 	/**
