@@ -132,7 +132,14 @@ class Entity extends Object
 		if (!isset($properties['extension']))
 		{
 			$bits = explode('.', $properties['path']);
-			$properties['extension'] = end($bits);
+			if (count($bits) > 1)
+			{
+				$properties['extension'] = end($bits);
+			}
+			else
+			{
+				$properties['extension'] = '';
+			}
 		}
 
 		// If it's a file, do we have a more specialized class?
