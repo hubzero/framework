@@ -152,7 +152,14 @@ class File extends Entity
 		if (!isset($this->extension))
 		{
 			$bits = explode('.', $this->getName());
-			$this->extension = end($bits);
+			if (count($bits) > 1)
+			{
+				$this->extension = end($bits);
+			}
+			else
+			{
+				$this->extension = '';
+			}
 		}
 
 		return $this->extension;
