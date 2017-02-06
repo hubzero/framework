@@ -2234,23 +2234,25 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	/**
 	 * Generates automatic created field value
 	 *
+	 * @param   array   $data  The data being saved
 	 * @return  string
 	 * @since   2.0.0
 	 **/
-	public function automaticCreated()
+	public function automaticCreated($data)
 	{
-		return Date::toSql();
+		return (isset($data['created']) && $data['created'] ? $data['created'] : Date::toSql());
 	}
 
 	/**
 	 * Generates automatic created by field value
 	 *
+	 * @param   array  $data  The data being saved
 	 * @return  int
 	 * @since   2.0.0
 	 **/
-	public function automaticCreatedBy()
+	public function automaticCreatedBy($data)
 	{
-		return (int)User::get('id');
+		return (isset($data['created_by']) && $data['created_by'] ? (int)$data['created_by'] : (int)User::get('id'));
 	}
 
 	/**
