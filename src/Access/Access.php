@@ -199,7 +199,7 @@ class Access
 	}
 
 	/**
-	 * Method to return the JAccessRules object for an asset.  The returned object can optionally hold
+	 * Method to return the Rules object for an asset.  The returned object can optionally hold
 	 * only the rules explicitly set for the asset or the summation of all inherited rules from
 	 * parent assets and explicit rules.
 	 *
@@ -265,7 +265,7 @@ class Access
 
 		$query->group($recursive ? 'b.id, b.rules, b.lft' : 'a.id, a.rules, a.lft');
 
-		$result = $query->rows();
+		$result = $query->rows()->fieldsByKey('rules');
 
 		// Get the root even if the asset is not found and in recursive mode
 		if (empty($result))
@@ -274,7 +274,7 @@ class Access
 			$result = array($result);
 		}
 
-		// Instantiate and return the JAccessRules object for the asset rules.
+		// Instantiate and return the Rules object for the asset rules.
 		$rules = new Rules;
 		$rules->mergeCollection($result);
 
@@ -381,7 +381,7 @@ class Access
 		$group = Group::all();
 
 		$results = $group
-			->select('user_id')
+			->select(\Hubzero\Database\Value\Raw('DISTINCT(user_id)'))
 			->from($group->getTableName(), 'ug1')
 			->joinRaw($group->getTableName() . ' AS ug2', 'ug2.lft' . $test . 'ug1.lft AND ug1.rgt' . $test . 'ug2.rgt', 'inner')
 			->join($map->getTableName() . ' AS m', 'm.group_id', 'ug2.id', 'inner')
@@ -444,43 +444,6 @@ class Access
 
 		return $authorised;
 	}
-
-	/**
-	 * Method to return a list of actions for which permissions can be set given a component and section.
-	 *
-	 * @param   string  $component  The component from which to retrieve the actions.
-	 * @param   string  $section    The name of the section within the component from which to retrieve the actions.
-	 *
-	 * @return  array  List of actions available for the given component and section.
-	 *
-	 * @since   11.1
-	 *
-	 * @deprecated  12.3  Use JAccess::getActionsFromFile or JAccess::getActionsFromData instead.
-	 *
-	 * @codeCoverageIgnore
-	 *
-	 */
-	/*public static function getActions($component, $section = 'component')
-	{
-		JLog::add(__METHOD__ . ' is deprecated. Use JAccess::getActionsFromFile or JAcces::getActionsFromData instead.', JLog::WARNING, 'deprecated');
-		$path = PATH_APP . '/components/' . $component . '/config/access.xml';
-		if (file_exists(PATH_CORE . '/components/' . $component . '/config/access.xml'))
-		{
-			$path = PATH_CORE . '/components/' . $component . '/config/access.xml';
-		}
-		$actions = self::getActionsFromFile(
-			$path,
-			"/access/section[@name='" . $section . "']/"
-		);
-		if (empty($actions))
-		{
-			return array();
-		}
-		else
-		{
-			return $actions;
-		}
-	}*/
 
 	/**
 	 * Method to return a list of actions from a file for which permissions can be set.

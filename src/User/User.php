@@ -35,6 +35,7 @@ namespace Hubzero\User;
 
 use Hubzero\Config\Registry;
 use Hubzero\Utility\Date;
+use Hubzero\Access\Access;
 use Hubzero\Access\Map;
 use Exception;
 use Event;
@@ -723,7 +724,7 @@ class User extends \Hubzero\Database\Relational
 
 				array_unshift($identities, $this->get('id') * -1);
 
-				if (\JAccess::getAssetRules(1)->allow('core.admin', $identities))
+				if (Access::getAssetRules(1)->allow('core.admin', $identities))
 				{
 					$this->isRoot = true;
 					return true;
@@ -731,7 +732,7 @@ class User extends \Hubzero\Database\Relational
 			}
 		}
 
-		return $this->isRoot ? true : \JAccess::check($this->get('id'), $action, $assetname);
+		return $this->isRoot ? true : Access::check($this->get('id'), $action, $assetname);
 	}
 
 	/**
@@ -785,7 +786,7 @@ class User extends \Hubzero\Database\Relational
 
 		if (empty($this->_authLevels))
 		{
-			$this->authLevels = \JAccess::getAuthorisedViewLevels($this->id);
+			$this->authLevels = Access::getAuthorisedViewLevels($this->get('id'));
 		}
 
 		return $this->authLevels;
@@ -806,7 +807,7 @@ class User extends \Hubzero\Database\Relational
 
 		if (empty($this->authGroups))
 		{
-			$this->authGroups = \JAccess::getGroupsByUser($this->id);
+			$this->authGroups = Access::getGroupsByUser($this->get('id'));
 		}
 
 		return $this->authGroups;

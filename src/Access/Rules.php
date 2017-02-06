@@ -87,7 +87,7 @@ class Rules
 	}
 
 	/**
-	 * Method to merge a collection of JAccessRules.
+	 * Method to merge a collection of Rules.
 	 *
 	 * @param   mixed  $input  Rule or array of Rules
 	 * @return  void
@@ -180,7 +180,7 @@ class Rules
 	/**
 	 * Get the allowed actions for an identity.
 	 *
-	 * @param   mixed  $identity  An integer representing the identity or an array of identities
+	 * @param   mixed   $identity  An integer representing the identity or an array of identities
 	 * @return  object  Allowed actions for the identity or identities
 	 */
 	public function getAllowed($identity)
