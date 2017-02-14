@@ -466,7 +466,7 @@ class Loader
 
 			$query
 				->whereIn('m.access', $user->getAuthorisedViewLevels())
-				->whereEquals('m.client_id',  $clientId)
+				->whereEquals('m.client_id', $clientId)
 				->whereEquals('mm.menuid', (int) $Itemid, 1)->orWhere('mm.menuid', '<=', '0', 1)->resetDepth();
 
 			// Filter by language
