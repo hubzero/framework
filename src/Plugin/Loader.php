@@ -36,9 +36,10 @@ use Hubzero\Events\DispatcherInterface;
 use Hubzero\Events\LoaderInterface;
 use Hubzero\Config\Registry;
 use Exception;
+use stdClass;
 use User;
 use Lang;
-use stdClass;
+use App;
 
 /**
  * Plugin loader
@@ -190,7 +191,7 @@ class Loader implements LoaderInterface
 			// Makes sure we have an event dispatcher
 			if (!($dispatcher instanceof DispatcherInterface))
 			{
-				$dispatcher = \App::get('dispatcher');
+				$dispatcher = App::get('dispatcher');
 			}
 
 			// Get the specified plugin(s).
@@ -235,10 +236,11 @@ class Loader implements LoaderInterface
 			'core' => PATH_CORE . DS . 'plugins' . DS . $plugin->type . DS . $plugin->name . DS . $plugin->name . '.php'
 		);
 
-		$className = 'plg' . $plugin->type . $plugin->name;
+		$classNameL = 'plg' . $plugin->type . $plugin->name;
+		$classNameN = 'Plugins\\' . ucfirst($plugin->type) . '\\' . ucfirst($plugin->name);
 
 		// If the class exists, the file was already loaded
-		if (!class_exists($className))
+		if (!class_exists($classNameL) && !class_exists($classNameN))
 		{
 			// Loop through each path the plugin may be located at
 			foreach ($p as $path)
@@ -262,16 +264,24 @@ class Loader implements LoaderInterface
 
 					$paths[$path] = true;
 
-					if ($autocreate && class_exists($className))
+					if ($autocreate)
 					{
-						// Makes sure we have an event dispatcher
-						if (!($dispatcher instanceof DispatcherInterface))
+						foreach (array($classNameL, $classNameN) as $className)
 						{
-							$dispatcher = new \JDispatcher();
-						}
+							if (!class_exists($className))
+							{
+								continue;
+							}
 
-						// Instantiate and register the plugin.
-						return new $className($dispatcher, (array) $plugin);
+							// Makes sure we have an event dispatcher
+							if (!($dispatcher instanceof DispatcherInterface))
+							{
+								$dispatcher = new \JDispatcher();
+							}
+
+							// Instantiate and register the plugin.
+							return new $className($dispatcher, (array) $plugin);
+						}
 					}
 				}
 			}
@@ -292,7 +302,7 @@ class Loader implements LoaderInterface
 			return self::$plugins;
 		}
 
-		if (!\App::has('cache.store') || !($cache = \App::get('cache.store')))
+		if (!App::has('cache.store') || !($cache = App::get('cache.store')))
 		{
 			$cache = new \Hubzero\Cache\Storage\None();
 		}
@@ -301,25 +311,28 @@ class Loader implements LoaderInterface
 
 		if (!(self::$plugins = $cache->get('com_plugins.' . $levels)))
 		{
-			$db = \App::get('db');
-			$query = $db->getQuery(true);
+			$db = App::get('db');
 
-			$query->select('folder AS type, element AS name, protected, params')
+			$query = $db->getQuery()
+				->select('folder', 'type')
+				->select('element', 'name')
+				->select('protected')
+				->select('params')
 				->from('#__extensions')
-				->where('enabled >= 1')
-				->where('type =' . $db->quote('plugin'))
-				->where('state >= 0')
-				->where('access IN (' . $levels . ')')
-				->order('ordering');
+				->where('enabled', '>=', 1)
+				->whereEquals('type', 'plugin')
+				->where('state', '>=', 0)
+				->whereIn('access', User::getAuthorisedViewLevels())
+				->order('ordering', 'asc');
 
-			self::$plugins = $db->setQuery($query)->loadObjectList();
+			self::$plugins = $db->setQuery($query->toString())->loadObjectList();
 
 			if ($error = $db->getErrorMsg())
 			{
 				throw new Exception($error, 500);
 			}
 
-			$cache->put('com_plugins.' . $levels, self::$plugins, \App::get('config')->get('cachetime', 15));
+			$cache->put('com_plugins.' . $levels, self::$plugins, App::get('config')->get('cachetime', 15));
 		}
 
 		return self::$plugins;
@@ -334,6 +347,6 @@ class Loader implements LoaderInterface
 	 */
 	public function language($extension, $basePath = PATH_CORE)
 	{
-		return \App::get('language')->load(strtolower($extension), $basePath);
+		return App::get('language')->load(strtolower($extension), $basePath);
 	}
 }
