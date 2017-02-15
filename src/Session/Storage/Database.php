@@ -284,7 +284,7 @@ class Database extends Store
 
 		if (isset($filters['guest']))
 		{
-			$query->where('guest', $filters['guest']);
+			$query->whereEquals('guest', $filters['guest']);
 		}
 
 		if (isset($filters['client']))
