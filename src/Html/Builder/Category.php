@@ -126,7 +126,7 @@ class Category
 
 			$query = $db->getQuery()
 				->select('a.id, a.title, a.level, a.parent_id')
-				->select('a.title');
+				->select('a.title')
 				->select('a.level')
 				->select('a.parent_id')
 				->from('#__categories', 'a')
