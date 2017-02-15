@@ -34,6 +34,7 @@ namespace Hubzero\Html\Builder;
 
 use Hubzero\Utility\Arr;
 use Lang;
+use App;
 
 /**
  * Utility class for categories
@@ -62,33 +63,35 @@ class Category
 		if (!isset(self::$items[$hash]))
 		{
 			$config = (array) $config;
-			$db = \App::get('db');
-			$query = $db->getQuery(true);
+			$db = App::get('db');
 
-			$query->select('a.id, a.title, a.level');
-			$query->from('#__categories AS a');
-			$query->where('a.parent_id > 0');
+			$query = $db->getQuery()
+				->select('a.id')
+				->select('a.title')
+				->select('a.level')
+				->from('#__categories', 'a')
+				->where('a.parent_id', '>', '0');
 
 			// Filter on extension.
-			$query->where('extension = ' . $db->quote($extension));
+			$query->whereEquals('extension', $extension);
 
 			// Filter on the published state
 			if (isset($config['filter.published']))
 			{
 				if (is_numeric($config['filter.published']))
 				{
-					$query->where('a.published = ' . (int) $config['filter.published']);
+					$query->whereEquals('a.published', (int) $config['filter.published']);
 				}
 				elseif (is_array($config['filter.published']))
 				{
 					Arr::toInteger($config['filter.published']);
-					$query->where('a.published IN (' . implode(',', $config['filter.published']) . ')');
+					$query->whereIn('a.published', $config['filter.published']);
 				}
 			}
 
-			$query->order('a.lft');
+			$query->order('a.lft', 'asc');
 
-			$db->setQuery($query);
+			$db->setQuery($query->toString());
 			$items = $db->loadObjectList();
 
 			// Assemble the list options.
@@ -119,33 +122,36 @@ class Category
 		if (!isset(self::$items[$hash]))
 		{
 			$config = (array) $config;
-			$db = \App::get('db');
-			$query = $db->getQuery(true);
+			$db = App::get('db');
 
-			$query->select('a.id, a.title, a.level, a.parent_id');
-			$query->from('#__categories AS a');
-			$query->where('a.parent_id > 0');
+			$query = $db->getQuery()
+				->select('a.id, a.title, a.level, a.parent_id')
+				->select('a.title')
+				->select('a.level')
+				->select('a.parent_id')
+				->from('#__categories', 'a')
+				->where('a.parent_id', '>', '0');
 
 			// Filter on extension.
-			$query->where('extension = ' . $db->quote($extension));
+			$query->whereEquals('extension', $extension);
 
 			// Filter on the published state
 			if (isset($config['filter.published']))
 			{
 				if (is_numeric($config['filter.published']))
 				{
-					$query->where('a.published = ' . (int) $config['filter.published']);
+					$query->whereEquals('a.published', (int) $config['filter.published']);
 				}
 				elseif (is_array($config['filter.published']))
 				{
 					Arr::toInteger($config['filter.published']);
-					$query->where('a.published IN (' . implode(',', $config['filter.published']) . ')');
+					$query->whereIn('a.published', $config['filter.published']);
 				}
 			}
 
-			$query->order('a.lft');
+			$query->order('a.lft', 'asc');
 
-			$db->setQuery($query);
+			$db->setQuery($query->toString());
 			$items = $db->loadObjectList();
 
 			// Assemble the list options.

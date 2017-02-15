@@ -55,10 +55,15 @@ class TemplateStyle extends Element
 	 */
 	public function fetchElement($name, $value, &$node, $control_name)
 	{
-		$db = \App::get('db');
+		$db = App::get('db');
 
-		$query = 'SELECT * FROM `#__template_styles` ' . 'WHERE client_id = 0 ' . 'AND home = 0';
-		$db->setQuery($query);
+		$query = $db->getQuery()
+			->select('*')
+			->from('#__template_styles')
+			->whereEquals('client_id', '0')
+			->whereEquals('home', '0');
+
+		$db->setQuery($query->toString());
 		$data = $db->loadObjectList();
 
 		$default = Builder\Select::option(0, App::get('language')->txt('JOPTION_USE_DEFAULT'), 'id', 'description');
@@ -79,10 +84,12 @@ class TemplateStyle extends Element
 	{
 		$id = App::get('request')->getVar('cid', 0);
 
-		$db = \App::get('db');
-		$query = $db->getQuery(true);
-		$query->select($query->qn('template_style_id'))->from($query->qn('#__menu'))->where($query->qn('id') . ' = ' . (int) $id[0]);
-		$db->setQuery($query);
+		$db = App::get('db');
+		$query = $db->getQuery()
+			->select('template_style_id')
+			->from('#__menu')
+			->whereEquals('id', (int) $id[0]);
+		$db->setQuery($query->toString());
 
 		return $db->loadResult();
 	}

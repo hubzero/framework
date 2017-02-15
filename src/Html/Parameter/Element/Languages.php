@@ -63,7 +63,11 @@ class Languages extends Element
 		return Builder\Select::genericlist(
 			$languages,
 			$control_name . '[' . $name . ']',
-			array('id' => $control_name . $name, 'list.attr' => 'class="inputbox"', 'list.select' => $value)
+			array(
+				'id' => $control_name . $name,
+				'list.attr' => 'class="inputbox"',
+				'list.select' => $value
+			)
 		);
 	}
 }

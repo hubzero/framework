@@ -110,9 +110,9 @@ class Asset
 					foreach ($files as $file)
 					{
 						// If the file is in the template folder
-						if (file_exists(JPATH_THEMES . "/$template/$folder/$file"))
+						if (file_exists(PATH_APP . "/templates/$template/$folder/$file"))
 						{
-							$includes[] = App::get('request')->base(true) . "/templates/$template/$folder/$file";
+							$includes[] = App::get('request')->base(true) . "/app/templates/$template/$folder/$file";
 							break;
 						}
 						else
@@ -142,9 +142,9 @@ class Asset
 										break;
 									}
 									// Try to deal with system files in the template folder
-									elseif (file_exists(JPATH_THEMES . "/$template/$folder/system/$element/$file"))
+									elseif (file_exists(PATH_APP . "/templates/$template/$folder/system/$element/$file"))
 									{
-										$includes[] = $root . "/templates/$template/$folder/system/$element/$file" . '?v=' . filemtime(JPATH_THEMES . "/$template/$folder/system/$element/$file");
+										$includes[] = $root . "/app/templates/$template/$folder/system/$element/$file" . '?v=' . filemtime(PATH_APP . "/templates/$template/$folder/system/$element/$file");
 										break;
 									}
 									// Try to deal with system files in the media folder
@@ -161,9 +161,9 @@ class Asset
 									break;
 								}
 								// Try to deal with system files in the template folder
-								elseif (file_exists(JPATH_THEMES . "/$template/$folder/system/$file"))
+								elseif (file_exists(PATH_APP . "/templates/$template/$folder/system/$file"))
 								{
-									$includes[] = $root . "/templates/$template/$folder/system/$file" . '?v=' . filemtime(JPATH_THEMES . "/$template/$folder/system/$file");
+									$includes[] = $root . "/app/templates/$template/$folder/system/$file" . '?v=' . filemtime(PATH_APP . "/templates/$template/$folder/system/$file");
 									break;
 								}
 								// Try to deal with system files in the media folder

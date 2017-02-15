@@ -476,7 +476,8 @@ class Loader
 			}
 
 			$query
-				->order('m.position`, `m.ordering', 'asc');
+				->order('m.position', 'asc')
+				->order('m.ordering', 'asc');
 
 			// Set the query
 			$db->setQuery($query->toString());

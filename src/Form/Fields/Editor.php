@@ -126,15 +126,17 @@ class Editor extends Field
 				foreach ($types as $element)
 				{
 					// Build the query.
-					$query = $db->getQuery(true);
-					$query->select('element');
-					$query->from('#__extensions');
-					$query->where('element = ' . $db->quote($element));
-					$query->where('folder = ' . $db->quote('editors'));
-					$query->where('enabled = 1');
+					$query = $db->getQuery()
+						->select('element')
+						->from('#__extensions')
+						->whereEquals('element', $element)
+						->whereEquals('folder', 'editors')
+						->whereEquals('enabled', '1')
+						->limit(1)
+						->start(0);
 
 					// Check of the editor exists.
-					$db->setQuery($query, 0, 1);
+					$db->setQuery($query->toString());
 					$editor = $db->loadResult();
 
 					// If an editor was found stop looking.

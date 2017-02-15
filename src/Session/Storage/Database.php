@@ -84,7 +84,7 @@ class Database extends Store
 	 * Read the data for a particular session identifier from the SessionHandler backend.
 	 *
 	 * @param   string  $id  The session identifier.
-	 * @return  string  The session data.
+	 * @return  mixed   The session data on success, False on failure.
 	 */
 	public function read($session_id)
 	{
@@ -97,12 +97,12 @@ class Database extends Store
 		try
 		{
 			// Get the session data from the database table.
-			$query = $this->connection->getQuery(true);
-			$query->select($this->connection->quoteName('data'))
-				->from($this->connection->quoteName('#__session'))
-				->where($this->connection->quoteName('session_id') . ' = ' . $this->connection->quote($session_id));
+			$query = $this->connection->getQuery()
+				->select('data')
+				->from('#__session')
+				->whereEquals('session_id', $session_id);
 
-			$this->connection->setQuery($query);
+			$this->connection->setQuery($query->toString());
 
 			return (string) $this->connection->loadResult();
 		}
@@ -136,15 +136,17 @@ class Database extends Store
 		{
 			try
 			{
-				$query = $this->connection->getQuery(true);
-				$query->update($this->connection->quoteName('#__session'))
-					->set($this->connection->quoteName('data') . ' = ' . $this->connection->quote($session_data))
-					->set($this->connection->quoteName('time') . ' = ' . $this->connection->quote((int) time()))
-					->set($this->connection->quoteName('ip') . ' = ' . $this->connection->quote($_SERVER['REMOTE_ADDR']))
-					->where($this->connection->quoteName('session_id') . ' = ' . $this->connection->quote($session_id));
+				$query = $this->connection->getQuery()
+					->update('#__session')
+					->set(array(
+						'data' => $session_data,
+						'time' => (int) time(),
+						'ip'   => $_SERVER['REMOTE_ADDR']
+					))
+					->whereEquals('session_id', $session_id);
 
 				// Try to update the session data in the database table.
-				$this->connection->setQuery($query);
+				$this->connection->setQuery($query->toString());
 
 				if ($this->connection->execute())
 				{
@@ -187,12 +189,12 @@ class Database extends Store
 
 		try
 		{
-			$query = $this->connection->getQuery(true);
-			$query->delete($this->connection->quoteName('#__session'))
-				->where($this->connection->quoteName('session_id') . ' = ' . $this->connection->quote($session_id));
+			$query = $this->connection->getQuery()
+				->delete('#__session')
+				->whereEquals('session_id', $session_id);
 
 			// Remove a session from the database.
-			$this->connection->setQuery($query);
+			$this->connection->setQuery($query->toString());
 
 			return (boolean) $this->connection->execute();
 		}
@@ -221,12 +223,12 @@ class Database extends Store
 
 		try
 		{
-			$query = $this->connection->getQuery(true);
-			$query->delete($this->connection->quoteName('#__session'))
-				->where($this->connection->quoteName('time') . ' < ' . $this->connection->quote((int) $past));
+			$query = $this->connection->getQuery()
+				->delete('#__session')
+				->where('time', '<', (int) $past);
 
 			// Remove expired sessions from the database.
-			$this->connection->setQuery($query);
+			$this->connection->setQuery($query->toString());
 
 			return (boolean) $this->connection->execute();
 		}
@@ -244,13 +246,14 @@ class Database extends Store
 	 */
 	public function session($session_id)
 	{
-		$query = $this->connection->getQuery(true);
-		$query->select('*')
-				->from('#__session')
-				->group('userid, client_id')
-				->order('time DESC');
+		$query = $this->connection->getQuery()
+			->select('*')
+			->from('#__session')
+			->group('userid')
+			->group('client_id')
+			->order('time', 'desc');
 
-		$this->connection->setQuery($query);
+		$this->connection->setQuery($query->toString());
 		return $this->connection->loadObject();
 	}
 
@@ -262,19 +265,26 @@ class Database extends Store
 	 */
 	public function all($filters = array())
 	{
+		$query = $this->connection->getQuery()
+			->select('session_id')
+			->select('client_id')
+			->select('guest')
+			->select('time')
+			->select('data')
+			->select('userid')
+			->select('username')
+			->select('ip')
+			->from('#__session');
+
 		$max = '';
 		if (isset($filters['distinct']) && $filters['distinct'] == 1)
 		{
-			$max = "MAX(time) as time,";
+			$query->select('MAX(time)', 'time');
 		}
-
-		$query = $this->connection->getQuery(true);
-		$query->select('session_id, client_id, guest, time, ' . $max . ' data, userid, username, ip')
-				->from('#__session');
 
 		if (isset($filters['guest']))
 		{
-			$query->where('guest=' . $this->connection->quote($filters['guest']));
+			$query->where('guest', $filters['guest']);
 		}
 
 		if (isset($filters['client']))
@@ -284,17 +294,19 @@ class Database extends Store
 				$filters['client'] = array($filters['client']);
 			}
 
-			$query->where('client_id IN ('. implode(',', $filters['client']) . ')');
+			$query->whereIn('client_id', $filters['client']);
 		}
 
 		if (isset($filters['distinct']) && $filters['distinct'] == 1)
 		{
-			$query->group('userid, client_id');
+			$query
+				->group('userid')
+				->group('client_id');
 		}
 
-		$query->order('time DESC');
+		$query->order('time', 'desc');
 
-		$this->connection->setQuery($query);
+		$this->connection->setQuery($query->toString());
 		return $this->connection->loadObjectList();
 	}
 }

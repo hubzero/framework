@@ -101,28 +101,30 @@ class ModuleLayout extends Field
 
 			// Get the database object and a new query object.
 			$db = App::get('db');
-			$query = $db->getQuery(true);
 
 			// Build the query.
-			$query->select('element, name');
-			$query->from('#__extensions as e');
-			$query->where('e.client_id = ' . (int) $clientId);
-			$query->where('e.type = ' . $db->quote('template'));
-			$query->where('e.enabled = 1');
+			$query = $db->getQuery()
+				->select('e.element')
+				->select('e.name')
+				->from('#__extensions as e')
+				->whereEquals('e.client_id', (int) $clientId)
+				->whereEquals('e.type', 'template')
+				->whereEquals('e.enabled', '1');
 
 			if ($template)
 			{
-				$query->where('e.element = ' . $db->quote($template));
+				$query->whereEquals('e.element', $template);
 			}
 
 			if ($template_style_id)
 			{
-				$query->join('LEFT', '#__template_styles as s on s.template=e.element');
-				$query->where('s.id=' . (int) $template_style_id);
+				$query
+					->join('#__template_styles as s', 's.template', 'e.element', 'left')
+					->whereEquals('s.id', (int) $template_style_id);
 			}
 
 			// Set the query and load the templates.
-			$db->setQuery($query);
+			$db->setQuery($query->toString());
 			$templates = $db->loadObjectList('element');
 
 			// Check for a database error.
