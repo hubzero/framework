@@ -308,28 +308,28 @@ class Access
 				$db = App::get('db');
 
 				// Build the database query to get the rules for the asset.
-				$query = $db->getQuery(true);
+				$query = $db->getQuery();
 				$query->select($recursive ? 'b.id' : 'a.id');
 				if (empty($userId))
 				{
-					$query->from('#__usergroups AS a');
-					$query->where('a.id = ' . (int) \Component::params('com_members')->get('guest_usergroup', 1));
+					$query->from('#__usergroups', 'a')
+						->whereEquals('a.id', (int) \Component::params('com_members')->get('guest_usergroup', 1));
 				}
 				else
 				{
-					$query->from('#__user_usergroup_map AS map');
-					$query->where('map.user_id = ' . (int) $userId);
-					$query->leftJoin('#__usergroups AS a ON a.id = map.group_id');
+					$query->from('#__user_usergroup_map', 'map')
+						->whereEquals('map.user_id', (int) $userId)
+						->join('#__usergroups AS a', 'a.id', 'map.group_id', 'left');
 				}
 
 				// If we want the rules cascading up to the global asset node we need a self-join.
 				if ($recursive)
 				{
-					$query->leftJoin('#__usergroups AS b ON b.lft <= a.lft AND b.rgt >= a.rgt');
+					$query->joinRaw('#__usergroups AS b', 'b.lft <= a.lft AND b.rgt >= a.rgt', 'left');
 				}
 
 				// Execute the query and load the rules from the result.
-				$db->setQuery($query);
+				$db->setQuery($query->toString());
 				$result = $db->loadColumn();
 
 				// Clean up any NULL or duplicate values, just in case
@@ -365,30 +365,16 @@ class Access
 
 		// First find the users contained in the group
 		$db = App::get('db');
-		$query = $db->getQuery(true);
-		$query->select('DISTINCT(user_id)');
-		$query->from('#__usergroups as ug1');
-		$query->join('INNER', '#__usergroups AS ug2 ON ug2.lft' . $test . 'ug1.lft AND ug1.rgt' . $test . 'ug2.rgt');
-		$query->join('INNER', '#__user_usergroup_map AS m ON ug2.id=m.group_id');
-		$query->where('ug1.id=' . $db->Quote($groupId));
+		$query = $db->getQuery()
+			->select('DISTINCT(user_id)')
+			->from('#__usergroups', 'ug1')
+			->joinRaw('#__usergroups AS ug2', 'ug2.lft' . $test . 'ug1.lft AND ug1.rgt' . $test . 'ug2.rgt', 'inner')
+			->join('#__user_usergroup_map AS m', 'm.group_id', 'ug2.id', 'inner')
+			->whereEquals('ug1.id', $groupId);
 
-		$db->setQuery($query);
+		$db->setQuery($query->toString());
 
 		$result = $db->loadColumn();
-
-		/*
-		$map   = Map::blank();
-		$group = Group::all();
-
-		$results = $group
-			->select(\Hubzero\Database\Value\Raw('DISTINCT(user_id)'))
-			->from($group->getTableName(), 'ug1')
-			->joinRaw($group->getTableName() . ' AS ug2', 'ug2.lft' . $test . 'ug1.lft AND ug1.rgt' . $test . 'ug2.rgt', 'inner')
-			->join($map->getTableName() . ' AS m', 'm.group_id', 'ug2.id', 'inner')
-			->whereEquals('id', $groupId)
-			->group('user_id')
-			->rows();
-		*/
 
 		// Clean up any NULL values, just in case
 		Arr::toInteger($result);

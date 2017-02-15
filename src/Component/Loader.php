@@ -395,32 +395,42 @@ class Loader
 			return self::$components[$option];
 		}
 
-		$db = $this->app->get('db');
-		$query = $db->getQuery(true);
-		$query->select('extension_id AS id, element AS "option", params, enabled');
-		$query->from('#__extensions');
-		$query->where($query->qn('type') . ' = ' . $db->quote('component'));
-		$query->where($query->qn('element') . ' = ' . $db->quote($option));
-		$db->setQuery($query);
-
-		if (!$this->app->has('cache.store') || !($cache = $this->app['cache.store']))
+		// Do we have a database connection?
+		if ($this->app->has('db'))
 		{
-			$cache = new \Hubzero\Cache\Storage\None();
+			$db = $this->app->get('db');
+
+			$query = $db->getQuery()
+				->select('extension_id', 'id')
+				->select('element', '"option"')
+				->select('params')
+				->select('enabled')
+				->from('#__extensions')
+				->whereEquals('type', 'component')
+				->whereEquals('element', $option);
+
+			$db->setQuery($query->toString());
+
+			if (!$this->app->has('cache.store') || !($cache = $this->app['cache.store']))
+			{
+				$cache = new \Hubzero\Cache\Storage\None();
+			}
+
+			if (!($data = $cache->get('_system.' . $option)))
+			{
+				$data = $db->loadObject();
+				$cache->put('_system.' . $option, $data, $this->app['config']->get('cachetime', 15));
+			}
+
+			self::$components[$option] = $data;
+
+			if ($error = $db->getErrorMsg())
+			{
+				throw new Exception($this->app['language']->translate('JLIB_APPLICATION_ERROR_COMPONENT_NOT_LOADING', $option, $error), 500);
+			}
 		}
 
-		if (!($data = $cache->get('_system.' . $option)))
-		{
-			$data = $db->loadObject();
-			$cache->put('_system.' . $option, $data, $this->app['config']->get('cachetime', 15));
-		}
-
-		self::$components[$option] = $data;
-
-		if ($error = $db->getErrorMsg())// || empty(self::$components[$option]))
-		{
-			throw new Exception($this->app['language']->translate('JLIB_APPLICATION_ERROR_COMPONENT_NOT_LOADING', $option, $error), 500);
-		}
-
+		// Create a default object
 		if (empty(self::$components[$option]))
 		{
 			self::$components[$option] = new stdClass;

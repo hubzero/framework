@@ -49,21 +49,37 @@ class Site extends Base
 		}
 
 		// Initialise variables.
-		$db    = $this->get('db');
-		$query = $db->getQuery(true);
+		$db = $this->get('db');
 
-		$query->select('m.id, m.menutype, m.title, m.alias, m.note, m.path AS route, m.link, m.type, m.level, m.language');
-		$query->select('m.browserNav, m.access, m.params, m.home, m.img, m.template_style_id, m.component_id, m.parent_id');
-		$query->select('e.element as component');
-		$query->from('#__menu AS m');
-		$query->leftJoin('#__extensions AS e ON m.component_id = e.extension_id');
-		$query->where('m.published = 1');
-		$query->where('m.parent_id > 0');
-		$query->where('m.client_id = 0');
-		$query->order('m.lft');
+		$query = $db->getQuery()
+			->select('m.id')
+			->select('m.menutype')
+			->select('m.title')
+			->select('m.alias')
+			->select('m.note')
+			->select('m.path', 'route')
+			->select('m.link')
+			->select('m.type')
+			->select('m.level')
+			->select('m.language')
+			->select('m.browserNav')
+			->select('m.access')
+			->select('m.params')
+			->select('m.home')
+			->select('m.img')
+			->select('m.template_style_id')
+			->select('m.component_id')
+			->select('m.parent_id')
+			->select('e.element', 'component')
+			->from('#__menu', 'm')
+			->join('#__extensions AS e', 'e.extension_id', 'm.component_id', 'left')
+			->whereEquals('m.published', 1)
+			->where('m.parent_id', '>', 0)
+			->whereEquals('m.client_id', 0)
+			->order('m.lft', 'asc');
 
 		// Set the query
-		$db->setQuery($query);
+		$db->setQuery($query->toString());
 
 		$this->_items = $db->loadObjectList('id');
 

@@ -437,35 +437,49 @@ class Loader
 		{
 			$db = $this->app['db'];
 
-			$query = $db->getQuery(true);
-			$query->select('m.id, m.title, m.module, m.position, m.content, m.showtitle, m.params, mm.menuid, e.protected');
-			$query->from('#__modules AS m');
-			$query->join('LEFT', '#__modules_menu AS mm ON mm.moduleid = m.id');
-			$query->where('m.published = 1');
+			$query = $db->getQuery();
 
-			$query->join('LEFT', '#__extensions AS e ON e.element = m.module AND e.client_id = m.client_id');
-			$query->where('e.enabled = 1');
+			$query
+				->select('m.id')
+				->select('m.title')
+				->select('m.module')
+				->select('m.position')
+				->select('m.content')
+				->select('m.showtitle')
+				->select('m.params')
+				->select('mm.menuid')
+				->select('e.protected')
+				->from('#__modules', 'm')
+				->join('#__modules_menu AS mm', 'mm.moduleid', 'm.id', 'left')
+				->whereEquals('m.published', 1);
+
+			$query
+				->joinRaw('#__extensions AS e', 'e.element = m.module AND e.client_id = m.client_id', 'left')
+				->whereEquals('e.enabled', 1);
 
 			$now = with(new Date('now'))->toSql();
 			$nullDate = $db->getNullDate();
 
-			$query->where('(m.publish_up = ' . $db->quote($nullDate) . ' OR m.publish_up <= ' . $db->quote($now) . ')');
-			$query->where('(m.publish_down = ' . $db->quote($nullDate) . ' OR m.publish_down >= ' . $db->quote($now) . ')');
+			$query
+				->whereEquals('m.publish_up', $nullDate, 1)->orWhere('m.publish_up', '<=', $now, 1)->resetDepth()
+				->whereEquals('m.publish_down', $nullDate, 1)->orWhere('m.publish_down', '>=', $now, 1)->resetDepth();
 
-			$query->where('m.access IN (' . $groups . ')');
-			$query->where('m.client_id = ' . $clientId);
-			$query->where('(mm.menuid = ' . (int) $Itemid . ' OR mm.menuid <= 0)');
+			$query
+				->whereIn('m.access', $user->getAuthorisedViewLevels())
+				->whereEquals('m.client_id', $clientId)
+				->whereEquals('mm.menuid', (int) $Itemid, 1)->orWhere('mm.menuid', '<=', '0', 1)->resetDepth();
 
 			// Filter by language
 			if ($this->app->isSite() && $this->app->get('language.filter'))
 			{
-				$query->where('m.language IN (' . $db->quote($lang) . ',' . $db->quote('*') . ')');
+				$query->whereIn('m.language', array($lang, '*'));
 			}
 
-			$query->order('m.position, m.ordering');
+			$query
+				->order('m.position`, `m.ordering', 'asc');
 
 			// Set the query
-			$db->setQuery($query);
+			$db->setQuery($query->toString());
 			$modules = $db->loadObjectList();
 			$clean = array();
 
@@ -646,25 +660,35 @@ class Loader
 	/**
 	 * Get the parameters for a module
 	 *
-	 * @param   integer  $id  Module ID
-	 * @return  object
+	 * @param   mixed   $id  Module ID
+	 * @return  object  Hubzero\Config\Registry
 	 */
 	public function params($id)
 	{
-		//database object
-		$db = $this->app['db'];
+		$params = '';
 
-		//select module params based on name passed in
-		if (is_numeric($id))
+		if ($this->app->has('db'))
 		{
-			$query = "SELECT params FROM `#__modules` WHERE `id`=" . $db->quote(intval($id)) . " AND `published`=1";
+			$db = $this->app['db'];
+
+			$query = $db->getQuery()
+				->select('params')
+				->from('#__modules')
+				->whereEquals('published', 1);
+
+			// Select module params based on name or ID
+			if (is_numeric($id))
+			{
+				$query->whereEquals('id', (int) $id);
+			}
+			else
+			{
+				$query->whereEquals('module', $id);
+			}
+
+			$db->setQuery($query->toString());
+			$params = $db->loadResult();
 		}
-		else
-		{
-			$query = "SELECT params FROM `#__modules` WHERE `module`=" . $db->quote($id) . " AND `published`=1";
-		}
-		$db->setQuery($query);
-		$params = $db->loadResult();
 
 		//return params
 		return new Registry($params);
