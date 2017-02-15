@@ -59,14 +59,16 @@ class Plugins extends Select
 		if (!empty($folder))
 		{
 			// Get list of plugins
-			$db     = App::get('db');
-			$query  = $db->getQuery(true);
-			$query->select('element AS value, name AS text');
-			$query->from('#__extensions');
-			$query->where('folder = ' . $db->q($folder));
-			$query->where('enabled = 1');
-			$query->order('ordering, name');
-			$db->setQuery($query);
+			$db = App::get('db');
+			$query = $db->getQuery()
+				->select('element', 'value')
+				->select('name', 'text')
+				->from('#__extensions')
+				->whereEquals('folder', $folder)
+				->whereEquals('enabled', '1')
+				->order('ordering', 'asc')
+				->order('name', 'asc');
+			$db->setQuery($query->toString());
 
 			$options = $db->loadObjectList();
 

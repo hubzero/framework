@@ -54,13 +54,60 @@ class Helpsites extends Element
 	 */
 	public function fetchElement($name, $value, &$node, $control_name)
 	{
-		$helpsites = \JHelp::createSiteList(PATH_CORE . '/help/helpsites.xml', $value);
+		$helpsites = self::createSiteList(PATH_CORE . '/help/helpsites.xml', $value);
 		array_unshift($helpsites, Builder\Select::option('', \App::get('language')->txt('local')));
 
 		return Builder\Select::genericlist(
 			$helpsites,
 			$control_name . '[' . $name . ']',
-			array('id' => $control_name . $name, 'list.attr' => 'class="inputbox"', 'list.select' => $value)
+			array(
+				'id' => $control_name . $name,
+				'list.attr' => 'class="inputbox"',
+				'list.select' => $value
+			)
 		);
+	}
+
+	/**
+	 * Builds a list of the help sites which can be used in a select option.
+	 *
+	 * @param   string  $pathToXml  Path to an XML file.
+	 * @param   string  $selected   Language tag to select (if exists).
+	 * @return  array   An array of arrays (text, value, selected).
+	 */
+	public static function createSiteList($pathToXml, $selected = null)
+	{
+		$list = array();
+		$xml = false;
+
+		if (!empty($pathToXml))
+		{
+			// Disable libxml errors and allow to fetch error information as needed
+			libxml_use_internal_errors(true);
+
+			// Try to load the XML file
+			$xml = simplexml_load_file($pathToXml);
+		}
+
+		if (!$xml)
+		{
+			$option['text']  = 'English (US) hubzero.org';
+			$option['value'] = 'http://hubzero.org/documentation';
+			$list[] = $option;
+		}
+		else
+		{
+			$option = array();
+
+			foreach ($xml->sites->site as $site)
+			{
+				$option['text']  = (string) $site;
+				$option['value'] = (string) $site->attributes()->url;
+
+				$list[] = $option;
+			}
+		}
+
+		return $list;
 	}
 }

@@ -30,6 +30,7 @@ namespace Hubzero\Html\Parameter\Element;
 
 use Hubzero\Html\Parameter\Element;
 use Hubzero\Html\Builder;
+use App;
 
 /**
  * Renders a editors element
@@ -54,13 +55,22 @@ class Editors extends Element
 	 */
 	public function fetchElement($name, $value, &$node, $control_name)
 	{
-		// compile list of the editors
-		$query = 'SELECT `element` AS `value`, `name` AS `text` FROM `#__extensions` WHERE folder = "editors" AND type = "plugin" AND enabled = 1 ORDER BY ordering, name';
-		$db = \App::get('db');
-		$db->setQuery($query);
+		$db = App::get('db');
+
+		$query = $db->getQuery()
+			->select('element', 'value')
+			->select('name', 'text')
+			->from('#__extensions')
+			->whereEquals('folder', 'editors')
+			->whereEquals('type', 'plugin')
+			->whereEquals('enabled', 1)
+			->order('ordering', 'asc')
+			->order('name', 'asc');
+
+		$db->setQuery($query->toString());
 		$editors = $db->loadObjectList();
 
-		array_unshift($editors, Builder\Select::option('', \App::get('language')->txt('JOPTION_SELECT_EDITOR')));
+		array_unshift($editors, Builder\Select::option('', App::get('language')->txt('JOPTION_SELECT_EDITOR')));
 
 		return Builder\Select::genericlist(
 			$editors,

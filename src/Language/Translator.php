@@ -1290,12 +1290,12 @@ class Translator extends Object
 				if (!$languages = $cache->get('com_languages.languages'))
 				{
 					$db = \App::get('db');
-					$query = $db->getQuery(true);
-					$query->select('*')
+					$query = $db->getQuery()
+						->select('*')
 						->from('#__languages')
-						->where('published=1')
-						->order('ordering ASC');
-					$db->setQuery($query);
+						->whereEquals('published', 1)
+						->order('ordering', 'asc');
+					$db->setQuery($query->toString());
 
 					$languages['default']   = $db->loadObjectList();
 					$languages['sef']       = array();
@@ -1336,14 +1336,14 @@ class Translator extends Object
 		if ($installed)
 		{
 			$db = \App::get('db');
-			$query = $db->getQuery(true);
-			$query->select('element');
-			$query->from('#__extensions');
-			$query->where('type=' . $db->quote('language'));
-			$query->where('state=0');
-			$query->where('enabled=1');
-			$query->where('client_id=' . \App::get('client')->id);
-			$db->setQuery($query);
+			$query = $db->getQuery()
+				->select('element')
+				->from('#__extensions')
+				->whereEquals('type', 'language')
+				->whereEquals('state', 0)
+				->whereEquals('enabled', 1)
+				->whereEquals('client_id', \App::get('client')->id);
+			$db->setQuery($query->toString());
 
 			$installed_languages = $db->loadObjectList('element');
 		}
@@ -1513,14 +1513,13 @@ class Translator extends Object
 		{
 			// Determine status of language filter plug-in.
 			$db = \App::get('db');
-			$query = $db->getQuery(true);
-
-			$query->select('enabled');
-			$query->from($db->quoteName('#__extensions'));
-			$query->where($db->quoteName('type') . ' = ' . $db->quote('plugin'));
-			$query->where($db->quoteName('folder') . ' = ' . $db->quote('system'));
-			$query->where($db->quoteName('element') . ' = ' . $db->quote('languagefilter'));
-			$db->setQuery($query);
+			$query = $db->getQuery()
+				->select('enabled')
+				->from('#__extensions')
+				->whereEquals('type', 'plugin')
+				->whereEquals('folder', 'system')
+				->whereEquals('element', 'languagefilter');
+			$db->setQuery($query->toString());
 
 			$enabled = $db->loadResult();
 			$tested  = true;

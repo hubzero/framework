@@ -35,6 +35,7 @@ namespace Hubzero\Html\Builder;
 use Hubzero\Error\Exception\RuntimeException;
 use Hubzero\Base\Object;
 use Lang;
+use App;
 
 /**
  * Utility class working with content language select lists
@@ -60,17 +61,19 @@ class ContentLanguage
 		if (empty(self::$items))
 		{
 			// Get the database object and a new query object.
-			$db = \App::get('db');
-			$query = $db->getQuery(true);
+			$db = App::get('db');
 
 			// Build the query.
-			$query->select('a.lang_code AS value, a.title AS text, a.title_native');
-			$query->from('#__languages AS a');
-			$query->where('a.published >= 0');
-			$query->order('a.title');
+			$query = $db->getQuery()
+				->select('a.lang_code', 'value')
+				->select('a.title', 'text')
+				->select('a.title_native')
+				->from('#__languages', 'a')
+				->where('a.published', '>=', '0')
+				->order('a.title', 'asc');
 
 			// Set the query and load the options.
-			$db->setQuery($query);
+			$db->setQuery($query->toString());
 			self::$items = $db->loadObjectList();
 			if ($all)
 			{

@@ -52,15 +52,17 @@ class ContentLanguages extends Select
 	protected function _getOptions(&$node)
 	{
 		$db = \App::get('db');
-		$query = $db->getQuery(true);
 
-		$query->select('a.lang_code AS value, a.title AS text, a.title_native');
-		$query->from('#__languages AS a');
-		$query->where('a.published >= 0');
-		$query->order('a.title');
+		$query = $db->getQuery()
+			->select('a.lang_code', 'value')
+			->select('a.title', 'title')
+			->select('a.title_native')
+			->from('#__languages', 'a')
+			->where('a.published', '>=', '0')
+			->order('a.title', 'asc');
 
 		// Get the options.
-		$db->setQuery($query);
+		$db->setQuery($query->toString());
 		$options = $db->loadObjectList();
 
 		// Check for a database error.

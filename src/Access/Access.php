@@ -209,37 +209,6 @@ class Access
 	 */
 	public static function getAssetRules($asset, $recursive = false)
 	{
-		// Get the database connection object.
-		/*$db = App::get('db');
-
-		// Build the database query to get the rules for the asset.
-		$query = $db->getQuery(true);
-		$query->select($recursive ? 'b.rules' : 'a.rules');
-		$query->from('#__assets AS a');
-		//sqlsrv change
-		$query->group($recursive ? 'b.id, b.rules, b.lft' : 'a.id, a.rules, a.lft');
-
-		// If the asset identifier is numeric assume it is a primary key, else lookup by name.
-		if (is_numeric($asset))
-		{
-			$query->where('(a.id = ' . (int) $asset . ')');
-		}
-		else
-		{
-			$query->where('(a.name = ' . $db->quote($asset) . ')');
-		}
-
-		// If we want the rules cascading up to the global asset node we need a self-join.
-		if ($recursive)
-		{
-			$query->leftJoin('#__assets AS b ON b.lft <= a.lft AND b.rgt >= a.rgt');
-			$query->order('b.lft');
-		}
-
-		// Execute the query and load the rules from the result.
-		$db->setQuery($query);
-		$result = $db->loadColumn();*/
-
 		// Build the database query to get the rules for the asset.
 		$query = Asset::all()
 			->select($recursive ? 'b.rules' : 'a.rules');

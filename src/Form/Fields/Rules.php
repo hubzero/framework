@@ -74,8 +74,11 @@ class Rules extends Field
 		{
 			if ($el->getName() == 'action')
 			{
-				$actions[] = (object) array('name' => (string) $el['name'], 'title' => (string) $el['title'],
-					'description' => (string) $el['description']);
+				$actions[] = (object) array(
+					'name' => (string) $el['name'],
+					'title' => (string) $el['title'],
+					'description' => (string) $el['description']
+				);
 			}
 		}
 
@@ -84,11 +87,12 @@ class Rules extends Field
 		{
 			// Need to find the asset id by the name of the component.
 			$db = App::get('db');
-			$query = $db->getQuery(true);
-			$query->select($db->quoteName('id'));
-			$query->from($db->quoteName('#__assets'));
-			$query->where($db->quoteName('name') . ' = ' . $db->quote($component));
-			$db->setQuery($query);
+
+			$query = $db->getQuery()
+				->select('id')
+				->from('#__assets')
+				->whereEquals('name', $component);
+			$db->setQuery($query->toString());
 			$assetId = (int) $db->loadResult();
 
 			if ($error = $db->getErrorMsg())
@@ -292,12 +296,19 @@ class Rules extends Field
 	{
 		// Initialise variables.
 		$db = App::get('db');
-		$query = $db->getQuery(true);
-		$query->select('a.id AS value, a.title AS text, COUNT(DISTINCT b.id) AS level, a.parent_id')
-			->from('#__usergroups AS a')
-			->leftJoin($db->quoteName('#__usergroups') . ' AS b ON a.lft > b.lft AND a.rgt < b.rgt')
-			->group('a.id, a.title, a.lft, a.rgt, a.parent_id')
-			->order('a.lft ASC');
+		$query = $db->getQuery()
+			->select('a.id', 'value')
+			->select('a.title', 'text')
+			->select('COUNT(DISTINCT b.id)', 'level')
+			->select('a.parent_id')
+			->from('#__usergroups', 'a')
+			->joinRaw('#__usergroups AS b', 'a.lft > b.lft AND a.rgt < b.rgt', 'left')
+			->group('a.id')
+			->group('a.title')
+			->group('a.lft')
+			->group('a.rgt')
+			->group('a.parent_id')
+			->order('a.lft', 'ASC');
 		$db->setQuery($query);
 		$options = $db->loadObjectList();
 

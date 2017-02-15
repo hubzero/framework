@@ -29,6 +29,7 @@
 namespace Hubzero\Html\Parameter\Element;
 
 use Hubzero\Html\Parameter\Element;
+use Hubzero\Html\Builder;
 
 /**
  * Renders a category element
@@ -53,8 +54,6 @@ class Category extends Element
 	 */
 	public function fetchElement($name, $value, &$node, $control_name)
 	{
-		$db = \App::get('db');
-
 		$extension = (string) $node['extension'];
 		$class     = (string) $node['class'];
 		$filter    = explode(',', (string) $node['filter']);
@@ -79,16 +78,15 @@ class Category extends Element
 			$filter = null;
 		}
 
-		return \JHtml::_(
-			'list.category',
+		return Builder\Select::genericlist(
+			Builder\Category::options($extension),
 			$control_name . '[' . $name . ']',
-			$extension,
-			$extension . '.view',
-			$filter,
+			array(
+				'class' => $class
+			),
+			'value',
+			'text',
 			(int) $value,
-			$class,
-			null,
-			1,
 			$control_name . $name
 		);
 	}

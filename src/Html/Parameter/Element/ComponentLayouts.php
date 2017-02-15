@@ -56,9 +56,15 @@ class ComponentLayouts extends Select
 		$path2 = null;
 
 		// Load template entries for each menuid
-		$db = \App::get('db');
-		$query = 'SELECT template' . ' FROM #__template_styles' . ' WHERE client_id = 0 AND home = 1';
-		$db->setQuery($query);
+		$db = App::get('db');
+
+		$query = $db->getQuery()
+			->select('template')
+			->from('#__template_styles')
+			->whereEquals('client_id', 0)
+			->whereEquals('home', 1)
+			->limit(1);
+		$db->setQuery($query->toString());
 		$template = $db->loadResult();
 
 		$view = (string) $node['view'];

@@ -30,6 +30,7 @@ namespace Hubzero\Html\Parameter\Element;
 
 use Hubzero\Html\Parameter\Element;
 use Hubzero\Html\Builder\Select;
+use App;
 
 /**
  * Renders a timezones element
@@ -56,10 +57,10 @@ class Timezones extends Element
 	{
 		if (!strlen($value))
 		{
-			$value = \App::get('config')->get('offset');
+			$value = App::get('config')->get('offset');
 		}
 
-		$lang = \App::get('language');
+		$lang = App::get('language');
 
 		// LOCALE SETTINGS
 		$timezones = array(
@@ -106,7 +107,11 @@ class Timezones extends Element
 		return Builder\Select::genericlist(
 			$timezones,
 			$control_name . '[' . $name . ']',
-			array('id' => $control_name . $name, 'list.attr' => 'class="inputbox"', 'list.select' => $value)
+			array(
+				'id' => $control_name . $name,
+				'list.attr' => 'class="inputbox"',
+				'list.select' => $value
+			)
 		);
 	}
 }

@@ -55,7 +55,7 @@ class MenuItem extends Element
 	 */
 	public function fetchElement($name, $value, &$node, $control_name)
 	{
-		$db = \App::get('db');
+		$db = App::get('db');
 
 		$menuType = $this->_parent->get('menu_type');
 		if (!empty($menuType))
@@ -69,8 +69,13 @@ class MenuItem extends Element
 
 		// Load the list of menu types
 		// TODO: move query to model
-		$query = 'SELECT menutype, title' . ' FROM #__menu_types' . ' ORDER BY title';
-		$db->setQuery($query);
+		$query = $db->getQuery()
+			->select('menutype')
+			->select('title')
+			->from('#__menu_types')
+			->order('title', 'asc');
+
+		$db->setQuery($query->toString());
 		$menuTypes = $db->loadObjectList();
 
 		if ($state = $node->attributes('state'))
@@ -80,9 +85,30 @@ class MenuItem extends Element
 
 		// load the list of menu items
 		// TODO: move query to model
-		$query = 'SELECT id, parent_id, title, menutype, type' . ' FROM #__menu' . $where . ' ORDER BY menutype, parent_id, ordering';
+		$query = $db->getQuery()
+			->select('id')
+			->select('parent_id')
+			->select('title')
+			->select('menutype')
+			->select('type')
+			->from('#__menu');
 
-		$db->setQuery($query);
+		$menuType = $this->_parent->get('menu_type');
+		if (!empty($menuType))
+		{
+			$query->whereEquals('menutype', $menuType);
+		}
+		if ($state = $node->attributes('state'))
+		{
+			$query->whereEquals('published', (int) $state);
+		}
+
+		$query
+			->order('menutype', 'asc')
+			->order('parent_id', 'asc')
+			->order('ordering', 'asc');
+
+		$db->setQuery($query->toString());
 		$menuItems = $db->loadObjectList();
 
 		// Establish the hierarchy of the menu
@@ -152,7 +178,11 @@ class MenuItem extends Element
 		return Builder\Select::genericlist(
 			$options,
 			$control_name . '[' . $name . ']',
-			array('id' => $control_name . $name, 'list.attr' => 'class="inputbox"', 'list.select' => $value)
+			array(
+				'id' => $control_name . $name,
+				'list.attr' => 'class="inputbox"',
+				'list.select' => $value
+			)
 		);
 	}
 }

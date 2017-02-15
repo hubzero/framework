@@ -748,13 +748,14 @@ class User extends \Hubzero\Database\Relational
 		// Brute force method: get all published category rows for the component and check each one
 		// TODO: Move to ORM-based models
 		$db = \App::get('db');
-		$query = $db->getQuery(true)
-			->select('c.id AS id, a.name AS asset_name')
-			->from('#__categories AS c')
-			->innerJoin('#__assets AS a ON c.asset_id = a.id')
-			->where('c.extension = ' . $db->quote($component))
-			->where('c.published = 1');
-		$db->setQuery($query);
+		$query = $db->getQuery()
+			->select('c.id', 'id')
+			->select('a.name', 'asset_name')
+			->from('#__categories', 'c')
+			->join('#__assets AS a', 'c.asset_id', 'a.id', 'inner')
+			->whereEquals('c.extension', $component)
+			->whereEquals('c.published', '1');
+		$db->setQuery($query->toString());
 
 		$allCategories = $db->loadObjectList('id');
 

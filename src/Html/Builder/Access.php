@@ -34,6 +34,7 @@ namespace Hubzero\Html\Builder;
 
 use Hubzero\Error\Exception\Exception;
 use Lang;
+use App;
 
 /**
  * Extended Utility class for all HTML drawing classes.
@@ -59,17 +60,20 @@ class Access
 	 */
 	public static function level($name, $selected, $attribs = '', $params = true, $id = false)
 	{
-		$db = \App::get('db');
-		$query = $db->getQuery(true);
+		$db = App::get('db');
 
-		$query->select('a.id AS value, a.title AS text');
-		$query->from('#__viewlevels AS a');
-		$query->group('a.id, a.title, a.ordering');
-		$query->order('a.ordering ASC');
-		$query->order($query->qn('title') . ' ASC');
+		$query = $db->getQuery()
+			->select('a.id', 'value')
+			->select('a.title', 'text')
+			->from('#__viewlevels', 'a')
+			->group('a.id')
+			->group('a.title')
+			->group('a.ordering')
+			->order('a.ordering', 'asc')
+			->order('title', 'asc');
 
 		// Get the options.
-		$db->setQuery($query);
+		$db->setQuery($query->toString());
 		$options = $db->loadObjectList();
 
 		// Check for a database error.
@@ -112,14 +116,19 @@ class Access
 	 */
 	public static function usergroup($name, $selected, $attribs = '', $allowAll = true)
 	{
-		$db = \App::get('db');
-		$query = $db->getQuery(true);
-		$query->select('a.id AS value, a.title AS text, COUNT(DISTINCT b.id) AS level');
-		$query->from($db->quoteName('#__usergroups') . ' AS a');
-		$query->join('LEFT', $db->quoteName('#__usergroups') . ' AS b ON a.lft > b.lft AND a.rgt < b.rgt');
-		$query->group('a.id, a.title, a.lft, a.rgt');
-		$query->order('a.lft ASC');
-		$db->setQuery($query);
+		$db = App::get('db');
+		$query = $db->getQuery()
+			->select('a.id', 'value')
+			->select('a.title', 'text')
+			->select('COUNT(DISTINCT b.id)', 'level')
+			->from('#__usergroups', 'a')
+			->joinRaw('#__usergroups AS b', 'a.lft > b.lft AND a.rgt < b.rgt', 'left')
+			->group('a.id')
+			->group('a.title')
+			->group('a.lft')
+			->group('a.rgt')
+			->order('a.lft', 'asc');
+		$db->setQuery($query->toString());
 		$options = $db->loadObjectList();
 
 		// Check for a database error.
@@ -159,14 +168,19 @@ class Access
 
 		$isSuperAdmin = \User::authorise('core.admin');
 
-		$db = \App::get('db');
-		$query = $db->getQuery(true);
-		$query->select('a.*, COUNT(DISTINCT b.id) AS level');
-		$query->from($db->quoteName('#__usergroups') . ' AS a');
-		$query->join('LEFT', $db->quoteName('#__usergroups') . ' AS b ON a.lft > b.lft AND a.rgt < b.rgt');
-		$query->group('a.id, a.title, a.lft, a.rgt, a.parent_id');
-		$query->order('a.lft ASC');
-		$db->setQuery($query);
+		$db = App::get('db');
+		$query = $db->getQuery()
+			->select('a.*')
+			->select('COUNT(DISTINCT b.id)', 'level')
+			->from('#__usergroups', 'a')
+			->joinRaw('#__usergroups AS b', 'a.lft > b.lft AND a.rgt < b.rgt', 'left')
+			->group('a.id')
+			->group('a.title')
+			->group('a.lft')
+			->group('a.rgt')
+			->group('a.parent_id')
+			->order('a.lft', 'asc');
+		$db->setQuery($query->toString());
 		$groups = $db->loadObjectList();
 
 		// Check for a database error.
@@ -185,7 +199,7 @@ class Access
 			$item = &$groups[$i];
 
 			// If checkSuperAdmin is true, only add item if the user is superadmin or the group is not super admin
-			if ((!$checkSuperAdmin) || $isSuperAdmin || (!\JAccess::checkGroup($item->id, 'core.admin')))
+			if ((!$checkSuperAdmin) || $isSuperAdmin || (!\Hubzero\Access\Access::checkGroup($item->id, 'core.admin')))
 			{
 				// Setup  the variable attributes.
 				$eid = $count . 'group_' . $item->id;
@@ -226,7 +240,20 @@ class Access
 
 		$count++;
 
-		$actions = \JAccess::getActions($component, $section);
+		$path = PATH_APP . '/components/' . $component . '/config/access.xml';
+		if (!file_exists($path))
+		{
+			$path = PATH_CORE . '/components/' . $component . '/config/access.xml';
+		}
+		$actions = \Hubzero\Access\Access::getActionsFromFile(
+			$path,
+			"/access/section[@name='" . $section . "']/"
+		);
+
+		if (empty($actions))
+		{
+			$actions = array();
+		}
 
 		$html = array();
 		$html[] = '<ul class="checklist access-actions">';
@@ -260,15 +287,18 @@ class Access
 	{
 		if (empty(self::$asset_groups))
 		{
-			$db = \App::get('db');
-			$query = $db->getQuery(true);
+			$db = App::get('db');
 
-			$query->select('a.id AS value, a.title AS text');
-			$query->from($db->quoteName('#__viewlevels') . ' AS a');
-			$query->group('a.id, a.title, a.ordering');
-			$query->order('a.ordering ASC');
+			$query = $db->getQuery()
+				->select('a.id', 'value')
+				->select('a.title', 'text')
+				->from('#__viewlevels', 'a')
+				->group('a.id')
+				->group('a.title')
+				->group('a.ordering')
+				->order('a.ordering', 'asc');
 
-			$db->setQuery($query);
+			$db->setQuery($query->toString());
 			self::$asset_groups = $db->loadObjectList();
 
 			// Check for a database error.

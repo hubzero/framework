@@ -431,12 +431,14 @@ class Html extends Base
 			{
 				$dbo = \App::get('db');
 
-				$query = $dbo->getQuery(true);
-				$query->select('COUNT(*)');
-				$query->from('#__menu');
-				$query->where('parent_id = ' . $active->id);
-				$query->where('published = 1');
+				$query = $dbo->getQuery();
+				$query
+					->select('id', null, true)
+					->from('#__menu')
+					->whereEquals('parent_id', $active->id)
+					->whereEquals('published', '1');
 
+				$dbo->setQuery($query->toString());
 				$children = $dbo->loadResult();
 			}
 			else

@@ -61,21 +61,21 @@ class ModuleLayouts extends Select
 		$path2 = null;
 
 		// Load template entries for each menuid
-		$db = \App::get('db');
-		$query = $db->getQuery(true);
-		$query->select('template');
-		$query->from('#__template_styles');
-		$query->where('client_id = ' . (int) $clientId);
-		$query->where('home = 1');
-		$db->setQuery($query);
+		$db = App::get('db');
+		$query = $db->getQuery()
+			->select('template')
+			->from('#__template_styles')
+			->whereEquals('client_id', (int) $clientId)
+			->whereEquals('home', '1');
+		$db->setQuery($query->toString());
 		$template = $db->loadResult();
 
 		if ($module = (string) $node['module'])
 		{
-			$base = ($clientId == 1) ? JPATH_ADMINISTRATOR : JPATH_SITE;
+			$base = ($clientId == 1) ? PATH_CORE : PATH_CORE;
 			$module = preg_replace('#\W#', '', $module);
-			$path1 = $base . '/modules/' . $module . '/tmpl';
-			$path2 = $base . '/templates/' . $template . '/html/' . $module;
+			$path1 = PATH_CORE . '/modules/' . $module . '/tmpl';
+			$path2 = PATH_APP . '/templates/' . $template . '/html/' . $module;
 			$options[] = Builder\Select::option('', '');
 		}
 

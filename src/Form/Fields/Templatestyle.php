@@ -70,24 +70,28 @@ class TemplateStyle extends GroupedList
 
 		// Get the database object and a new query object.
 		$db = App::get('db');
-		$query = $db->getQuery(true);
 
 		// Build the query.
-		$query->select('s.id, s.title, e.name as name, s.template');
-		$query->from('#__template_styles as s');
-		$query->where('s.client_id = ' . (int) $client->id);
-		$query->order('template');
-		$query->order('title');
+		$query = $db->getQuery()
+			->select('s.id')
+			->select('s.title')
+			->select('e.name', 'name')
+			->select('s.template')
+			->from('#__template_styles', 's')
+			->whereEquals('s.client_id', (int) $client->id)
+			->order('template', 'asc')
+			->order('title', 'asc');
 		if ($template)
 		{
-			$query->where('s.template = ' . $db->quote($template));
+			$query->whereEquals('s.template', $template);
 		}
-		$query->join('LEFT', '#__extensions as e on e.element=s.template');
-		$query->where('e.enabled=1');
-		$query->where($db->quoteName('e.type') . '=' . $db->quote('template'));
+		$query
+			->join('#__extensions as e', 'e.element', 's.template', 'left')
+			->whereEquals('e.enabled', '1')
+			->whereEquals('e.type', 'template');
 
 		// Set the query and load the styles.
-		$db->setQuery($query);
+		$db->setQuery($query->toString());
 		$styles = $db->loadObjectList();
 
 		// Build the grouped list array.
