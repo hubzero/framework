@@ -32,6 +32,7 @@
 
 namespace Hubzero\Plugin;
 
+use Hubzero\Events\Dispatcher;
 use Hubzero\Events\DispatcherInterface;
 use Hubzero\Events\LoaderInterface;
 use Hubzero\Config\Registry;
@@ -276,7 +277,7 @@ class Loader implements LoaderInterface
 							// Makes sure we have an event dispatcher
 							if (!($dispatcher instanceof DispatcherInterface))
 							{
-								$dispatcher = new \JDispatcher();
+								$dispatcher = new Dispatcher();
 							}
 
 							// Instantiate and register the plugin.

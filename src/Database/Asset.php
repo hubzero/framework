@@ -118,7 +118,7 @@ class Asset
 		$asset->name      = $name;
 		$asset->title     = $title;
 
-		if ($this->model->assetRules instanceof \JAccessRules)
+		if ($this->model->assetRules instanceof \JAccessRules || $this->model->assetRules instanceof \Hubzero\Access\Rules)
 		{
 			$asset->rules = (string)$this->model->assetRules;
 		}
