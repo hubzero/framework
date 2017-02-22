@@ -260,8 +260,11 @@ class Pdo extends Driver
 			throw new QueryFailedException($e->getMessage(), 500, $e);
 		}
 
-		// Log it
-		$this->log(microtime(true) - $start);
+		if ($this->debug)
+		{
+			// Log it
+			$this->log(microtime(true) - $start);
+		}
 
 		return $this;
 	}
@@ -736,10 +739,8 @@ class Pdo extends Driver
 		{
 			return new \JDatabaseQueryPDOMySQL($this);
 		}
-		else
-		{
-			return new Query($this);
-		}
+
+		return new Query($this);
 	}
 
 	/**
