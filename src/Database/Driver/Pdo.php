@@ -739,10 +739,8 @@ class Pdo extends Driver
 		{
 			return new \JDatabaseQueryPDOMySQL($this);
 		}
-		else
-		{
-			return new Query($this);
-		}
+
+		return new Query($this);
 	}
 
 	/**
