@@ -577,6 +577,14 @@ class Rule extends Relational
 				{
 					$fail[] = $rule['failuremsg'];
 				}
+
+				$current = Password::getInstance($user);
+
+				// [HUBZERO][#10274] Check the current password too
+				if (Password::passwordMatches($user, $password, true))
+				{
+					$fail[] = $rule['failuremsg'];
+				}
 			}
 			else if ($rule['rule'] == 'notRepeat')
 			{
