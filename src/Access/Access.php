@@ -169,9 +169,15 @@ class Access
 		// Preload all groups
 		if (empty(self::$userGroups))
 		{
-			self::$userGroups = Group::all()
+			self::$userGroups = array();
+
+			$groups = Group::all()
 				->order('lft', 'asc')
 				->rows();
+			foreach ($groups as $group)
+			{
+				self::$userGroups[$group->get('id')] = $group;
+			}
 		}
 
 		// Make sure groupId is valid
@@ -240,7 +246,7 @@ class Access
 		if (empty($result))
 		{
 			$result = Asset::oneOrFail(Asset::getRootId());
-			$result = array($result);
+			$result = array($result->get('rules'));
 		}
 
 		// Instantiate and return the Rules object for the asset rules.
