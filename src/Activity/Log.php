@@ -214,16 +214,15 @@ class Log extends Relational
 	 */
 	public function save()
 	{
-		if ($data = $this->get('details'))
+		$data = $this->get('details');
+
+		if ($data instanceof Registry)
 		{
-			if ($data instanceof Registry)
-			{
-				$this->set('details', $data->toString());
-			}
-			else if (!is_string($data))
-			{
-				$this->set('details', json_encode($data));
-			}
+			$this->set('details', $data->toString());
+		}
+		else if (!is_string($data))
+		{
+			$this->set('details', json_encode($data));
 		}
 
 		$result = parent::save();
