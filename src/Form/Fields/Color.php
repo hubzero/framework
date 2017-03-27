@@ -83,6 +83,12 @@ class Color extends Field
 			$attributes['class'] .= ' input-colorpicker';
 		}
 
-		return '<span class="input-color"><input ' . $attr . ' /></span>';
+		$attr = array();
+		foreach ($attributes as $key => $val)
+		{
+			$attr[] = $key . '="' . $val . '"';
+		}
+
+		return '<span class="input-color"><input ' . implode(' ', $attr) . ' /></span>';
 	}
 }
