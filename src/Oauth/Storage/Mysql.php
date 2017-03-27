@@ -556,13 +556,6 @@ class Mysql
 			return false;
 		}
 
-		$ip = new \Hubzero\Utility\Ip(\App::get('request')->ip());
-		// ip should be coming from a private address
-		if (!$ip->isPrivate())
-		{
-			return false;
-		}
-
 		// return user id
 		$profile = \Hubzero\User\User::oneByUsername($session->username);
 		return $profile->get('id');
