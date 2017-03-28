@@ -1616,6 +1616,12 @@ class Form
 		// Get the field type.
 		$type = $element['type'] ? (string) $element['type'] : 'text';
 
+		// Can't have a class called "List", so we alias it
+		if ($type == 'list')
+		{
+			$type = 'select';
+		}
+
 		// Load the FormField object for the field.
 		$field = $this->loadFieldType($type);
 
