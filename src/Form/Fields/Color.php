@@ -86,6 +86,10 @@ class Color extends Field
 		$attr = array();
 		foreach ($attributes as $key => $val)
 		{
+			if (!$val)
+			{
+				continue;
+			}
 			$attr[] = $key . '="' . $val . '"';
 		}
 
