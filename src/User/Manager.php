@@ -98,11 +98,11 @@ class Manager
 		if (is_numeric($id))
 		{
 			// Cast as an integer so we can do an exact (===) comparison below
-			$id = is_numeric($id);
+			$id = (int)$id;
 		}
 
-		if ($id === (int)$current->get('id')
-		 || $id === (string)$current->get('username'))
+		if ($id == (int)$current->get('id')
+		 || $id == (string)$current->get('username'))
 		{
 			return $current;
 		}
