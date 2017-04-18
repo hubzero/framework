@@ -81,7 +81,7 @@ class Manager
 	/**
 	 * Get a user instance
 	 *
-	 * @param   mixed  $id
+	 * @param   mixed  $id  Integer or string
 	 * @return  object
 	 */
 	public function getInstance($id = null)
@@ -95,8 +95,14 @@ class Manager
 			return $current;
 		}
 
-		if ($id == $current->get('id')
-		 || $id == $current->get('username'))
+		if (is_numeric($id))
+		{
+			// Cast as an integer so we can do an exact (===) comparison below
+			$id = is_numeric($id);
+		}
+
+		if ($id === (int)$current->get('id')
+		 || $id === (string)$current->get('username'))
 		{
 			return $current;
 		}
