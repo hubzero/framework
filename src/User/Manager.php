@@ -101,8 +101,8 @@ class Manager
 			$id = (int)$id;
 		}
 
-		if ($id == (int)$current->get('id')
-		 || $id == (string)$current->get('username'))
+		if ($id === (int)$current->get('id')
+		 || $id === (string)$current->get('username'))
 		{
 			return $current;
 		}
