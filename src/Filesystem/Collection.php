@@ -306,7 +306,7 @@ class Collection extends ItemList
 		$tarname = uniqid() . '.zip';
 		$zip     = new \ZipArchive;
 
-		if ($zip->open($temp . DS . $tarname, \ZipArchive::OVERWRITE) === true)
+		if ($zip->open($temp . DS . $tarname, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true)
 		{
 			foreach ($this->_data as $entity)
 			{
