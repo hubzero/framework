@@ -92,7 +92,7 @@ class Loader
 	{
 		$result = $this->load($option, $strict);
 
-		return ($result->enabled | $this->app->isAdmin());
+		return ($result->enabled == 1);// | $this->app->isAdmin());
 	}
 
 	/**
