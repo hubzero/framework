@@ -124,6 +124,9 @@ class Calendar extends Field
 				break;
 		}
 
-		return Input::calendar($this->value, $this->name, $this->id, $format, $attributes);
+		$attributes['id'] = $this->id;
+		$attributes['format'] = $format;
+
+		return Input::calendar($this->value, $this->name, $attributes);
 	}
 }
