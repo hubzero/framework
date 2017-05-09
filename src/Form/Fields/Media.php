@@ -32,8 +32,8 @@
 namespace Hubzero\Form\Fields;
 
 use Hubzero\Form\Field;
-use Hubzero\Html\Builer\Behavior;
-use Hubzero\Html\Builer\Asset;
+use Hubzero\Html\Builder\Behavior;
+use Hubzero\Html\Builder\Asset;
 use App;
 
 /**
