@@ -127,6 +127,6 @@ class Calendar extends Field
 		$attributes['id'] = $this->id;
 		$attributes['format'] = $format;
 
-		return Input::calendar($this->value, $this->name, $attributes);
+		return Input::calendar($this->name, $this->value, $attributes);
 	}
 }
