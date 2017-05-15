@@ -75,7 +75,7 @@ class Flavor extends Base implements CommandInterface
 		$database->setQuery($query);
 		$p = $database->loadResult();
 		$welcome_params  = new \Hubzero\Config\Registry($p);
- 
+
 		switch ($flavor)
 		{
 			case 'amazonfull':
@@ -104,9 +104,9 @@ class Flavor extends Base implements CommandInterface
 
 				// Set amazon param in welcome template
 				$welcome_params->set('flavor', 'amazon');
-				if ($welcome_params->get('template','') == '')
+				if ($welcome_params->get('template', '') == '')
 				{
-					$welcome_params->set('template','hubbasic2013');
+					$welcome_params->set('template', 'hubbasic2013');
 				}
 	                        $query = "UPDATE `#__template_styles` SET `params`=".$database->quote(json_encode($welcome_params->toArray()))." WHERE `template`='welcome';";
 				$database->setQuery();
@@ -191,9 +191,9 @@ class Flavor extends Base implements CommandInterface
 
 				// Set amazon param in welcome template
 				$welcome_params->set('flavor', 'amazon');
-				if ($welcome_params->get('template','') == '')
+				if ($welcome_params->get('template', '') == '')
 				{
-					$welcome_params->set('template','hubbasic2013');
+					$welcome_params->set('template', 'hubbasic2013');
 				}
 	                        $query = "UPDATE `#__template_styles` SET `params`=".$database->quote(json_encode($welcome_params->toArray()))." WHERE `template`='welcome';";
 				$database->setQuery($query);
@@ -287,9 +287,9 @@ class Flavor extends Base implements CommandInterface
 
 				// Set flavor param in welcome template
 				$welcome_params->set('flavor', '');
-				if ($welcome_params->get('template','') == '')
+				if ($welcome_params->get('template', '') == '')
 				{
-					$welcome_params->set('template','hubbasic2013');
+					$welcome_params->set('template', 'hubbasic2013');
 				}
 	                        $query = "UPDATE `#__template_styles` SET `params`=".$database->quote(json_encode($welcome_params->toArray()))." WHERE `template`='welcome';";
 				$database->setQuery($query);
