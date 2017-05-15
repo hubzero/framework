@@ -71,6 +71,11 @@ class Flavor extends Base implements CommandInterface
 		$database = App::get('db');
 		$migration = new Migration($database);
 
+		$query = "SELECT `params` FROM `#__template_styles` WHERE `template` = 'welcome';";
+		$database->setQuery($query);
+		$p = $database->loadResult();
+		$welcome_params  = new \Hubzero\Config\Registry($p);
+ 
 		switch ($flavor)
 		{
 			case 'amazonfull':
@@ -98,10 +103,15 @@ class Flavor extends Base implements CommandInterface
 				$this->output->addLine('Updating default members dashboard configuration');
 
 				// Set amazon param in welcome template
-				$params = array('flavor' => 'amazon', 'template' => 'hubbasic2013');
-				$query  = "UPDATE `#__template_styles` SET `params` = " . $database->quote(json_encode($params)) . " WHERE `template` = 'welcome'";
-				$database->setQuery($query);
+				$welcome_params->set('flavor', 'amazon');
+				if ($welcome_params->get('template','') == '')
+				{
+					$welcome_params->set('template','hubbasic2013');
+				}
+	                        $query = "UPDATE `#__template_styles` SET `params`=".$database->quote(json_encode($welcome_params->toArray()))." WHERE `template`='welcome';";
+				$database->setQuery();
 				$database->query();
+
 				$this->output->addLine('Setting amazon flavor flag in welcome template');
 
 				// Set amazon template as home
@@ -180,8 +190,12 @@ class Flavor extends Base implements CommandInterface
 				$this->output->addLine('Deleting tool and webdav related KB articles');
 
 				// Set amazon param in welcome template
-				$params = array('flavor' => 'amazon', 'template' => 'hubbasic2013');
-				$query  = "UPDATE `#__template_styles` SET `params` = " . $database->quote(json_encode($params)) . " WHERE `template` = 'welcome'";
+				$welcome_params->set('flavor', 'amazon');
+				if ($welcome_params->get('template','') == '')
+				{
+					$welcome_params->set('template','hubbasic2013');
+				}
+	                        $query = "UPDATE `#__template_styles` SET `params`=".$database->quote(json_encode($welcome_params->toArray()))." WHERE `template`='welcome';";
 				$database->setQuery($query);
 				$database->query();
 				$this->output->addLine('Setting amazon flavor flag in welcome template');
@@ -272,8 +286,12 @@ class Flavor extends Base implements CommandInterface
 				$this->output->addLine('Restoring tool and webdav related KB articles');
 
 				// Set flavor param in welcome template
-				$params = array('flavor' => '', 'template' => 'hubbasic2013');
-				$query  = "UPDATE `#__template_styles` SET `params` = " . $database->quote(json_encode($params)) . " WHERE `template` = 'welcome'";
+				$welcome_params->set('flavor', '');
+				if ($welcome_params->get('template','') == '')
+				{
+					$welcome_params->set('template','hubbasic2013');
+				}
+	                        $query = "UPDATE `#__template_styles` SET `params`=".$database->quote(json_encode($welcome_params->toArray()))." WHERE `template`='welcome';";
 				$database->setQuery($query);
 				$database->query();
 				$this->output->addLine('Unsetting flavor flag in welcome template');
