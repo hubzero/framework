@@ -312,7 +312,27 @@ class Collection extends ItemList
 			{
 				if ($entity->isFile())
 				{
-					$zip->addFromString($structure ? $entity->getPath() : $entity->getFileName(), $entity->read());
+					$fileSrc = $entity->readStream();
+					$parent = $entity->getParent();
+					if (!empty($parent))
+					{
+						$parent = $temp . DS . $uniqueId . DS . $parent;
+						if (!is_dir($parent))
+						{
+							mkdir($parent, 0755, true);
+						}
+					}
+					$tmpFilePath = $temp . DS . $uniqueId . DS . $entity->getPath();
+					$bufferSize = 1024 * 8;
+					$tmpSrc = fopen($tmpFilePath, 'w');
+					while (!feof($fileSrc))
+					{
+						$buffer = fread($fileSrc, $bufferSize);
+						fwrite($tmpSrc, $buffer);
+					}
+					fclose($tmpSrc);
+					fclose($fileSrc);
+					$zip->addFile($tmpFilePath, $structure ? $entity->getPath() : $entity->getFileName());
 				}
 				else if ($entity->isDir() && $structure)
 				{

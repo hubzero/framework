@@ -207,6 +207,16 @@ class File extends Entity
 	}
 
 	/**
+	 * Creates the file pointer resource to this file.
+	 * 
+	 * @return handle
+	 **/
+	public function readStream()
+	{
+		return $this->hasAdapterOrFail()->adapter->readStream($this->getPath());
+	}
+
+	/**
 	 * Writes contents to the file
 	 *
 	 * @param   string  $contents  The contents to write to the file
