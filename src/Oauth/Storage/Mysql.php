@@ -256,7 +256,7 @@ class Mysql
 		}
 
 		// get the application's client id
-		$application = \Components\Developer\Models\Api\Application::oneOrFail($authorizationCode->get('application_id'));
+		$application = \Components\Developer\Models\Application::oneOrFail($authorizationCode->get('application_id'));
 		$authorizationCode->set('client_id', $application->get('client_id'));
 
 		// format expires to unix timestamp for authorization code grant type
