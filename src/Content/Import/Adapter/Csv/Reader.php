@@ -143,17 +143,32 @@ class Reader implements Iterator
 		foreach ($this->headers as $k => $header)
 		{
 			$header = trim($header);
+			$header = trim($header, ':');
 			$header = ($header ?: 'COLUMN');
 
+			// If a column header contains a colon, we break it
+			// into a sub-object with properties.
+			//
+			// Address:street, Address:city
+			//  ->  Address => { street = data, city = data }
+			//
 			if (strpos($header, ':'))
 			{
 				$parts = explode(':', $header);
 
-				if (!isset($object->$parts[0]))
+				// Make sure we have more than one part
+				if (count($parts) > 1)
 				{
-					$object->$parts[0] = new stdClass;
+					if (!isset($object->$parts[0]) || !is_object($object->$parts[0]))
+					{
+						$object->$parts[0] = new stdClass;
+					}
+					$object->$parts[0]->$parts[1] = $row[$k];
 				}
-				$object->$parts[0]->$parts[1] = $row[$k];
+				else
+				{
+					$object->$header = $row[$k];
+				}
 			}
 			else
 			{

@@ -396,7 +396,7 @@ class Request extends BaseRequest
 			return $path;
 		}
 
-		return $this->root() . ($path ? trim($path, '/') . '/' : '');
+		return $this->getSchemeAndHttpHost() . '/' . ($path ? trim($path, '/') . '/' : '');
 	}
 
 	/**
