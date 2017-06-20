@@ -152,6 +152,9 @@ class Response extends BaseResponse
 			case 'application/json':
 				$output .= json_encode($content);
 			break;
+			case 'application/javascript':
+				$output .= $content;
+			break;
 			case 'application/vnd.php.serialized':
 				$output .= serialize($content);
 			break;
