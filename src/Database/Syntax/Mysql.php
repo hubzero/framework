@@ -617,7 +617,7 @@ class Mysql
 		foreach ($this->values as $field => $value)
 		{
 			$fields[] = $this->connection->quoteName($field);
-			$values[] = (is_null($value)) ? 'NULL' : '?';
+			$values[] = '?';
 			$this->bind(is_string($value) ? trim($value) : $value);
 		}
 
