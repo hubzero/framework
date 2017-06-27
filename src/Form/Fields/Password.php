@@ -67,14 +67,14 @@ class Password extends Field
 		if ($meter)
 		{
 			Asset::script('system/passwordstrength.js', true, true);
-			$script = '<script type="text/javascript">new Form.PasswordStrength("' . $this->id . '",
-				{
+			$script = '<script type="text/javascript">jQuery(document).ready(function ($) {
+				$("#' . $this->id . '").passwordstrength({
 					threshold: ' . $threshold . ',
 					onUpdate: function(element, strength, threshold) {
 						element.set("data-passwordstrength", strength);
 					}
-				}
-			);</script>';
+				});
+			});</script>';
 		}
 
 		return '<input type="password" name="' . $this->name . '" id="' . $this->id . '"' .
