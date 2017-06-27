@@ -521,9 +521,15 @@ class Migration
 			if (is_dir($path . DS . 'migrations' . DS . 'hooks'))
 			{
 				$found = [];
-				foreach (array_diff(scandir($path . DS . 'migrations' . DS . 'hooks'), $exclude) as $hook)
+				foreach (glob($path . DS . 'migrations' . DS . 'hooks' . DS . '*.php') as $hook)
 				{
-					$found[] = ['base' => $path . DS . 'migrations' . DS . 'hooks', 'name' => $hook];
+					// We just want the filename, so strip the path off
+					$hook = str_replace($path . DS . 'migrations' . DS . 'hooks' . DS, '', $hook);
+
+					$found[] = [
+						'base' => $path . DS . 'migrations' . DS . 'hooks',
+						'name' => $hook
+					];
 				}
 
 				$hooks = array_merge($hooks, $found);
