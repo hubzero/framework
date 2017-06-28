@@ -74,7 +74,7 @@ class Number
 			}
 		}
 
-		return '';
+		return '0 B';
 	}
 
 	/**
