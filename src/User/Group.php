@@ -1198,12 +1198,12 @@ class Group extends Object
 
 		if (isset($filters['published']) && $filters['published'] != '')
 		{
-			$where[] = "published=" . $filters['published'];
+			$where[] = "published=" . $db->quote($filters['published']);
 		}
 
 		if (isset($filters['approved']) && $filters['approved'] != '')
 		{
-			$where[] = "approved=" . $filters['approved'];
+			$where[] = "approved=" . $db->quote($filters['approved']);
 		}
 
 		if (isset($filters['created']) && $filters['created'] != '')
@@ -1211,7 +1211,7 @@ class Group extends Object
 			if ($filters['created'] == 'pastday')
 			{
 				$pastDay = date("Y-m-d H:i:s", strtotime('-1 DAY'));
-				$where[] = "created >= '" . $pastDay . "'";
+				$where[] = "created >= " . $db->quote($pastDay);
 			}
 		}
 
@@ -1395,7 +1395,7 @@ class Group extends Object
 		$query = "SELECT u.id FROM {$table} AS t, {$user_table} AS u
 					WHERE t.gidNumber={$db->quote($this->gidNumber)}
 					AND u.id=t.uidNumber
-					AND LOWER(u.name) LIKE '%" . strtolower($q) . "%';";
+					AND LOWER(u.name) LIKE " . $db->quote('%' . strtolower($q) . '%') . ";";
 		$db->setQuery($query);
 		return $db->loadColumn();
 	}
