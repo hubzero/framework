@@ -332,7 +332,6 @@ abstract class Field
 
 		// Set the XML element object.
 		$this->element = $element;
-
 		// Get some important attributes from the form field element.
 		$class = (string) $element['class'];
 		$id = (string) $element['id'];
@@ -390,6 +389,9 @@ abstract class Field
 
 		// Set the field default value.
 		$this->value = $value;
+
+		// Set the field placeholder
+		$this->placeholder = (string) $element['placeholder'];
 
 		// Set the CSS class of field label
 		$this->labelClass = (string) $element['labelclass'];
