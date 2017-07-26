@@ -99,8 +99,7 @@ class Select extends Field
 						$found = true;
 					}
 				}
-
-				$html[] = '<input type="text" name="' . $this->getName($this->fieldname . '_other') . '" value="' . ($found ? '' : htmlspecialchars($this->value, ENT_COMPAT, 'UTF-8')) . '" placeholder="' . App::get('language')->txt('Other...') . '" />';
+				$html[] = '<input type="text" name="' . $this->getName($this->fieldname . '_other') . '" value="' . ($found ? '' : htmlspecialchars($this->value, ENT_COMPAT, 'UTF-8')) . '" placeholder="' . (empty($this->placeholder) ?  App::get('language')->txt('Other...') : htmlspecialchars($this->placeholder, ENT_COMPAT, 'UTF-8')) . '" />';
 			}
 		}
 
