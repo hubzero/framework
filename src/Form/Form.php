@@ -245,7 +245,7 @@ class Form
 			if ($group)
 			{
 				// Filter the value if it exists.
-				if ($input->exists($group . '.' . $name))
+				if ($input->has($group . '.' . $name))
 				{
 					$output->set($group . '.' . $name, $this->filterField($field, $input->get($group . '.' . $name, (string) $field['default'])));
 				}
@@ -253,7 +253,7 @@ class Form
 			else
 			{
 				// Filter the value if it exists.
-				if ($input->exists($name))
+				if ($input->has($name))
 				{
 					$output->set($name, $this->filterField($field, $input->get($name, (string) $field['default'])));
 				}
