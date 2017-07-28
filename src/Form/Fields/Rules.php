@@ -67,7 +67,10 @@ class Rules extends Field
 		$assetField = $this->element['asset_field'] ? (string) $this->element['asset_field'] : 'asset_id';
 
 		// Get the actions for the asset.
-		$actions = Access::getActions($component, $section);
+		$component = $component ? App::get('component')->path($component) . '/config/access.xml' : '';
+		$section   = $section ? "/access/section[@name='" . $section . "']/" : '';
+
+		$actions = Access::getActionsFromFile($component, $section);
 
 		// Iterate over the children and add to the actions.
 		foreach ($this->element->children() as $el)
@@ -309,7 +312,7 @@ class Rules extends Field
 			->group('a.rgt')
 			->group('a.parent_id')
 			->order('a.lft', 'ASC');
-		$db->setQuery($query);
+		$db->setQuery($query->toString());
 		$options = $db->loadObjectList();
 
 		return $options;
