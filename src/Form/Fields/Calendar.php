@@ -34,7 +34,6 @@ namespace Hubzero\Form\Fields;
 use Hubzero\Html\Builder\Input;
 use Hubzero\Utility\Date;
 use Hubzero\Form\Field;
-use Hubzero\User\User;
 use DateTimeZone;
 use App;
 
