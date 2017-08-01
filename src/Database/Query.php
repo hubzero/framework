@@ -695,6 +695,17 @@ class Query
 	}
 
 	/**
+	 * Retrieves the current query as a string (without executing it)
+	 *
+	 * @return  string
+	 * @since   2.1.9
+	 **/
+	public function __toString()
+	{
+		return $this->toString();
+	}
+
+	/**
 	 * Builds query based on the current query elements established
 	 *
 	 * @param   string  $type  The type of query to build
