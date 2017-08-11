@@ -249,7 +249,7 @@ class Access
 		//$result = $query->rows()->fieldsByKey('rules');
 
 		// Get the root even if the asset is not found and in recursive mode
-		if (empty($result))
+		if (empty($result) && $recursive)
 		{
 			$result = Asset::oneOrFail(Asset::getRootId());
 			$result = array($result->get('rules'));
