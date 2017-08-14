@@ -67,9 +67,29 @@ class Test extends Base implements CommandInterface
 
 		// Parse the extension and build a real path
 		$core  = dirname(dirname(__DIR__));
+		$path  = 'core';
+		if (strstr($extension, ':'))
+		{
+			$blocks = explode(':', $extension);
+			$path   = array_shift($blocks);
+			$extension = implode('', $blocks);
+		}
 		$parts = explode('_', $extension);
 		switch ($parts[0])
 		{
+			case 'plg':
+				unset($parts[0]);
+				$path = ($path == 'app' ? PATH_APP : PATH_CORE) . DS . 'plugins' . DS . implode(DS, $parts) . DS . 'tests';
+				break;
+
+			case 'mod':
+				$path = ($path == 'app' ? PATH_APP : PATH_CORE) . DS . 'modules' . DS . $extension . DS . 'tests';
+				break;
+
+			case 'com':
+				$path = ($path == 'app' ? PATH_APP : PATH_CORE) . DS . 'components' . DS . $extension . DS . 'tests';
+				break;
+
 			case 'lib':
 				unset($parts[0]);
 				$path = $core . DS . ucfirst(implode(DS, $parts)) . DS . 'Tests';
@@ -123,16 +143,32 @@ class Test extends Base implements CommandInterface
 	 **/
 	public function show()
 	{
-		$base        = dirname(dirname(__DIR__));
-		$directories = array_diff(scandir($base), ['.', '..']);
-
 		$tests = [];
 
-		foreach ($directories as $directory)
+		$nodes = array(
+			['lib', dirname(dirname(__DIR__))],
+			['core', PATH_CORE . DS . 'components'],
+			['app', PATH_APP . DS . 'components'],
+			['core', PATH_CORE . DS . 'modules'],
+			['app', PATH_APP . DS . 'modules']//,
+			//['plg', PATH_CORE . DS . 'plugins'],
+			//['plg', PATH_APP . DS . 'plugins']
+		);
+
+		foreach ($nodes as $node)
 		{
-			if (is_dir($base . DS . $directory . DS . 'Tests'))
+			$key  = $node[0];
+			$base = $node[1];
+
+			$directories = array_diff(scandir($base), ['.', '..']);
+
+			foreach ($directories as $directory)
 			{
-				$tests[] = $directory;
+				if (is_dir($base . DS . $directory . DS . 'Tests')
+				 || is_dir($base . DS . $directory . DS . 'tests'))
+				{
+					$tests[] = $key . ($key == 'lib' ? '_' : ':') . strtolower($directory);
+				}
 			}
 		}
 
@@ -144,8 +180,7 @@ class Test extends Base implements CommandInterface
 		{
 			foreach ($tests as $test)
 			{
-				$name = 'lib_' . strtolower($test);
-				$this->output->addLine($name, 'success');
+				$this->output->addLine($test, 'success');
 			}
 		}
 	}
@@ -168,10 +203,12 @@ class Test extends Base implements CommandInterface
 				'extension',
 				'The first option to the "run" command should be a specific extension.
 				Currently, running the entire suite of tests is not allowed.  The command
-				will search the provided extension for a directory titled "Test".  The
+				will search the provided extension for a directory titled "Tests".  The
 				command will parse the provided extension, and expects a name in the format
-				of com_name, mod_name, plg_folder_element, or lib_name.  Libraries are
-				assumed to be in the Hubzero library folder.',
+				of com_name, mod_name, plg_folder_element, or lib_name.  Prepend "app:" or
+				"core:" to designate the specific root directory corresponding to ROOT/app
+				and ROOT/core respectively. Libraries are assumed to be in the core Hubzero
+				library folder.',
 				'',
 				true
 			);
