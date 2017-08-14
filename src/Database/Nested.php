@@ -111,7 +111,7 @@ class Nested extends Relational
 	private function establishBaseParametersFromParent($parent)
 	{
 		$this->set('parent_id', $parent->id);
-		$this->set('depth', $parent->depth + 1);
+		$this->set('level', $parent->level + 1);
 
 		return $this->applyScopes($parent);
 	}
@@ -225,7 +225,7 @@ class Nested extends Relational
 	{
 		// Compute the location where the item should reside
 		$this->set('parent_id', 0);
-		$this->set('depth', 0);
+		$this->set('level', 0);
 		$this->set('lft', 0);
 		$this->set('rgt', 1);
 
@@ -288,19 +288,19 @@ class Nested extends Relational
 	/**
 	 * Establishes the query for all of the descendants of the current model
 	 *
-	 * @param   int  $depth  The depth to limit to
+	 * @param   int  $level  The level to limit to
 	 * @return  array
 	 * @since   2.1.0
 	 **/
-	public function descendants($depth = null)
+	public function descendants($level = null)
 	{
 		$instance = self::blank();
-		$instance->where('depth', '>', $this->depth)
+		$instance->where('level', '>', $this->level)
 		         ->order('lft', 'asc');
 
-		if (isset($depth))
+		if (isset($level))
 		{
-			$instance->where('depth', '<=', $this->depth + $depth);
+			$instance->where('level', '<=', $this->level + $level);
 		}
 
 		return $instance->where('lft', '>', $this->lft)
@@ -311,12 +311,12 @@ class Nested extends Relational
 	/**
 	 * Grabs all of the descendants of the current model
 	 *
-	 * @param   int  $depth  The depth to limit to
+	 * @param   int  $level  The level to limit to
 	 * @return  array
 	 * @since   2.1.0
 	 **/
-	public function getDescendants($depth = null)
+	public function getDescendants($level = null)
 	{
-		return $this->descendants($depth)->rows();
+		return $this->descendants($level)->rows();
 	}
 }
