@@ -181,4 +181,27 @@ class MemoryTest extends Basic
 
 		$this->assertEquals(count($this->data), $memory->total('one'), 'Total messages returned does not equal number added');
 	}
+
+	/**
+	 * Test that the key() method generates keys correctly
+	 *
+	 * @covers  \Hubzero\Notification\Storage\Memory::key
+	 * @return  void
+	 **/
+	public function testKey()
+	{
+		$memory = new Memory;
+
+		$reflection = new \ReflectionClass(get_class($memory));
+		$method = $reflection->getMethod('key');
+		$method->setAccessible(true);
+
+		$result = $method->invokeArgs($memory, array('one'));
+
+		$this->assertEquals('one.application.queue', $result, 'Key should be of pattern {domain}.application.queue');
+
+		$result = $method->invokeArgs($memory, array(''));
+
+		$this->assertEquals('application.queue', $result, 'Key should just be application.queue');
+	}
 }
