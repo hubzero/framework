@@ -79,9 +79,16 @@ class Behavior
 		// Behavior::framework() is called. For instance, if called in the template
 		// then the framework needs to be pushed before any custom scripts the component
 		// or plugins may have already pushed.
+		$path = '/core/assets/js/jquery' . ($type == 'core' ? '' : '.ui') . '.js';
+		if (file_exists(PATH_ROOT . $path))
+		{
+			$path .= '?v=' . filemtime(PATH_ROOT . $path);
+		}
+		$path = rtrim(App::get('request')->root(true), '/') . $path;
+
 		if ($type == 'core')
 		{
-			self::_pushScriptTo(0, rtrim(App::get('request')->root(true), '/') . '/core/assets/js/jquery.js');
+			self::_pushScriptTo(0, $path);
 
 			if (App::isAdmin())
 			{
@@ -90,7 +97,7 @@ class Behavior
 		}
 		else
 		{
-			self::_pushScriptTo(1, rtrim(App::get('request')->root(true), '/') . '/core/assets/js/jquery.ui.js');
+			self::_pushScriptTo(1, $path);
 		}
 		self::$loaded[__METHOD__][$type] = true;
 
