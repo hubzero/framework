@@ -242,4 +242,49 @@ class TrailTest extends Basic
 
 		$this->assertTrue(empty($items), 'items() should return an empty array after calling clear()');
 	}
+
+	/**
+	 * Tests array traversing methods
+	 *
+	 * @covers  \Hubzero\Pathway\Trail::current
+	 * @covers  \Hubzero\Pathway\Trail::key
+	 * @covers  \Hubzero\Pathway\Trail::next
+	 * @covers  \Hubzero\Pathway\Trail::valid
+	 * @return  void
+	 **/
+	public function testIterator()
+	{
+		$items = array(
+			new Item('Crumb 1', 'index.php?option=com_lorem'),
+			new Item('Crumb 2', 'index.php?option=com_ipsum'),
+			new Item('Crumb 3', 'index.php?option=com_foo'),
+			new Item('Crumb 4', 'index.php?option=com_bar'),
+			new Item('Crumb 5', 'index.php?option=com_mollum')
+		);
+
+		$pathway = new Trail();
+		foreach ($items as $item)
+		{
+			$pathway->append($item->name, $item->link);
+		}
+
+		// both cycles must pass
+		for ($n = 0; $n < 2; ++$n)
+		{
+			$i = 0;
+			reset($items);
+			foreach ($pathway as $key => $val)
+			{
+				if ($i >= 5)
+				{
+					$this->fail('Iterator overflow!');
+				}
+				$this->assertEquals(key($items), $key);
+				$this->assertEquals(current($items), $val);
+				next($items);
+				++$i;
+			}
+			$this->assertEquals(5, $i);
+		}
+	}
 }

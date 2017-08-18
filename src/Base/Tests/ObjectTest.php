@@ -109,6 +109,22 @@ class ObjectTest extends Basic
 			$this->assertTrue(isset($obj->$key));
 			$this->assertEquals($obj->$key, $datum);
 		}
+
+		$obj = new Object();
+
+		$data = new \stdClass;
+		$data->one   = 'for the money';
+		$data->two   = 'for the show';
+		$data->three = 'to get ready';
+		$data->four  = 'to go';
+
+		$this->assertTrue($obj->setProperties($data));
+
+		foreach (get_object_vars($data) as $key => $datum)
+		{
+			$this->assertTrue(isset($obj->$key));
+			$this->assertEquals($obj->$key, $datum);
+		}
 	}
 
 	/**
