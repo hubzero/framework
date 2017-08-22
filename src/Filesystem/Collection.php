@@ -301,10 +301,11 @@ class Collection extends ItemList
 		}
 
 		// Get temp directory
-		$adapter = null;
-		$temp    = sys_get_temp_dir();
-		$tarname = uniqid() . '.zip';
-		$zip     = new \ZipArchive;
+		$adapter  = null;
+		$temp     = sys_get_temp_dir();
+		$uniqueId = uniqid();
+		$tarname  = uniqid() . '.zip';
+		$zip      = new \ZipArchive;
 
 		if ($zip->open($temp . DS . $tarname, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true)
 		{
