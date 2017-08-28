@@ -113,7 +113,14 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 *
 	 * @var  \Hubzero\Database\Driver|object
 	 **/
-	private static $connection = null;
+	protected static $connection = null;
+
+	/**
+	 * The array of connected models.
+	 *
+	 * @var  array
+	 */
+	protected static $connected = [];
 
 	/**
 	 * Whether or not we're caching query results
@@ -291,6 +298,14 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		$namespace   = (!$this->namespace ? '' : $this->namespace . '_');
 		$plural      = \Hubzero\Utility\Inflector::pluralize(strtolower($this->getModelName()));
 		$this->table = $this->table ?: '#__' . $namespace . $plural;
+
+		// If this model type has not been connected to a database set it to
+		// the default database connection (otherwise, it could inherit an
+		// unwanted connection from another model)
+		if (!isset(static::$connected[static::class]))
+		{
+			static::setDefaultConnection(null);
+		}
 
 		// Set up connection and query object
 		$this->newQuery();
@@ -505,7 +520,8 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public static function setDefaultConnection($connection)
 	{
-		self::$connection = $connection;
+		static::$connected[static::class] = true;
+		static::$connection = $connection;
 	}
 
 	/**
@@ -798,7 +814,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function getQuery()
 	{
-		return new Query(self::$connection);
+		return new Query(static::$connection);
 	}
 
 	/**
@@ -809,7 +825,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function getStructure()
 	{
-		return new Structure(self::$connection);
+		return new Structure(static::$connection);
 	}
 
 	/**
