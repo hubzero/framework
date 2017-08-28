@@ -302,7 +302,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		// If this model type has not been connected to a database set it to
 		// the default database connection (otherwise, it could inherit an
 		// unwanted connection from another model)
-		if (!isset(static::$connected[static::class]))
+		if (!isset(static::$connected[get_called_class()]))
 		{
 			static::setDefaultConnection(null);
 		}
@@ -520,7 +520,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public static function setDefaultConnection($connection)
 	{
-		static::$connected[static::class] = true;
+		static::$connected[get_called_class()] = true;
 		static::$connection = $connection;
 	}
 
