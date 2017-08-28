@@ -48,7 +48,7 @@ class Server
 {
 	/**
 	 * Internal var to hold true Oauth Server
-	 * 
+	 *
 	 * @var  object
 	 */
 	private $server = null;
@@ -63,7 +63,7 @@ class Server
 	public function __construct($storage, $options = array())
 	{
 		// create config with defaults allowing overriding via API config
-		$config = array_merge(array(
+		$this->config = array_merge(array(
 			'enforce_state'                     => true,
 			'access_lifetime'                   => 3600,
 			'refresh_token_lifetime'            => 7200,
@@ -74,21 +74,21 @@ class Server
 
 		// available grant types
 		$grantTypes = array(
-			new UserCredentialsGrantType($storage, $config),
-			new RefreshTokenGrantType($storage, $config),
-			new AuthorizationCodeGrantType($storage, $config),
-			new ClientCredentialsGrantType($storage, $config),
-			new SessionTokenGrantType($storage, $config),
-			new ToolSessionTokenGrantType($storage, $config)
+			new UserCredentialsGrantType($storage, $this->config),
+			new RefreshTokenGrantType($storage, $this->config),
+			new AuthorizationCodeGrantType($storage, $this->config),
+			new ClientCredentialsGrantType($storage, $this->config),
+			new SessionTokenGrantType($storage, $this->config),
+			new ToolSessionTokenGrantType($storage, $this->config)
 		);
 
 		// Pass a storage object or array of storage objects to the OAuth2 server class
-		$this->server = new OAuth2Server($storage, $config, $grantTypes);
+		$this->server = new OAuth2Server($storage, $this->config, $grantTypes);
 	}
 
 	/**
 	 * Call All methods on OAuth2 Server
-	 * 
+	 *
 	 * @param   string  $name  Method Name
 	 * @param   mixed   $args  Method Args
 	 * @return  mixed          Result of calling method of server
@@ -104,7 +104,7 @@ class Server
 		if ($response instanceof \OAuth2\Response
 			&& ($response->isClientError() || $response->isServerError()))
 		{
-			// rewrite parameters (response body) to a 
+			// rewrite parameters (response body) to a
 			// standard error format used throughout the api
 			$response->setParameters(array(
 				'message' => $response->getStatusText(),
@@ -117,5 +117,15 @@ class Server
 
 		// return response
 		return $response;
+	}
+
+	/**
+	 * Accessor for the server's config
+	 *
+	 * @return  array          The server instances config
+	 */
+	public function getConfig()
+	{
+		return $this->config;
 	}
 }
