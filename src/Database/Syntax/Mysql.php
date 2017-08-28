@@ -589,15 +589,8 @@ class Mysql
 
 		foreach ($this->set as $field => $value)
 		{
-			if (is_object($value))
-			{
-				$updates[] = $this->connection->quoteName($field) . ' = ' . $value->build($this);
-			}
-			else
-			{
-				$updates[] = $this->connection->quoteName($field) . ' = ?';
-				$this->bind(is_string($value) ? trim($value) : $value);
-			}
+			$updates[] = $this->connection->quoteName($field) . ' = ?';
+			$this->bind(is_string($value) ? trim($value) : $value);
 		}
 
 		return 'SET ' . implode(',', $updates);
