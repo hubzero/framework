@@ -77,6 +77,11 @@ class Test extends Base implements CommandInterface
 		$parts = explode('_', $extension);
 		switch ($parts[0])
 		{
+			case 'tpl':
+				unset($parts[0]);
+				$path = ($path == 'app' ? PATH_APP : PATH_CORE) . DS . 'templates' . DS . implode('_', $parts) . DS . 'tests';
+				break;
+
 			case 'plg':
 				unset($parts[0]);
 				$path = ($path == 'app' ? PATH_APP : PATH_CORE) . DS . 'plugins' . DS . implode(DS, $parts) . DS . 'tests';
@@ -147,12 +152,12 @@ class Test extends Base implements CommandInterface
 
 		$nodes = array(
 			['lib', dirname(dirname(__DIR__))],
+			['core', PATH_CORE . DS . 'templates'],
+			['app', PATH_APP . DS . 'templates'],
 			['core', PATH_CORE . DS . 'components'],
 			['app', PATH_APP . DS . 'components'],
 			['core', PATH_CORE . DS . 'modules'],
-			['app', PATH_APP . DS . 'modules']//,
-			//['plg', PATH_CORE . DS . 'plugins'],
-			//['plg', PATH_APP . DS . 'plugins']
+			['app', PATH_APP . DS . 'modules']
 		);
 
 		foreach ($nodes as $node)
@@ -167,7 +172,44 @@ class Test extends Base implements CommandInterface
 				if (is_dir($base . DS . $directory . DS . 'Tests')
 				 || is_dir($base . DS . $directory . DS . 'tests'))
 				{
+					if (basename($base) == 'templates')
+					{
+						$directory = 'tpl_' . $directory;
+					}
 					$tests[] = $key . ($key == 'lib' ? '_' : ':') . strtolower($directory);
+				}
+			}
+		}
+
+		// Plugins have one extra level of directories
+		$nodes = array(
+			['core', PATH_CORE . DS . 'plugins'],
+			['app', PATH_APP . DS . 'plugins']
+		);
+
+		foreach ($nodes as $node)
+		{
+			$key  = $node[0];
+			$base = $node[1];
+
+			$directories = array_diff(scandir($base), ['.', '..']);
+
+			foreach ($directories as $directory)
+			{
+				if (!is_dir($base . DS . $directory))
+				{
+					continue;
+				}
+
+				$subdirectories = array_diff(scandir($base . DS . $directory), ['.', '..']);
+
+				foreach ($subdirectories as $subdirectory)
+				{
+					if (is_dir($base . DS . $directory . DS . $subdirectory . DS . 'Tests')
+					 || is_dir($base . DS . $directory . DS . $subdirectory . DS . 'tests'))
+					{
+						$tests[] = $key . ($key == 'lib' ? '_' : ':') . 'plg_' . strtolower($directory) . '_' . strtolower($subdirectory);
+					}
 				}
 			}
 		}

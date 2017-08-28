@@ -119,6 +119,56 @@ class Migration
 		{
 			$this->addSearchPath(PATH_CORE)
 			     ->addSearchPath(PATH_APP);
+
+			$nodes = array(
+				PATH_CORE . DS . 'templates',
+				PATH_APP . DS . 'templates',
+				PATH_CORE . DS . 'components',
+				PATH_APP . DS . 'components',
+				PATH_CORE . DS . 'modules',
+				PATH_APP . DS . 'modules'
+			);
+
+			foreach ($nodes as $base)
+			{
+				$directories = array_diff(scandir($base), ['.', '..']);
+
+				foreach ($directories as $directory)
+				{
+					if (!is_dir($base . DS . $directory))
+					{
+						continue;
+					}
+
+					$this->addSearchPath($base . DS . $directory);
+				}
+			}
+
+			// Plugins have one extra level of directories
+			$nodes = array(
+				PATH_CORE . DS . 'plugins',
+				PATH_APP . DS . 'plugins'
+			);
+
+			foreach ($nodes as $base)
+			{
+				$directories = array_diff(scandir($base), ['.', '..']);
+
+				foreach ($directories as $directory)
+				{
+					if (!is_dir($base . DS . $directory))
+					{
+						continue;
+					}
+
+					$subdirectories = array_diff(scandir($base . DS . $directory), ['.', '..']);
+
+					foreach ($subdirectories as $subdirectory)
+					{
+						$this->addSearchPath($base . DS . $directory . DS . $subdirectory);
+					}
+				}
+			}
 		}
 		else
 		{
@@ -228,17 +278,32 @@ class Migration
 
 		foreach ($this->searchPaths as $path)
 		{
+			if (!is_dir($path . DS . 'migrations'))
+			{
+				continue;
+			}
 			$found = array_diff(scandir($path . DS . 'migrations'), $exclude);
-			$files = array_merge($files, $found);
+			/*array_walk(
+				$found,
+				function(&$item) use ($path)
+				{
+					$item = $path . DS . $item;
+				}
+			);
+			$files = array_merge($files, $found);*/
+			foreach ($found as $f)
+			{
+				$files[$path . DS . 'migrations' . DS . $f] = $f;
+			}
 		}
 
-		sort($files);
+		asort($files);
 
 		if (!is_null($file))
 		{
 			if (in_array($file, $files))
 			{
-				$this->files[] = $file;
+				$this->files[] = array_search($file, $files);
 				return true;
 			}
 			else
@@ -257,7 +322,7 @@ class Migration
 			}
 		}
 
-		foreach ($files as $file)
+		foreach ($files as $path => $file)
 		{
 			// Make sure they have a php extension and proper filename format
 			if (preg_match('/^Migration[0-9]{14}[[:alnum:]]+\.php$/', $file))
@@ -265,7 +330,7 @@ class Migration
 				// If an extension was provided...match against it...
 				if (empty($ext) || (!empty($ext) && preg_match('/Migration[0-9]{14}'.$ext.'\.php/', $file)))
 				{
-					$this->files[] = $file;
+					$this->files[] = $path;
 				}
 			}
 		}
@@ -313,10 +378,29 @@ class Migration
 		$hasStatus = $this->db->tableHasField($this->get('tbl_name'), 'status');
 
 		// Loop through files and run their '$direction' method
-		foreach ($this->files as $file)
+		foreach ($this->files as $fullpath) //$file)
 		{
+			// Get just the file
+			$file = basename($fullpath);
+
 			// Create a hash of the file (not using this at the moment)
 			$hash = hash('md5', $file);
+
+			// Get the file name
+			$info = pathinfo($file);
+
+			// Make sure the file exists
+			// If it doesn't, there's no point going any further
+			if (!is_file($fullpath))
+			{
+				$this->log("{$fullpath} is not a valid file", 'warning');
+				continue;
+			}
+
+			// Generate the scope
+			// This will be the path to the migration, minus the document root
+			// ex: "core/migrations" or "app/components/com_example/migrations"
+			$scope = str_replace(PATH_ROOT . DS, '', dirname($fullpath));
 
 			// Check to see if this file has already been run
 			try
@@ -330,6 +414,12 @@ class Migration
 				}
 
 				$query .= " FROM `{$this->get('tbl_name')}` WHERE `file` = " . $this->db->quote($file);
+
+				if ($this->db->tableHasField($this->get('tbl_name'), 'scope'))
+				{
+					$query .= " AND `scope` = " . $this->db->quote($scope);
+				}
+
 				$query .= " ORDER BY `date` DESC LIMIT 1";
 
 				$this->db->setQuery($query);
@@ -360,7 +450,7 @@ class Migration
 					// If we have no row at all
 					if (!$row && $direction == 'down')
 					{
-						$this->log("Ignoring {$direction}() - you should run up first ({$file})");
+						$this->log("Ignoring {$direction}() - you should run up first ({$scope}/{$file})");
 						continue;
 					}
 					// If the last run was the same direction as is currently being run, we shouldn't run it again
@@ -371,12 +461,12 @@ class Migration
 						{
 							if ($dryrun)
 							{
-								$this->log("Would ignore {$direction}() {$file}");
+								$this->log("Would ignore {$direction}() {$scope}/{$file}");
 								continue;
 							}
 							else
 							{
-								$this->log("Ignoring {$direction}() {$file}");
+								$this->log("Ignoring {$direction}() {$scope}/{$file}");
 								continue;
 							}
 						}
@@ -388,28 +478,6 @@ class Migration
 				// Our query failed altogether...that's not good
 				$this->log("Error: the check for preexisting migrations failed!", 'error');
 				return false;
-			}
-
-			// Get the file name
-			$info  = pathinfo($file);
-			$found = false;
-
-			foreach ($this->searchPaths as $path)
-			{
-				$fullpath = $path . DS . 'migrations' . DS . $file;
-				$docroot  = $path;
-
-				if (is_file($fullpath))
-				{
-					$found = true;
-					break;
-				}
-			}
-
-			if (!$found)
-			{
-				$this->log("{$fullpath} is not a valid file", 'warning');
-				continue;
 			}
 
 			require_once $fullpath;
@@ -433,12 +501,12 @@ class Migration
 			// Check if we're making a dry run, or only logging changes
 			if ($dryrun)
 			{
-				$this->log("Would run {$direction}() {$file}", 'success');
+				$this->log("Would run {$direction}() {$scope}/{$file}", 'success');
 			}
 			else if ($logOnly)
 			{
-				$this->recordMigration($file, str_replace(PATH_ROOT . DS, '', $docroot . DS . 'migrations'), $hash, $direction);
-				$this->log("Marking as run: {$direction}() in {$file}", 'success');
+				$this->recordMigration($file, $scope, $hash, $direction);
+				$this->log("Marking as run: {$direction}() in {$scope}/{$file}", 'success');
 			}
 			else
 			{
@@ -459,36 +527,36 @@ class Migration
 								if ($error['type'] == 'fatal')
 								{
 									// Completely failed...log and stop immediately
-									$this->log("Error: running {$direction}() resulted in a fatal error in {$file}: {$error['message']}", 'error');
-									$this->recordMigration($file, str_replace(PATH_ROOT . DS, '', $docroot . DS . 'migrations'), $hash, $direction, 'fatal');
+									$this->log("Error: running {$direction}() resulted in a fatal error in {$scope}/{$file}: {$error['message']}", 'error');
+									$this->recordMigration($file, $scope, $hash, $direction, 'fatal');
 									return false;
 								}
 								else if ($error['type'] == 'warning')
 								{
 									// Just a warning...display message and carry on (my wayward son)
-									$this->log("Warning: running {$direction}() resulted in a non-fatal error in {$file}: {$error['message']}", 'warning');
+									$this->log("Warning: running {$direction}() resulted in a non-fatal error in {$scope}/{$file}: {$error['message']}", 'warning');
 									$status = 'warning';
 									continue;
 								}
 								else if ($error['type'] == 'info')
 								{
 									// Informational error (is that a real thing?)
-									$this->log("Info: running {$direction}() noted this in {$file}: {$error['message']}", 'info');
+									$this->log("Info: running {$direction}() noted this in {$scope}/{$file}: {$error['message']}", 'info');
 								}
 							}
 						}
 
-						$this->recordMigration($file, str_replace(PATH_ROOT . DS, '', $docroot . DS . 'migrations'), $hash, $direction, $status);
-						$this->log("Completed {$direction}() in {$file}", 'success');
+						$this->recordMigration($file, $scope, $hash, $direction, $status);
+						$this->log("Completed {$direction}() in {$scope}/{$file}", 'success');
 					}
 					catch (\Hubzero\Database\Exception\QueryFailedException $e)
 					{
-						$this->log("Error: running {$direction}() resulted in\n\n{$e->getMessage()}\n\nin {$file}", 'error');
+						$this->log("Error: running {$direction}() resulted in\n\n{$e->getMessage()}\n\nin {$scope}/{$file}", 'error');
 						return false;
 					}
 					catch (\PDOException $e)
 					{
-						$this->log("Error: running {$direction}() resulted in\n\n{$e->getMessage()}\n\nin {$file}", 'error');
+						$this->log("Error: running {$direction}() resulted in\n\n{$e->getMessage()}\n\nin {$scope}/{$file}", 'error');
 						return false;
 					}
 				}
@@ -512,7 +580,7 @@ class Migration
 	 **/
 	private function fireHooks($timing)
 	{
-		$exclude = array(".", "..");
+		$exclude = array('.', '..');
 		$hooks   = [];
 
 		foreach ($this->searchPaths as $path)
@@ -607,12 +675,12 @@ class Migration
 
 			// Craete our object to insert
 			$obj = (object) array(
-					'file'      => $file,
-					'hash'      => $hash,
-					'direction' => $direction,
-					'date'      => $date->toSql(),
-					'action_by' => (php_sapi_name() == 'cli') ? exec("whoami") : \User::get('id')
-				);
+				'file'      => $file,
+				'hash'      => $hash,
+				'direction' => $direction,
+				'date'      => $date->toSql(),
+				'action_by' => (php_sapi_name() == 'cli') ? exec("whoami") : \User::get('id')
+			);
 
 			if ($this->db->tableHasField($this->get('tbl_name'), 'scope'))
 			{
