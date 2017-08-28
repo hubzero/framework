@@ -51,16 +51,25 @@ class FileWriter
 	protected $path;
 
 	/**
+	 * Formatting options for the specified format
+	 *
+	 * @var  array
+	 */
+	protected $options = array();
+
+	/**
 	 * Create a new file configuration loader.
 	 *
 	 * @param   string  $format
 	 * @param   string  $path
+	 * @param   array   $options  Formatting options
 	 * @return  void
 	 */
-	public function __construct($format, $path)
+	public function __construct($format, $path, $options = array('format' => 'array'))
 	{
-		$this->format = $format;
-		$this->path   = $path;
+		$this->format  = $format;
+		$this->path    = $path;
+		$this->options = $options;
 	}
 
 	/**
@@ -80,7 +89,7 @@ class FileWriter
 			return false;
 		}
 
-		$contents = $this->toContent($contents, $this->format);
+		$contents = $this->toContent($contents, $this->format, $this->options);
 
 		return !($this->putContent($path, $contents) === false);
 	}
@@ -109,18 +118,19 @@ class FileWriter
 	/**
 	 * Turn contents into a string of the correct format
 	 *
-	 * @param   string  $client
-	 * @param   string  $group
+	 * @param   mixed   $content
+	 * @param   string  $format
+	 * @param   array   $options
 	 * @return  string
 	 */
-	public function toContent($contents, $format)
+	public function toContent($contents, $format, $options = array())
 	{
 		if (!($contents instanceof Registry))
 		{
 			$contents = new Registry($contents);
 		}
 
-		return $contents->toString($format, array('format' => 'array'));
+		return $contents->toString($format, $options);
 	}
 
 	/**
