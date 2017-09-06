@@ -34,9 +34,9 @@
 namespace Hubzero\Database;
 
 use Hubzero\Utility\String;
-
-use \Hubzero\Error\Exception\RuntimeException;
-use \Hubzero\Error\Exception\BadMethodCallException;
+use Hubzero\Error\Exception\RuntimeException;
+use Hubzero\Error\Exception\BadMethodCallException;
+use Event;
 
 /**
  * Base database driver
@@ -815,11 +815,14 @@ abstract class Driver
 		$connectors = [];
 
 		// Get a list of types, only including php files
-		$types = \JFolder::files(dirname(__FILE__) . DS . 'Driver', '.*\.php$');
+		$types = glob(__DIR__ . DIRECTORY_SEPARATOR . 'Driver' . DIRECTORY_SEPARATOR . '*.php');
 
 		// Loop through the types and find the ones that are available
 		foreach ($types as $type)
 		{
+			// Get just the file name
+			$type = basename($type);
+
 			// Derive the class name from the type
 			$class = __NAMESPACE__ . '\\Driver\\' . str_ireplace('.php', '', ucfirst(trim($type)));
 
