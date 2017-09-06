@@ -242,18 +242,32 @@ class Migration
 		// Check for the existance of the migrations table
 		$tables = $db->getTableList();
 		$prefix = $db->getPrefix();
+		$tableset = false;
 
 		if (in_array('migrations', $tables))
 		{
 			$this->setTableName('migrations');
+			$tableset = true;
 		}
-		else if (in_array($prefix . 'migrations', $tables))
+
+		if (in_array($prefix . 'migrations', $tables))
 		{
+			if ($tableset)
+			{
+				$this->log('Tables `migrations` and `' . $prefix . 'migrations` both exist', 'error');
+				return false;
+			}
+
 			$this->setTableName('#__migrations');
+			$tableset = true;
 		}
-		else if ($this->createMigrationsTable($db) === false)
+
+		if (!$tableset)
 		{
-			return false;
+			if ($this->createMigrationsTable($db) === false)
+			{
+				return false;
+			}
 		}
 
 		// Add a callback so that a migration can update $this in real time if necessary
@@ -283,14 +297,7 @@ class Migration
 				continue;
 			}
 			$found = array_diff(scandir($path . DS . 'migrations'), $exclude);
-			/*array_walk(
-				$found,
-				function(&$item) use ($path)
-				{
-					$item = $path . DS . $item;
-				}
-			);
-			$files = array_merge($files, $found);*/
+
 			foreach ($found as $f)
 			{
 				$files[$path . DS . 'migrations' . DS . $f] = $f;
@@ -357,6 +364,11 @@ class Migration
 			return true;
 		}
 
+		if (!$this->db)
+		{
+			return false;
+		}
+
 		// Notify if we're making a dry run
 		if ($dryrun)
 		{
@@ -417,7 +429,14 @@ class Migration
 
 				if ($this->db->tableHasField($this->get('tbl_name'), 'scope'))
 				{
-					$query .= " AND `scope` = " . $this->db->quote($scope);
+					if ($scope == 'core/migrations')
+					{
+						$query .= " AND (`scope`='' OR `scope` IN (" . $this->db->quote($scope) . "," . $this->db->quote('migrations') . "))";
+					}
+					else
+					{
+						$query .= " AND `scope` = " . $this->db->quote($scope);
+					}
 				}
 
 				$query .= " ORDER BY `date` DESC LIMIT 1";
