@@ -20,7 +20,8 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/hubzero/phpcs-standards"
+            "url": "https://github.com/hubzero/phpcs-standards",
+            "no-api": true
         }
     ],
     "autoload": {
