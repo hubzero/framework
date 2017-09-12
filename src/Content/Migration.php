@@ -712,6 +712,7 @@ class Migration
 			}
 
 			$this->db->insertObject($this->get('tbl_name'), $obj);
+			return true;
 		}
 		catch (\Hubzero\Database\Exception\QueryFailedException $e)
 		{
@@ -723,7 +724,7 @@ class Migration
 	/**
 	 * Return migration run history
 	 *
-	 * @return  array
+	 * @return  mixed  False on error, array on success
 	 **/
 	public function history()
 	{
