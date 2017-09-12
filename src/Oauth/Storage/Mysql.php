@@ -153,16 +153,16 @@ class Mysql
 	 * Get client details by id
 	 * 
 	 * @param   int   $id  Client mysql row auto-incrementing id
-	 * @return  void
+	 * @return  array
 	 */
 	public function getClientDetailsById($id)
 	{
-		die('client by id');
+		$database = \App::get('db');
 
 		$sql = "SELECT * FROM `#__developer_applications`
-				WHERE `id`=" . $this->database->quote($id);
-		$this->database->setQuery($sql);
-		return $this->database->loadAssoc();
+				WHERE `id`=" . $database->quote($id);
+		$database->setQuery($sql);
+		return $database->loadAssoc();
 	}
 
 	/**
@@ -472,12 +472,31 @@ class Mysql
 	 *
 	 * [!] This will determine if the user has an active session via browser
 	 * 
-	 * @return  bool  Result of test
+	 * @return  mixed  Result of test
 	 */
 	public function getSessionIdFromCookie()
 	{
 		// get session id key name
-		$sessionName = md5(\App::hash('site'));
+		$client = 'site';
+		if (isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'])
+		{
+			$referrer = $_SERVER['HTTP_REFERER'];
+			if (\Hubzero\Utility\Uri::isInternal($referrer))
+			{
+				if (substr($referrer, 0, strlen('http')) == 'http')
+				{
+					$referrer = parse_url($referrer, PHP_URL_PATH);
+				}
+				$referrer = trim($referrer, '/');
+				$parts = explode('/', $referrer);
+				$referrer = array_shift($parts);
+				if ($referrer == 'administrator')
+				{
+					$client = $referrer;
+				}
+			}
+		}
+		$sessionName = md5(\App::hash($client));
 
 		// return session id stored in cookie
 		return (!empty($_COOKIE[$sessionName])) ? $_COOKIE[$sessionName] : null;
@@ -491,7 +510,7 @@ class Mysql
 	 */
 	public function getUserIdFromSessionId($sessionId)
 	{
-		$this->database = \App::get('db');
+		$database = \App::get('db');
 
 		// get session timeout period
 		$timeout = \App::get('config')->get('timeout');
@@ -499,11 +518,11 @@ class Mysql
 		// load user from session table
 		$sql = "SELECT userid 
 				  FROM `#__session`
-				  WHERE `session_id`=" . $this->database->quote($sessionId) . "
-				  AND time + " . (int) $timeout . " <= NOW()
-				  AND client_id = 0;";
-		$this->database->setQuery($sql);
-		return $this->database->loadResult();
+				  WHERE `session_id`=" . $database->quote($sessionId) . "
+				  AND time + " . (int) $timeout . " <= NOW();";
+				//  AND client_id = 0;";
+		$database->setQuery($sql);
+		return $database->loadResult();
 	}
 
 	/**
