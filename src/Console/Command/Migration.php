@@ -265,6 +265,10 @@ class Migration extends Base implements CommandInterface
 		if ($migration->find($extension, $file) === false)
 		{
 			// Find failed, do nothing
+			if (count($migration->get('log')) > 0)
+			{
+				$this->output->addLinesFromArray($migration->get('log'));
+			}
 			$this->output->error('Migration find failed! See log messages for details.');
 		}
 		else // no errors during 'find', so continue
@@ -272,6 +276,10 @@ class Migration extends Base implements CommandInterface
 			// Run migration itself
 			if (!$result = $migration->migrate($direction, $force, $dryrun, $listAll, $logOnly))
 			{
+				if (count($migration->get('log')) > 0)
+				{
+					$this->output->addLinesFromArray($migration->get('log'));
+				}
 				$this->output->error('Migration failed! See log messages for details.');
 			}
 			else
