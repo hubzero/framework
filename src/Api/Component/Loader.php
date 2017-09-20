@@ -42,12 +42,9 @@ class Loader extends Base
 	/**
 	 * Render the component.
 	 *
-	 * Based off of Joomla's JComponentHelper::renderComponent()
-	 * but with a number of changes.
-	 *
 	 * @param   string  $option  The component option.
 	 * @param   array   $params  The component parameters
-	 * @return  object
+	 * @return  bool
 	 */
 	public function render($option, $params = array())
 	{
@@ -73,27 +70,39 @@ class Loader extends Base
 		// Get component path
 		if (is_dir(PATH_APP . DS . 'components' . DS . $option . DS . $client))
 		{
-			// Set path and constants for combined components
-			define('JPATH_COMPONENT', PATH_APP . DS . 'components' . DS . $option . DS . $client);
-			define('JPATH_COMPONENT_SITE', PATH_APP . DS . 'components' . DS . $option . DS . 'site');
-			define('JPATH_COMPONENT_ADMINISTRATOR', PATH_APP . DS . 'components' . DS . $option . DS . 'admin');
-		}
-		else if (is_dir(PATH_CORE . DS . 'components' . DS . $option . DS . $client))
-		{
-			// Set path and constants for combined components
-			define('JPATH_COMPONENT', PATH_CORE . DS . 'components' . DS . $option . DS . $client);
-			define('JPATH_COMPONENT_SITE', PATH_CORE . DS . 'components' . DS . $option . DS . 'site');
-			define('JPATH_COMPONENT_ADMINISTRATOR', PATH_CORE . DS . 'components' . DS . $option . DS . 'admin');
+			$base = PATH_APP;
 		}
 		else
 		{
-			// Set path and constants for legacy components
-			define('JPATH_COMPONENT', JPATH_BASE . DS . 'components' . DS . $option);
-			define('JPATH_COMPONENT_SITE', JPATH_SITE . DS . 'components' . DS . $option);
-			define('JPATH_COMPONENT_ADMINISTRATOR', JPATH_ADMINISTRATOR . DS . 'components' . DS . $option);
+			$base = PATH_CORE;
 		}
 
-		$controller = $this->app['request']->getCmd('controller', 'api') . 'v' . str_replace('.', '_', $this->app['request']->getVar('version', '1.0'));
+		// Set path and constants
+		define('JPATH_COMPONENT', $base . DS . 'components' . DS . $option . DS . $client);
+		define('JPATH_COMPONENT_SITE', $base . DS . 'components' . DS . $option . DS . 'site');
+		define('JPATH_COMPONENT_ADMINISTRATOR', $base . DS . 'components' . DS . $option . DS . 'admin');
+
+		$version    = $this->app['request']->getVar('version');
+		$controller = $this->app['request']->getCmd('controller', 'api');
+
+		// If no version is specified, try to determine the most
+		// recent version from the available controllers
+		if (!$version)
+		{
+			$files = glob(JPATH_COMPONENT . '/controllers/' . $controller . 'v*.php');
+
+			if (!empty($files))
+			{
+				natsort($files);
+
+				$file = end($files);
+				$controller = basename($file, '.php');
+			}
+		}
+		else
+		{
+			$controller .= 'v' . str_replace('.', '_', $version);
+		}
 
 		$path       = JPATH_COMPONENT . DS . 'controllers' . DS . $controller . '.php';
 		$controller = '\\Components\\' . ucfirst(substr($option, 4)) . '\\Api\\Controllers\\' . ucfirst($controller);
@@ -102,24 +111,17 @@ class Loader extends Base
 		// Make sure the component is enabled
 		if ($this->isEnabled($option))
 		{
-			// Check to see if the class is autoload-able
+			// Include the file
+			if (file_exists($path))
+			{
+				require_once $path;
+			}
+
+			// Check to see if the class exists
 			if (class_exists($controller))
 			{
 				$found = true;
 
-				// Infer the appropriate language path and load from there
-				$path  = with(new \ReflectionClass($controller))->getFileName();
-				$bits  = explode(DS, $path);
-				$local = implode(DS, array_slice($bits, 0, -2));
-
-				$lang->load($option, $local, null, false, true);
-			}
-			else if (file_exists($path))
-			{
-				$found = true;
-				require_once $path;
-
-				// Load local language files
 				$lang->load($option, JPATH_COMPONENT, null, false, true);
 			}
 		}
@@ -129,11 +131,8 @@ class Loader extends Base
 			$this->app->abort(404, $lang->translate('JLIB_APPLICATION_ERROR_COMPONENT_NOT_FOUND'));
 		}
 
-		// Load common language files
-		$lang->load($option, JPATH_BASE, null, false, true);
-
 		// Handle template preview outlining.
-		$action = new $controller(\App::get('response'));
+		$action = new $controller($this->app->get('response'));
 		$action->execute();
 
 		// Revert the scope
