@@ -1324,10 +1324,10 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		if ($this->isNew())
 		{
 			$this->set($this->getPrimaryKey(), $result);
-			Event::trigger($this->getTableName() . '_new', ['model' => $this]);
+			\Event::trigger($this->getTableName() . '_new', ['model' => $this]);
 		}
 
-		Event::trigger('system.onContentSave', array($this->getTableName(), $this));
+		\Event::trigger('system.onContentSave', array($this->getTableName(), $this));
 
 		return $result;
 	}
@@ -1462,9 +1462,9 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function checkout($userId = null)
 	{
-		$userId = $userId ?: User::get('id');
+		$userId = $userId ?: \User::get('id');
 		$this->set('checked_out', $userId)
-		     ->set('checked_out_time', Date::toSql())
+		     ->set('checked_out_time', \Date::toSql())
 		     ->save();
 	}
 
@@ -1493,7 +1493,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function isCheckedOut()
 	{
-		return ($this->checked_out && $this->checked_out != User::get('id'));
+		return ($this->checked_out && $this->checked_out != \User::get('id'));
 	}
 
 	/**
@@ -1645,7 +1645,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function whereIsMine($column = 'created_by')
 	{
-		$this->whereEquals($column, User::get('id'));
+		$this->whereEquals($column, \User::get('id'));
 		return $this;
 	}
 
@@ -1711,8 +1711,8 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	public function ordered($orderBy = 'orderby', $orderDir = 'orderdir')
 	{
 		// Look for our request vars of interest
-		$this->orderBy  = Request::getCmd($orderBy, $this->getState('orderby', $this->orderBy));
-		$this->orderDir = Request::getCmd($orderDir, $this->getState('orderdir', $this->orderDir));
+		$this->orderBy  = \Request::getCmd($orderBy, $this->getState('orderby', $this->orderBy));
+		$this->orderDir = \Request::getCmd($orderDir, $this->getState('orderdir', $this->orderDir));
 
 		$qualifiedOrderBy = $this->orderBy;
 
@@ -1747,7 +1747,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	public function getState($var, $default = null)
 	{
 		$key = str_replace('\\', '.', $this->getModelNamespace()) . '.' . $this->getModelName() . ".{$var}";
-		return User::getState($key, $default);
+		return \User::getState($key, $default);
 	}
 
 	/**
@@ -1761,7 +1761,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	public function setState($key, $value)
 	{
 		$key = str_replace('\\', '.', $this->getModelNamespace()) . '.' . $this->getModelName() . ".{$key}";
-		User::setState($key, $value);
+		\User::setState($key, $value);
 	}
 
 	/**
@@ -1780,7 +1780,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 			throw new RuntimeException('Cannot determine creator of non-existant row(s)');
 		}
 
-		return $this->$field == User::get('id');
+		return $this->$field == \User::get('id');
 	}
 
 	/**

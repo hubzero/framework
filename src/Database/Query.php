@@ -35,6 +35,7 @@ namespace Hubzero\Database;
 
 use Hubzero\Database\Syntax\Mysql;
 use Hubzero\Database\Syntax\Sqlite;
+use App;
 
 /**
  * Database query class
