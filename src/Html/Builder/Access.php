@@ -278,7 +278,7 @@ class Access
 	}
 
 	/**
-	 * Gets a list of the asset groups as an array of JHtml compatible options.
+	 * Gets a list of the asset groups as an array of options.
 	 *
 	 * @param   array  $config  An array of options for the options
 	 * @return  mixed  An array or false if an error occurs
