@@ -155,7 +155,7 @@ class ModuleLayout extends Field
 				{
 					// Add an option to the module group
 					$value = App::get('filesystem')->name($file);
-					$text = $lang->hasKey($key = strtoupper($module . '_LAYOUT_' . $value)) ? JText::_($key) : $value;
+					$text = $lang->hasKey($key = strtoupper($module . '_LAYOUT_' . $value)) ? $lang->txt($key) : $value;
 					$groups['_']['items'][] = Dropdown::option('_:' . $value, $text);
 				}
 			}

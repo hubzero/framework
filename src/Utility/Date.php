@@ -138,7 +138,7 @@ class Date extends DateTime
 		// Call the DateTime constructor.
 		parent::__construct($date, $tz);
 
-		// reset the timezone for 3rd party libraries/extension that does not use JDate
+		// reset the timezone for 3rd party libraries/extension that does not use Date
 		date_default_timezone_set(self::$stz->getName());
 
 		// Set the timezone object for access later.
