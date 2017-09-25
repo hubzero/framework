@@ -142,6 +142,21 @@ class Response extends BaseResponse
 	}
 
 	/**
+	 * Set a header on the Response.
+	 *
+	 * @param   string  $key
+	 * @param   mixed   $values
+	 * @param   bool    $replace
+	 * @return  object  $this
+	 */
+	public function header($key, $values, $replace = true)
+	{
+		$this->headers->set($key, $values, $replace);
+
+		return $this;
+	}
+
+	/**
 	 * Sends HTTP headers and content.
 	 *
 	 * @return  object  Response
