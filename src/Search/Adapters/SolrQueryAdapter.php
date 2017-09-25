@@ -91,32 +91,16 @@ class SolrQueryAdapter implements QueryInterface
 	 */
 	public function getMoreLikeThis($terms) {
 		// Get morelikethis settings
-		$mltQuery = $this->connection->createSelect()
-									->setQuery($terms)
-									->getMoreLikeThis()
-									->setFields('text');
+		$mltQuery = $this->connection->createSelect();
+		$mltQuery->setQuery($terms)
+			->getMoreLikeThis()
+			->setFields('text');
 
 		// Executes the query and returns the result
 		$resultSet = $this->connection->select($mltQuery);
 		$mlt = $resultSet->getMoreLikeThis();
 
-		// Store the results
-		$res = [];
-
-		// show documents using the resultset iterator
-		foreach ($resultSet as $document) {
-			// the documents are also iterable, to get all fields
-			foreach ($document as $field => $value) {
-				// this converts multivalue fields to a comma-separated string
-				if (is_array($value)) {
-					$value = implode(', ', $value);
-				}
-				$res[] = $value;
-			}
-
-		}
-	
-		return $res;
+		return $resultSet;
 	}
 
 	/**
