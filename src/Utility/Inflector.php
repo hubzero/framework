@@ -25,7 +25,6 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Ben Mollet <bmollet@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  * @license   MIT License
@@ -33,13 +32,28 @@
 
 namespace Hubzero\Utility;
 
+/**
+ * Inflector has static methods for inflecting text.
+ */
 class Inflector
 {
+	/**
+	 * Words that should not be inflected.
+	 *
+	 * @var  array
+	 */
 	protected static $uncountable_words = array(
 		'equipment', 'information', 'rice', 'money',
-		'species', 'series', 'fish', 'meta', 'metadata'
+		'species', 'series', 'fish', 'meta', 'metadata',
+		'buffalo', 'elk', 'rhinoceros', 'salmon',
+		'bison', 'headquarters', 'series'
 	);
 
+	/**
+	 * Plural inflector rules.
+	 *
+	 * @var  array
+	 */
 	protected static $plural_rules = array(
 		'/^(ox)$/i'                 => '\1\2en',     // ox
 		'/([m|l])ouse$/i'           => '\1ice',      // mouse, louse
@@ -58,10 +72,15 @@ class Inflector
 		'/(alias|status|virus)$/i'  => '\1es',       // alias
 		'/(octop)us$/i'             => '\1i',        // octopus
 		'/(ax|cris|test)is$/i'      => '\1es',       // axis, crisis
-		'/s$/'                     => 's',          // no change (compatibility)
-		'/$/'                      => 's',
+		'/s$/'                      => 's',          // no change (compatibility)
+		'/$/'                       => 's',
 	);
 
+	/**
+	 * Singular inflector rules.
+	 *
+	 * @var  array
+	 */
 	protected static $singular_rules = array(
 		'/(matr)ices$/i'         => '\1ix',
 		'/(vert|ind)ices$/i'     => '\1ex',
@@ -95,8 +114,8 @@ class Inflector
 	/**
 	 * Gets the plural version of the given word
 	 *
-	 * @param   string  the word to pluralize
-	 * @param   int     number of instances
+	 * @param   string  $word   the word to pluralize
+	 * @param   int     $count  number of instances
 	 * @return  string  the plural version of $word
 	 */
 	public static function pluralize($word, $count = 0)
@@ -128,13 +147,40 @@ class Inflector
 	}
 
 	/**
+	 * Gets the singular version of the given word
+	 *
+	 * @param   string  $word  the word to singularizelize
+	 * @return  string  the plural version of $word
+	 */
+	public static function singularize($word)
+	{
+		$result = strval($word);
+
+		if (! static::is_countable($result))
+		{
+			return $result;
+		}
+
+		foreach (static::$singular_rules as $rule => $replacement)
+		{
+			if (preg_match($rule, $result))
+			{
+				$result = preg_replace($rule, $replacement, $result);
+				break;
+			}
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Checks if the given word has a plural version.
 	 *
-	 * @param   string  the word to check
+	 * @param   string  $word  the word to check
 	 * @return  bool    if the word is countable
 	 */
 	public static function is_countable($word)
 	{
-		return ! (\in_array(strtolower(\strval($word)), static::$uncountable_words));
+		return ! (in_array(strtolower(strval($word)), static::$uncountable_words));
 	}
 }

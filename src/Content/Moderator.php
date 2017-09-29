@@ -127,7 +127,14 @@ class Moderator
 	 **/
 	public function validateToken()
 	{
-		return $this->token === $this->getToken();
+		if ($this->token !== $this->getToken())
+		{
+			// Using 'public' as the session ID allows for shareable URLs
+			// not tied to a specific user session. Usage would be for
+			// files that do not need access control.
+			$this->session_id = 'public';
+		}
+		return ($this->token === $this->getToken());
 	}
 
 	/**
@@ -154,7 +161,7 @@ class Moderator
 	 * Unpacks the token into meaninful bits
 	 *
 	 * @param   string  $identifier  The identifier to process
-	 * @return  string
+	 * @return  void
 	 **/
 	private function decompose($identifier)
 	{

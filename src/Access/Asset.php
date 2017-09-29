@@ -31,12 +31,12 @@
 
 namespace Hubzero\Access;
 
-use Hubzero\Database\Relational;
+use Hubzero\Database\Nested;
 
 /**
  * Access asset
  */
-class Asset extends Relational
+class Asset extends Nested
 {
 	/**
 	 * The table namespace

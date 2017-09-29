@@ -123,6 +123,11 @@ class Json extends Base
 			return $object;
 		}
 
+		if (isset($options['pretty_print']) && $options['pretty_print'])
+		{
+			return json_encode($object, JSON_PRETTY_PRINT);
+		}
+
 		return json_encode($object);
 	}
 

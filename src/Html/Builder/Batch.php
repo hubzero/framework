@@ -130,6 +130,21 @@ class Batch
 			$optionNo = '<option value="0">' . Lang::txt('JLIB_HTML_BATCH_USER_NOUSER') . '</option>';
 		}
 
+		// Get the database object and a new query object.
+		$db = \App::get('db');
+
+		// Build the query.
+		$query = $db->getQuery()
+			->select('a.id', 'value')
+			->select('a.name', 'text')
+			->from('#__users', 'a')
+			->whereEquals('a.block', '0')
+			->order('a.name', 'asc');
+
+		// Set the query and load the options.
+		$db->setQuery($query->toString());
+		$items = $db->loadObjectList();
+
 		// Create the batch selector to select a user on a selection list.
 		$lines = array(
 			'<label id="batch-user-lbl" for="batch-user" class="hasTip" title="' . Lang::txt('JLIB_HTML_BATCH_USER_LABEL') . '::' . Lang::txt('JLIB_HTML_BATCH_USER_LABEL_DESC') . '">',
@@ -138,7 +153,7 @@ class Batch
 			'<select name="batch[user_id]" class="inputbox" id="batch-user-id">',
 			'<option value="">' . Lang::txt('JLIB_HTML_BATCH_USER_NOCHANGE') . '</option>',
 			$optionNo,
-			Select::options(\JHtml::_('user.userlist'), 'value', 'text'),
+			Select::options($items, 'value', 'text'),
 			'</select>'
 		);
 

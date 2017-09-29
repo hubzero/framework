@@ -16,7 +16,7 @@
 		<column>lft</column>
 		<column>rgt</column>
 		<column>parent_id</column>
-		<column>depth</column>
+		<column>level</column>
 	</table>
 	<table name="comments">
 		<column>id</column>
@@ -50,7 +50,7 @@
 		<column>lft</column>
 		<column>rgt</column>
 		<column>parent_id</column>
-		<column>depth</column>
+		<column>level</column>
 		<column>scope</column>
 		<column>scope_id</column>
 		<row>

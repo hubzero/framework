@@ -472,7 +472,7 @@ class Select
 	 *                               -list.select: either the value of one selected option or an array
 	 *                                of selected options. Default: none.
 	 *                               -list.translate: Boolean. If set, text and labels are translated via
-	 *                                JText::_(). Default is false.
+	 *                                Lang::txt(). Default is false.
 	 *                               -option.id: The property in each option array to use as the
 	 *                                selection id attribute. Defaults to none.
 	 *                               -option.key: The property in each option array to use as the
@@ -495,10 +495,7 @@ class Select
 	 * @param   string   $optText    The name of the object variable for the option text.
 	 * @param   mixed    $selected   The key that is selected (accepts an array or a string)
 	 * @param   boolean  $translate  Translate the option values.
-	 *
-	 * @return  string  HTML for the select list
-	 *
-	 * @since   11.1
+	 * @return  string   HTML for the select list
 	 */
 	public static function options($arr, $optKey = 'value', $optText = 'text', $selected = null, $translate = false)
 	{
@@ -669,7 +666,7 @@ class Select
 	 * @param   string   $selected   The name of the object variable for the option text
 	 * @param   boolean  $idtag      Value of the field id or null by default
 	 * @param   boolean  $translate  True if options will be translated
-	 * @return  string HTML for the select list
+	 * @return  string   HTML for the select list
 	 */
 	public static function radiolist($data, $name, $attribs = null, $optKey = 'value', $optText = 'text', $selected = null, $idtag = false, $translate = false)
 	{
@@ -726,5 +723,74 @@ class Select
 	protected static function escape($str)
 	{
 		return htmlspecialchars($str, ENT_COMPAT, 'UTF-8');
+	}
+
+	/**
+	 * Build the select list for Ordering derived from a query
+	 *
+	 * @param   integer  $name      The scalar value
+	 * @param   string   $query     The query
+	 * @param   string   $attribs   HTML tag attributes
+	 * @param   string   $selected  The selected item
+	 * @param   integer  $neworder  1 if new and first, -1 if new and last, 0  or null if existing item
+	 * @param   string   $chop      The length of the truncated headline
+	 * @return  string   Html for the select list
+	 */
+	public static function ordering($name, $query, $attribs = null, $selected = null, $neworder = null, $chop = null)
+	{
+		if (empty($attribs))
+		{
+			$attribs = 'class="inputbox" size="1"';
+		}
+
+		if (empty($neworder))
+		{
+			$db = \App::get('db');
+			$db->setQuery($query);
+
+			$items = $db->loadObjectList();
+
+			if (empty($items))
+			{
+				$options[] = self::option(1, Lang::txt('JOPTION_ORDER_FIRST'));
+			}
+			else
+			{
+				$chop = '30';
+
+				$options[] = self::option(0, '0 ' . Lang::txt('JOPTION_ORDER_FIRST'));
+				for ($i = 0, $n = count($items); $i < $n; $i++)
+				{
+					$items[$i]->text = Lang::txt($items[$i]->text);
+
+					if (strlen($items[$i]->text) > $chop)
+					{
+						$text = substr($items[$i]->text, 0, $chop) . "...";
+					}
+					else
+					{
+						$text = $items[$i]->text;
+					}
+
+					$options[] = self::option($items[$i]->value, $items[$i]->value . '. ' . $text);
+				}
+				$options[] = self::option($items[$i - 1]->value + 1, ($items[$i - 1]->value + 1) . ' ' . Lang::txt('JOPTION_ORDER_LAST'));
+			}
+
+			$html = self::genericlist($options, $name, array('list.attr' => $attribs, 'list.select' => (int) $selected));
+		}
+		else
+		{
+			if ($neworder > 0)
+			{
+				$text = Lang::txt('JGLOBAL_NEWITEMSLAST_DESC');
+			}
+			elseif ($neworder <= 0)
+			{
+				$text = Lang::txt('JGLOBAL_NEWITEMSFIRST_DESC');
+			}
+			$html = '<input type="hidden" name="' . $name . '" value="' . (int) $selected . '" />' . '<span class="readonly">' . $text . '</span>';
+		}
+		return $html;
 	}
 }

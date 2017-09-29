@@ -216,25 +216,26 @@ class Media extends Field
 			}
 
 			$attr = array(
-				'id' => $this->id . '_preview',
+				'id'    => $this->id . '_preview',
 				'class' => 'media-preview',
 				'style' => 'max-width:160px; max-height:100px;'
 			);
 			$img = Asset::image($src, $lang->txt('JLIB_FORM_MEDIA_PREVIEW_ALT'), $attr);
 			$previewImg = '<div id="' . $this->id . '_preview_img"' . ($src ? '' : ' style="display:none"') . '>' . $img . '</div>';
-			$previewImgEmpty = '<div id="' . $this->id . '_preview_empty"' . ($src ? ' style="display:none"' : '') . '>'
-				. $lang->txt('JLIB_FORM_MEDIA_PREVIEW_EMPTY') . '</div>';
+			$previewImgEmpty = '<div id="' . $this->id . '_preview_empty"' . ($src ? ' style="display:none"' : '') . '>' . $lang->txt('JLIB_FORM_MEDIA_PREVIEW_EMPTY') . '</div>';
 
 			//$html[] = '<div class="media-preview fltlft">';
 			if ($showAsTooltip)
 			{
 				$tooltip = $previewImgEmpty . $previewImg;
 				$options = array(
-					'title' => $lang->txt('JLIB_FORM_MEDIA_PREVIEW_SELECTED_IMAGE'),
-					'text' => $lang->txt('JLIB_FORM_MEDIA_PREVIEW_TIP_TITLE'),
+					'title' => htmlspecialchars($lang->txt('JLIB_FORM_MEDIA_PREVIEW_SELECTED_IMAGE'), ENT_COMPAT, 'UTF-8'),
+					'text'  => htmlspecialchars($lang->txt('JLIB_FORM_MEDIA_PREVIEW_TIP_TITLE'), ENT_COMPAT, 'UTF-8'),
 					'class' => 'hasTipPreview'
 				);
-				$html[] = Behavior::tooltip($tooltip, $options);
+				$html[] = '<span class="' . $options['class'] . '" title="' . $options['title'] . '::' . htmlspecialchars($tooltip, ENT_COMPAT, 'UTF-8') . '">' . $options['text'] . '</span>';
+
+				Behavior::tooltip('.hasTipPreview', $options);
 			}
 			else
 			{

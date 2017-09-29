@@ -288,19 +288,19 @@ class Nested extends Relational
 	/**
 	 * Establishes the query for all of the descendants of the current model
 	 *
-	 * @param   int  $depth  The depth to limit to
+	 * @param   int  $level  The level to limit to
 	 * @return  array
 	 * @since   2.1.0
 	 **/
-	public function descendants($depth = null)
+	public function descendants($level = null)
 	{
 		$instance = self::blank();
 		$instance->where('level', '>', $this->level)
 		         ->order('lft', 'asc');
 
-		if (isset($depth))
+		if (isset($level))
 		{
-			$instance->where('level', '<=', $this->level + $depth);
+			$instance->where('level', '<=', $this->level + $level);
 		}
 
 		return $instance->where('lft', '>', $this->lft)
@@ -311,12 +311,12 @@ class Nested extends Relational
 	/**
 	 * Grabs all of the descendants of the current model
 	 *
-	 * @param   int  $depth  The depth to limit to
+	 * @param   int  $level  The level to limit to
 	 * @return  array
 	 * @since   2.1.0
 	 **/
-	public function getDescendants($depth = null)
+	public function getDescendants($level = null)
 	{
-		return $this->descendants($depth)->rows();
+		return $this->descendants($level)->rows();
 	}
 }

@@ -265,6 +265,10 @@ class Migration extends Base implements CommandInterface
 		if ($migration->find($extension, $file) === false)
 		{
 			// Find failed, do nothing
+			if (count($migration->get('log')) > 0)
+			{
+				$this->output->addLinesFromArray($migration->get('log'));
+			}
 			$this->output->error('Migration find failed! See log messages for details.');
 		}
 		else // no errors during 'find', so continue
@@ -272,6 +276,10 @@ class Migration extends Base implements CommandInterface
 			// Run migration itself
 			if (!$result = $migration->migrate($direction, $force, $dryrun, $listAll, $logOnly))
 			{
+				if (count($migration->get('log')) > 0)
+				{
+					$this->output->addLinesFromArray($migration->get('log'));
+				}
 				$this->output->error('Migration failed! See log messages for details.');
 			}
 			else
@@ -287,16 +295,16 @@ class Migration extends Base implements CommandInterface
 							$complete = array();
 							foreach ($migration->get('log') as $log)
 							{
-								if (preg_match('/would run up\(\) (Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches))
+								if (preg_match('/would run up\(\) (?:.*?)(Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches))
 								{
 									$pending[] = $matches[1];
 								}
-								if (preg_match('/completed up\(\) in (Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches)
-									|| preg_match('/would ignore up\(\) (Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches))
+								if (preg_match('/completed up\(\) in (?:.*?)(Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches)
+									|| preg_match('/would ignore up\(\) (?:.*?)(Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches))
 								{
 									$complete[] = $matches[1];
 								}
-								if (preg_match('/migration up\(\) in (Migration[0-9]{14}[[:alnum:]_]*\.php) has not been run/i', $log['message'], $matches))
+								if (preg_match('/migration up\(\) in (?:.*?)(Migration[0-9]{14}[[:alnum:]_]*\.php) has not been run/i', $log['message'], $matches))
 								{
 									$missed[] = $matches[1];
 								}
