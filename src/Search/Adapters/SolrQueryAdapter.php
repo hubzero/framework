@@ -63,7 +63,7 @@ class SolrQueryAdapter implements QueryInterface
 
 		// Build the Solr config object
 		$solrConfig = array(
-			'endpoint' => array( 
+			'endpoint' => array(
 				$core  => array(
 					'host' => $host,
 					'port' => $port,
