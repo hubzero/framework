@@ -64,12 +64,12 @@ class Response extends BaseResponse
 		switch ($this->headers->get('content-type'))
 		{
 			case 'text/plain':
-				if ($suppress_response_codes)
+				/*if ($suppress_response_codes)
 				{
 					$output .= "Status: $status\n";
 					$output .= "Reason: $reason\n";
 					$output .= "\n";
-				}
+				}*/
 
 				if (!is_object($content) && !is_array($content))
 				{
