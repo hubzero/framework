@@ -89,7 +89,8 @@ class SolrQueryAdapter implements QueryInterface
 	 * @access public
 	 * @return SolariumQuery
 	 */
-	public function getMoreLikeThis($terms) {
+	public function getMoreLikeThis($terms)
+	{
 		// Get morelikethis settings
 		$mltQuery = $this->connection->createSelect();
 		$mltQuery->setQuery($terms)
@@ -110,7 +111,8 @@ class SolrQueryAdapter implements QueryInterface
 	 * @access public
 	 * @return dictionary
 	 */
-	public function spellCheck($terms) {
+	public function spellCheck($terms)
+	{
 		// Set the spellCheck Query
 		$scQuery = $this->connection->createSelect();
 		$scQuery->setRows(0)
