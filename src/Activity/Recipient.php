@@ -178,4 +178,44 @@ class Recipient extends Relational
 
 		return $this->save();
 	}
+
+	/**
+	 * Modify query to only return published entries
+	 *
+	 * @return  object
+	 */
+	public function wherePublished()
+	{
+		$this->whereEquals($this->getTableName() . '.state', self::STATE_PUBLISHED);
+		return $this;
+	}
+
+	/**
+	 * Get all entries for a scope
+	 *
+	 * @param   string   $scope
+	 * @param   integer  $scope_id
+	 * @return  boolean
+	 */
+	public static function allForScope($scope, $scope_id = 0)
+	{
+		if (!is_array($scope))
+		{
+			$scope = array($scope);
+		}
+
+		$recipient = self::all();
+
+		$r = $recipient->getTableName();
+		$l = \Hubzero\Activity\Log::blank()->getTableName();
+
+		$recipient
+			->select($r . '.*')
+			->including('log')
+			->join($l, $l . '.id', $r . '.log_id')
+			->whereIn($r . '.scope', $scope)
+			->whereEquals($r . '.scope_id', $scope_id);
+
+		return $recipient;
+	}
 }

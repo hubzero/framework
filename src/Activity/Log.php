@@ -251,7 +251,80 @@ class Log extends Relational
 	}
 
 	/**
-	 * Create an activity log entry.
+	 * Send an activity to recipients
+	 *
+	 * @param   array  $recipients
+	 * @return  bool
+	 */
+	public function broadcast($recipients = array())
+	{
+		// Get everyone subscribed
+		$subscriptions = Subscription::all()
+			->whereEquals('scope', $this->get('scope'))
+			->whereEquals('scope_id', $this->get('scope_id'))
+			->rows();
+
+		foreach ($subscriptions as $subscription)
+		{
+			$recipients[] = array(
+				'scope'    => 'user',
+				'scope_id' => $subscription->get('user_id')
+			);
+		}
+
+		$sent = array();
+
+		// Do we have any recipients?
+		foreach ($recipients as $receiver)
+		{
+			// Default to type 'user'
+			if (!is_array($receiver))
+			{
+				$receiver = array(
+					'scope'    => 'user',
+					'scope_id' => $receiver
+				);
+			}
+
+			// Make sure we have expected data
+			if (!isset($receiver['scope'])
+			 || !isset($receiver['scope_id']))
+			{
+				$receiver = array_values($receiver);
+
+				$receiver['scope']    = $receiver[0];
+				$receiver['scope_id'] = $receiver[1];
+			}
+
+			$key = $receiver['scope'] . '.' . $receiver['scope_id'];
+
+			// No duplicate sendings
+			if (in_array($key, $sent))
+			{
+				continue;
+			}
+
+			// Create a recipient object that ties a user to an activity
+			$recipient = Recipient::blank()->set([
+				'scope'    => $receiver['scope'],
+				'scope_id' => $receiver['scope_id'],
+				'log_id'   => $this->get('id'),
+				'state'    => Recipient::STATE_PUBLISHED
+			]);
+
+			if (!$recipient->save())
+			{
+				return false;
+			}
+
+			$sent[] = $key;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Create an activity log entry and broadcast it.
 	 *
 	 * @param   mixed    $data
 	 * @param   array    $recipients
@@ -290,63 +363,9 @@ class Log extends Relational
 				return false;
 			}
 
-			// Get everyone subscribed
-			$subscriptions = Subscription::all()
-				->whereEquals('scope', $activity->get('scope'))
-				->whereEquals('scope_id', $activity->get('scope_id'))
-				->rows();
-
-			foreach ($subscriptions as $subscription)
+			if (!$activity->broadcast($recipients))
 			{
-				$recipients[] = array(
-					'scope'    => 'user',
-					'scope_id' => $subscription->user_id
-				);
-			}
-
-			$sent = array();
-
-			// Do we have any recipients?
-			foreach ($recipients as $receiver)
-			{
-				// Default to type 'user'
-				if (!is_array($receiver))
-				{
-					$receiver = array(
-						'scope'    => 'user',
-						'scope_id' => $receiver
-					);
-				}
-
-				// Make sure we have expected data
-				if (!isset($receiver['scope'])
-				 || !isset($receiver['scope_id']))
-				{
-					$receiver = array_values($receiver);
-
-					$receiver['scope']    = $receiver[0];
-					$receiver['scope_id'] = $receiver[1];
-				}
-
-				$key = $receiver['scope'] . '.' . $receiver['scope_id'];
-
-				// No duplicate sendings
-				if (in_array($key, $sent))
-				{
-					continue;
-				}
-
-				// Create a recipient object that ties a user to an activity
-				$recipient = Recipient::blank()->set([
-					'scope'    => $receiver['scope'],
-					'scope_id' => $receiver['scope_id'],
-					'log_id'   => $activity->get('id'),
-					'state'    => 1
-				]);
-
-				$recipient->save();
-
-				$sent[] = $key;
+				return false;
 			}
 		}
 		catch (Exception $e)
@@ -355,5 +374,44 @@ class Log extends Relational
 		}
 
 		return true;
+	}
+
+	/**
+	 * Modify query to only return published entries
+	 *
+	 * @return  object
+	 */
+	public function wherePublished()
+	{
+		$this->whereEquals(Recipient::blank()->getTableName() . '.state', Recipient::STATE_PUBLISHED);
+		return $this;
+	}
+
+	/**
+	 * Get all logs for a recipient
+	 *
+	 * @param   string   $scope
+	 * @param   integer  $scope_id
+	 * @return  boolean
+	 */
+	public static function allForRecipient($scope, $scope_id = 0)
+	{
+		if (!is_array($scope))
+		{
+			$scope = array($scope);
+		}
+
+		$logs = self::all();
+
+		$r = Recipient::blank()->getTableName();
+		$l = $logs->getTableName();
+
+		$logs
+			->select($l . '.*')
+			->join($r, $l . '.id', $r . '.log_id')
+			->whereIn($r . '.scope', $scope)
+			->whereEquals($r . '.scope_id', $scope_id);
+
+		return $logs;
 	}
 }
