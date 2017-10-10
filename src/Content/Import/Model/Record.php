@@ -32,14 +32,14 @@
 
 namespace Hubzero\Content\Import\Model;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Exception;
 use stdClass;
 
 /**
  * Import Record Model
  */
-class Record extends Object
+class Record extends Obj
 {
 	/**
 	 * Title match

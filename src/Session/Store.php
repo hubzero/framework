@@ -28,7 +28,7 @@
 
 namespace Hubzero\Session;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use SessionHandlerInterface;
 
 /**
@@ -36,7 +36,7 @@ use SessionHandlerInterface;
  *
  * Inspired by Joomla's JSessionStorage class
  */
-abstract class Store extends Object implements SessionHandlerInterface
+abstract class Store extends Obj implements SessionHandlerInterface
 {
 	/**
 	 * Storage instances container.

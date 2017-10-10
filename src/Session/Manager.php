@@ -29,7 +29,7 @@
 
 namespace Hubzero\Session;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Class for managing HTTP sessions
@@ -41,7 +41,7 @@ use Hubzero\Base\Object;
  *
  * Inspired by Joomla's JSession class
  */
-class Manager extends Object
+class Manager extends Obj
 {
 	/**
 	 * Internal state.

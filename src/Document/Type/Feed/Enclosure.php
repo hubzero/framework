@@ -28,14 +28,14 @@
 
 namespace Hubzero\Document\Type\Feed;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Enclosure is an internal class that stores feed enclosure information
  *
  * Inspired by Joomla's JFeedEnclosure class
  */
-class Enclosure extends Object
+class Enclosure extends Obj
 {
 	/**
 	 * URL enclosure element

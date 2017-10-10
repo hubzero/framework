@@ -32,7 +32,7 @@
 
 namespace Hubzero\User;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Logger model
@@ -40,7 +40,7 @@ use Hubzero\Base\Object;
  * This is basically an aggregator class.  It helps us map our relational models
  * and namespaces in a similar fashion.
  */
-class Logger extends Object
+class Logger extends Obj
 {
 	/**
 	 * User model

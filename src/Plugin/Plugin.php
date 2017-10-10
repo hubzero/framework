@@ -34,12 +34,12 @@ namespace Hubzero\Plugin;
 
 use Hubzero\Document\Assets;
 use Hubzero\Config\Registry;
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Base class for plugins to extend
  */
-class Plugin extends Object
+class Plugin extends Obj
 {
 	use \Hubzero\Base\Traits\AssetAware;
 

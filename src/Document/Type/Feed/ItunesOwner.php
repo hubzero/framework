@@ -28,12 +28,12 @@
 
 namespace Hubzero\Document\Type\Feed;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Class for storing iTunes owner information
  */
-class ItunesOwner extends Object
+class ItunesOwner extends Obj
 {
 	/**
 	 * Email attribute

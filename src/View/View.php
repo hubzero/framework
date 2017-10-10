@@ -31,7 +31,7 @@
 
 namespace Hubzero\View;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Hubzero\View\Exception\InvalidLayoutException;
 use Exception;
 
@@ -40,7 +40,7 @@ use Exception;
  *
  * Inspired, in parts, by Joomla's JView class
  */
-class View extends Object
+class View extends Obj
 {
 	use \Hubzero\Base\Traits\Escapable;
 

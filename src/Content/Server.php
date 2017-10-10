@@ -32,12 +32,12 @@
 
 namespace Hubzero\Content;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Serve up a file
  */
-class Server extends Object
+class Server extends Obj
 {
 	/**
 	 * File to serve up

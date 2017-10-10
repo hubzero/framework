@@ -31,18 +31,16 @@
 
 namespace Hubzero\Browser;
 
-use Hubzero\Base\Object;
-
 /**
  * Browser class, provides capability information about the current web client.
  *
  * Browser identification is performed by examining the HTTP_USER_AGENT
  * environment variable provided by the web server.
  *
- * This class is based on Joomla's JBrowser and has many influences from the
- * lib/Browser.php code in version 3 of Horde by Chuck Hagenbuch and Jon Parise.
+ * This class has many influences from the lib/Browser.php code in version 3 of
+ * Horde by Chuck Hagenbuch and Jon Parise.
  */
-class Detector extends Object
+class Detector
 {
 	/**
 	 * @var  integer  Major version number

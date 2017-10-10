@@ -33,7 +33,7 @@
 namespace Hubzero\Message;
 
 use Hubzero\Database\Relational;
-use Hubzero\Utility\String;
+use Hubzero\Utility\Str;
 
 /**
  * Model class for a message
@@ -236,7 +236,7 @@ class Message extends Relational
 		if (substr($name, 0, 7) == 'mailto:')
 		{
 			$name = substr($name, 7, strlen($name));
-			$name = String::obfuscate($name);
+			$name = Str::obfuscate($name);
 
 			$href = 'mailto:' . $name;
 		}

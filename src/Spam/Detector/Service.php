@@ -32,12 +32,12 @@
 
 namespace Hubzero\Spam\Detector;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Abstract spam detector service
  */
-abstract class Service extends Object implements DetectorInterface
+abstract class Service extends Obj implements DetectorInterface
 {
 	/**
 	 * Message to report

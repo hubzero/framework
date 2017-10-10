@@ -34,7 +34,6 @@ namespace Hubzero\Http;
 
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request as BaseRequest;
-use Hubzero\Utility\String;
 
 /**
  * Request handler replaces the default PHP global variables 

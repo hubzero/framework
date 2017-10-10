@@ -32,15 +32,13 @@
 
 namespace Hubzero\Utility;
 
-use Hubzero\Base\Object;
-
 /**
  * URI Class
  *
  * Parses a URI and provides a common interface for
  * the platform to access and manipulate a URI.
  */
-class Uri extends Object
+class Uri
 {
 	/**
 	 * Original URI

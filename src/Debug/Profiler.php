@@ -31,7 +31,6 @@
 
 namespace Hubzero\Debug;
 
-use Hubzero\Base\Object;
 use Hubzero\Debug\Profile\Mark;
 use Hubzero\Log\Writer;
 use Monolog\Logger as Monolog;
@@ -40,7 +39,7 @@ use Monolog\Logger as Monolog;
  * Utility class to assist in the process of benchmarking the execution
  * of sections of code to understand where time is being spent.
  */
-class Profiler extends Object
+class Profiler
 {
 	/**
 	 * The start time.

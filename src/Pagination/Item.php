@@ -31,12 +31,12 @@
 
 namespace Hubzero\Pagination;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Pagination object representing a particular item in the pagination lists.
  */
-class Item extends Object
+class Item extends Obj
 {
 	/**
 	 * The link text.

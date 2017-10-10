@@ -28,7 +28,7 @@
 
 namespace Hubzero\Html\Toolbar;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Button base class
@@ -36,7 +36,7 @@ use Hubzero\Base\Object;
  *
  * Inspired by Joomla's JButton class
  */
-abstract class Button extends Object
+abstract class Button extends Obj
 {
 	/**
 	 * Element name

@@ -32,12 +32,12 @@
 
 namespace Hubzero\Content\Import\Model;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Import archive model
  */
-class Archive extends Object
+class Archive extends Obj
 {
 	/**
 	 * Type

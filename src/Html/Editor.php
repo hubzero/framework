@@ -32,7 +32,7 @@
 
 namespace Hubzero\Html;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Hubzero\Config\Registry;
 use Plugin;
 use Lang;
@@ -42,7 +42,7 @@ use Lang;
  *
  * Inspired by Joomla's JEditor class
  */
-class Editor extends Object
+class Editor extends Obj
 {
 	/**
 	 * The state of the observable object

@@ -32,13 +32,13 @@
 
 namespace Hubzero\Bank;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Hubzero\Utility\Date;
 
 /**
  * Teller class for controlling bank transactions
  */
-class Teller extends Object
+class Teller extends Obj
 {
 	/**
 	 * User ID

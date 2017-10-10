@@ -31,12 +31,10 @@
 
 namespace Hubzero\Utility;
 
-use Hubzero\Base\Object;
-
 /**
  * IP address class
  */
-class Ip extends Object
+class Ip
 {
 	/**
 	 * The instance ip address (in standard dotted form)
@@ -146,7 +144,7 @@ class Ip extends Object
 
 		if (!$threshold)
 		{
-			throw new \RuntimeException("Invalid input, not an IP address");
+			throw new \RuntimeException('Invalid input, not an IP address');
 		}
 
 		return $above ? ($this->ipLong >= $threshold) : ($this->ipLong <= $threshold);

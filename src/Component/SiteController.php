@@ -34,7 +34,7 @@ namespace Hubzero\Component;
 
 use Hubzero\Component\Exception\InvalidTaskException;
 use Hubzero\Component\Exception\InvalidControllerException;
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Hubzero\Document\Assets;
 use ReflectionClass;
 use ReflectionMethod;
@@ -59,7 +59,7 @@ use Lang;
  *                /tmpl
  *                    /two.php
  */
-class SiteController extends Object implements ControllerInterface
+class SiteController extends Obj implements ControllerInterface
 {
 	use \Hubzero\Base\Traits\AssetAware;
 

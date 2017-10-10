@@ -32,7 +32,7 @@
 
 namespace Hubzero\View\Helper;
 
-use Hubzero\Utility\String;
+use Hubzero\Utility\Str;
 
 /**
  * Helper for obfuscating text
@@ -53,6 +53,6 @@ class Obfuscate extends AbstractHelper
 			throw new \InvalidArgumentException(__METHOD__ . '(); No text passed.');
 		}
 
-		return String::obfuscate($text);
+		return Str::obfuscate($text);
 	}
 }

@@ -33,7 +33,7 @@
 namespace Hubzero\Html\Builder;
 
 use Hubzero\Error\Exception\RuntimeException;
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Lang;
 use App;
 
@@ -77,7 +77,7 @@ class ContentLanguage
 			self::$items = $db->loadObjectList();
 			if ($all)
 			{
-				array_unshift(self::$items, new Object(array('value' => '*', 'text' => $translate ? Lang::alt('JALL', 'language') : 'JALL_LANGUAGE')));
+				array_unshift(self::$items, new Obj(array('value' => '*', 'text' => $translate ? Lang::alt('JALL', 'language') : 'JALL_LANGUAGE')));
 			}
 
 			// Detect errors

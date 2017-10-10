@@ -32,7 +32,7 @@
 
 namespace Hubzero\Html\Builder;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Utility class to fire onContentPrepare for non-article based content.
@@ -51,7 +51,7 @@ class Content
 	{
 		if ($params === null)
 		{
-			$params = new Object;
+			$params = new Obj;
 		}
 
 		$article = new \stdClass;

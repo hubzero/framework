@@ -32,12 +32,12 @@
 
 namespace Hubzero\Image;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Helper class for Converting Image to Table Mosaic
  */
-class Mozify extends Object
+class Mozify extends Obj
 {
 	/**
 	 * Image alt text

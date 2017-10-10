@@ -32,17 +32,17 @@
 
 namespace Hubzero\User;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Hubzero\User\Profile\Helper as ProfileHelper;
 use Hubzero\User\Password;
 use Hubzero\Config\Registry;
-use Hubzero\Utility\String;
+use Hubzero\Utility\Str;
 use Event;
 
 /**
  * Extended user profile
  */
-class Profile extends Object
+class Profile extends Obj
 {
 	/**
 	 * ID (primary key)
@@ -1597,7 +1597,7 @@ class Profile extends Object
 
 		if ($shorten)
 		{
-			$content = String::truncate($content, $shorten, $options);
+			$content = Str::truncate($content, $shorten, $options);
 		}
 
 		return $content;

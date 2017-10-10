@@ -28,7 +28,7 @@
 
 namespace Hubzero\Document;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Document class, provides an easy interface to parse and display a document
@@ -37,7 +37,7 @@ use Hubzero\Base\Object;
  *
  * @todo  Rewrite all of this.
  */
-class Base extends Object
+class Base extends Obj
 {
 	/**
 	 * Document title

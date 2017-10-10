@@ -32,7 +32,7 @@
 
 namespace Hubzero\View\Helper;
 
-use Hubzero\Utility\String;
+use Hubzero\Utility\Str;
 
 /**
  * Helper for highlighting a phrase or word in a body of text
@@ -55,6 +55,6 @@ class Highlight extends AbstractHelper
 			throw new \InvalidArgumentException(__METHOD__ . '(); No text passed.');
 		}
 
-		return String::highlight($text, $phrase, $options);
+		return Str::highlight($text, $phrase, $options);
 	}
 }

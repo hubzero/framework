@@ -28,14 +28,14 @@
 
 namespace Hubzero\Document\Type\Opensearch;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * URL for the OpenSearch Description
  *
  * Inspired by Joomla's JOpenSearchUrl class
  */
-class Url extends Object
+class Url extends Obj
 {
 	/**
 	 * Type item element

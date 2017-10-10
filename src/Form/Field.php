@@ -32,7 +32,7 @@
 
 namespace Hubzero\Form;
 
-use Hubzero\Utility\String;
+use Hubzero\Utility\Str;
 use SimpleXMLElement;
 use ReflectionClass;
 
@@ -226,7 +226,7 @@ abstract class Field
 			{
 				// We'll assume a CamelCased name
 				// Split by words and take the last one
-				$parts = String::splitCamel(get_class($this));
+				$parts = Str::splitCamel(get_class($this));
 
 				if ($parts[0] == 'J')
 				{
