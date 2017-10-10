@@ -62,10 +62,10 @@ class ErrorBagTraitTest extends Basic
 	/**
 	 * Test ErrorBag methods
 	 *
-	 * @covers  \Hubzero\Base\Object::setError
-	 * @covers  \Hubzero\Base\Object::setErrors
-	 * @covers  \Hubzero\Base\Object::getError
-	 * @covers  \Hubzero\Base\Object::getErrors
+	 * @covers  \Hubzero\Base\Obj::setError
+	 * @covers  \Hubzero\Base\Obj::setErrors
+	 * @covers  \Hubzero\Base\Obj::getError
+	 * @covers  \Hubzero\Base\Obj::getErrors
 	 * @return  void
 	 **/
 	public function testErrorBag()
