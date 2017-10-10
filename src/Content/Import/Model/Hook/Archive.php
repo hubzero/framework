@@ -32,13 +32,13 @@
 
 namespace Hubzero\Content\Import\Model\Hook;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Hubzero\Content\Import\Model\Hook;
 
 /**
  * Import Hook archive model
  */
-class Archive extends Object
+class Archive extends Obj
 {
 	/**
 	 * Type

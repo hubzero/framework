@@ -28,14 +28,14 @@
 
 namespace Hubzero\Html\Parameter;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Parameter base class
  *
  * The Element is the base class for all Element types
  */
-class Element extends Object
+class Element extends Obj
 {
 	/**
 	 * Element name

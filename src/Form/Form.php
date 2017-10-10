@@ -37,8 +37,8 @@ use Hubzero\Form\Exception\MissingData;
 use Hubzero\Config\Registry;
 use Hubzero\Utility\Date;
 use Hubzero\Utility\Arr;
-use Hubzero\Utility\String;
-use Hubzero\Base\Object;
+use Hubzero\Utility\Str;
+use Hubzero\Base\Obj;
 use SimpleXMLElement;
 use Exception;
 use App;
@@ -145,7 +145,7 @@ class Form
 				// Handle a Registry.
 				$data = $data->toArray();
 			}
-			elseif ($data instanceof Object)
+			elseif ($data instanceof Obj)
 			{
 				// Handle a Object.
 				$data = $data->getProperties();
@@ -1145,7 +1145,7 @@ class Form
 
 			// Filter safe HTML.
 			case 'SAFEHTML':
-				$return = String::clean($value, 'string');
+				$return = Str::clean($value, 'string');
 				break;
 
 			// Convert a date to UTC based on the server timezone offset.
@@ -1188,7 +1188,7 @@ class Form
 				{
 					return false;
 				}
-				$value = String::clean($value);
+				$value = Str::clean($value);
 				$value = trim($value);
 
 				// <>" are never valid in a uri see http://www.ietf.org/rfc/rfc1738.txt.
@@ -1321,7 +1321,7 @@ class Form
 				// Filter. All HTML code is filtered by default.
 				else
 				{
-					$return = String::clean($value, $filter);
+					$return = Str::clean($value, $filter);
 				}
 				break;
 		}

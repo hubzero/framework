@@ -32,13 +32,12 @@
 
 namespace Hubzero\Auth;
 
-use Hubzero\Base\Object;
 use Hubzero\Container\Container;
 
 /**
  * Authentication class, provides an interface for the authentication system
  */
-class Guard extends Object
+class Guard
 {
 	/**
 	 * An array of Observer objects to notify

@@ -32,13 +32,13 @@
 
 namespace Hubzero\Image;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Exception;
 
 /**
  * Helper class for image manipulation
  */
-class Processor extends Object
+class Processor extends Obj
 {
 	/**
 	 * Path to image

@@ -32,7 +32,7 @@
 
 namespace Hubzero\Filesystem;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Hubzero\Filesystem\Util\Icon;
 use Hubzero\Error\Exception\BadMethodCallException;
 use Hubzero\Error\Exception\RuntimeException;
@@ -40,7 +40,7 @@ use Hubzero\Error\Exception\RuntimeException;
 /**
  * Filesystem entity
  */
-class Entity extends Object
+class Entity extends Obj
 {
 	/**
 	 * The filesystem adapter use for actually interacting with the entity

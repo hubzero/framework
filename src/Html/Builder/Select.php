@@ -33,7 +33,7 @@
 namespace Hubzero\Html\Builder;
 
 use Hubzero\Utility\Arr;
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use stdClass;
 use Lang;
 
@@ -427,7 +427,7 @@ class Select
 			$options['disable']     = $disable;
 		}
 
-		$obj = new Object;
+		$obj = new Obj;
 		$obj->$options['option.key'] = $value;
 		$obj->$options['option.text'] = trim($text) ? $text : $value;
 

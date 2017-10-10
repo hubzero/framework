@@ -32,14 +32,14 @@
 namespace Hubzero\Menu\Type;
 
 use Hubzero\Config\Registry;
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Base Menu class
  *
  * Inspired by Joomla's JMenu class
  */
-class Base extends Object
+class Base extends Obj
 {
 	/**
 	 * Array to hold the menu items

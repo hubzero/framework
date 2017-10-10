@@ -32,7 +32,7 @@
 namespace Hubzero\User\Picture;
 
 use Hubzero\Content\Moderator;
-use Hubzero\Utility\String;
+use Hubzero\Utility\Str;
 use Hubzero\User\Profile;
 use Hubzero\Image\Processor;
 
@@ -109,7 +109,7 @@ class Namedfile implements Resolver
 		// If member has a picture set
 		if ($file = $member->get('picture'))
 		{
-			$path = $this->path . DIRECTORY_SEPARATOR . String::pad($id, 5) . DIRECTORY_SEPARATOR;
+			$path = $this->path . DIRECTORY_SEPARATOR . Str::pad($id, 5) . DIRECTORY_SEPARATOR;
 			$file = ltrim($file, DIRECTORY_SEPARATOR);
 
 			// Does the file exist?

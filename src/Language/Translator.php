@@ -29,7 +29,7 @@
 namespace Hubzero\Language;
 
 use Hubzero\Language\Transliterate\Latin;
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Allows for quoting in language .ini files.
@@ -44,7 +44,7 @@ if (!defined('_QQ_'))
  *
  * Inspired by Joomla's JLanguage class
  */
-class Translator extends Object
+class Translator extends Obj
 {
 	/**
 	 * List of languages

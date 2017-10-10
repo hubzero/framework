@@ -32,12 +32,12 @@
 
 namespace Hubzero\Auth;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Authentication response class, provides an object for storing user and error details
  */
-class Response extends Object
+class Response extends Obj
 {
 	/**
 	 * Response status (see status codes)
