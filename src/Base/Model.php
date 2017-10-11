@@ -35,7 +35,7 @@ namespace Hubzero\Base;
 /**
  * Abstract model class
  */
-abstract class Model extends Object
+abstract class Model extends Obj
 {
 	/**
 	 * Unpublished state
