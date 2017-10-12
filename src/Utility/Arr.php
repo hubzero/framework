@@ -472,11 +472,11 @@ class Arr
 			}
 			elseif ($caseSensitive)
 			{
-				$cmp = \JString::strcmp($va, $vb, $locale);
+				$cmp = strcmp($va, $vb);
 			}
 			else
 			{
-				$cmp = \JString::strcasecmp($va, $vb, $locale);
+				$cmp = strcasecmp($va, $vb);
 			}
 
 			if ($cmp > 0)
