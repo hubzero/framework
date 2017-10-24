@@ -80,7 +80,7 @@ class Xml extends Base
 		$data = new stdClass;
 		foreach ($xml->children() as $node)
 		{
-			$data->$node['name'] = $this->getValueFromNode($node);
+			$data->{$node['name']} = $this->getValueFromNode($node);
 		}
 		$data = json_decode(json_encode($data), true);
 
@@ -152,7 +152,7 @@ class Xml extends Base
 
 		foreach ($xml->children() as $node)
 		{
-			$obj->$node['name'] = $this->getValueFromNode($node);
+			$obj->{$node['name']} = $this->getValueFromNode($node);
 		}
 
 		return $obj;
@@ -194,7 +194,7 @@ class Xml extends Base
 				$value = new stdClass;
 				foreach ($node->children() as $child)
 				{
-					$value->$child['name'] = $this->getValueFromNode($child);
+					$value->{$child['name']} = $this->getValueFromNode($child);
 				}
 				break;
 		}

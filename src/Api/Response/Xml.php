@@ -344,11 +344,11 @@ class Xml
 				{
 					if (isset($v['attributes']['item']))
 					{
-						$obj->$v['attributes']['item'] = $value;
+						$obj->{$v['attributes']['item']} = $value;
 					}
 					else
 					{
-						$obj->$v['tag'] = $value;
+						$obj->{$v['tag']} = $value;
 					}
 				}
 				else
@@ -362,7 +362,7 @@ class Xml
 
 				if (is_object($prev[1]))
 				{
-					$prev[1]->$prev[0] = $obj;
+					$prev[1]->{$prev[0]} = $obj;
 				}
 				else if (is_array($prev[1]))
 				{
