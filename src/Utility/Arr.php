@@ -463,8 +463,8 @@ class Arr
 				$locale = self::$sortLocale[$i];
 			}
 
-			$va = $a->$key[$i];
-			$vb = $b->$key[$i];
+			$va = $a->{$key[$i]};
+			$vb = $b->{$key[$i]};
 
 			if ((is_bool($va) or is_numeric($va)) and (is_bool($vb) or is_numeric($vb)))
 			{

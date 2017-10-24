@@ -159,11 +159,11 @@ class Reader implements Iterator
 				// Make sure we have more than one part
 				if (count($parts) > 1)
 				{
-					if (!isset($object->$parts[0]) || !is_object($object->$parts[0]))
+					if (!isset($object->{$parts[0]}) || !is_object($object->{$parts[0]}))
 					{
-						$object->$parts[0] = new stdClass;
+						$object->{$parts[0]} = new stdClass;
 					}
-					$object->$parts[0]->$parts[1] = $row[$k];
+					$object->{$parts[0]}->{$parts[1]} = $row[$k];
 				}
 				else
 				{

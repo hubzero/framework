@@ -253,15 +253,15 @@ class Select
 			elseif (is_object($group))
 			{
 				// Sub-list is in a property of an object
-				$subList = $group->$options['group.items'];
-				if (isset($group->$options['group.label']))
+				$subList = $group->{$options['group.items']};
+				if (isset($group->{$options['group.label']}))
 				{
-					$label = $group->$options['group.label'];
+					$label = $group->{$options['group.label']};
 					$noGroup = false;
 				}
-				if (isset($options['group.id']) && isset($group->$options['group.id']))
+				if (isset($options['group.id']) && isset($group->{$options['group.id']}))
 				{
-					$id = $group->$options['group.id'];
+					$id = $group->{$options['group.id']};
 					$noGroup = false;
 				}
 			}
@@ -428,8 +428,8 @@ class Select
 		}
 
 		$obj = new Obj;
-		$obj->$options['option.key'] = $value;
-		$obj->$options['option.text'] = trim($text) ? $text : $value;
+		$obj->{$options['option.key']} = $value;
+		$obj->{$options['option.text']} = trim($text) ? $text : $value;
 
 		// If a label is provided, save it. If no label is provided and there is
 		// a label name, initialise to an empty string.
@@ -441,19 +441,19 @@ class Select
 		}
 		elseif ($hasProperty)
 		{
-			$obj->$options['option.label'] = '';
+			$obj->{$options['option.label']} = '';
 		}
 
 		// Set attributes only if there is a property and a value
 		if ($options['attr'] !== null)
 		{
-			$obj->$options['option.attr'] = $options['attr'];
+			$obj->{$options['option.attr']} = $options['attr'];
 		}
 
 		// Set disable only if it has a property and a value
 		if ($options['disable'] !== null)
 		{
-			$obj->$options['option.disable'] = $options['disable'];
+			$obj->{$options['option.disable']} = $options['disable'];
 		}
 		return $obj;
 	}
@@ -553,21 +553,26 @@ class Select
 			}
 			elseif (is_object($element))
 			{
-				$key = $options['option.key'] === null ? $elementKey : $element->$options['option.key'];
-				$text = $element->$options['option.text'];
-				if (isset($element->$options['option.attr']))
+				$key = $options['option.key'] === null ? $elementKey : $element->{$options['option.key']};
+				$opttext = $options['option.text'];
+				$text = $element->$opttext;
+				$optattr = $options['option.attr'];
+				if (isset($element->$optattr))
 				{
-					$attr = $element->$options['option.attr'];
+					$attr = $element->$optattr;
 				}
-				if (isset($element->$options['option.id']))
+				$optid = $options['option.id'];
+				if (isset($element->$optid))
 				{
-					$id = $element->$options['option.id'];
+					$id = $element->$optid;
 				}
-				if (isset($element->$options['option.label']))
+				$optlabel = $options['option.label'];
+				if (isset($element->$optlabel))
 				{
-					$label = $element->$options['option.label'];
+					$label = $element->$optlabel;
 				}
-				if (isset($element->$options['option.disable']) && $element->$options['option.disable'])
+				$optdis = $options['option.disable'];
+				if (isset($element->$optdis) && $element->$optdis)
 				{
 					$extra .= ' disabled="disabled"';
 				}
@@ -627,7 +632,8 @@ class Select
 				{
 					foreach ($options['list.select'] as $val)
 					{
-						$key2 = is_object($val) ? $val->$options['option.key'] : $val;
+						$okey = $options['option.key'];
+						$key2 = is_object($val) ? $val->$okey : $val;
 						if ($key == $key2)
 						{
 							$extra .= ' selected="selected"';
