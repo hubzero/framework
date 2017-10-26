@@ -283,7 +283,7 @@ class ApiController implements ControllerInterface
 	{
 		if (!\App::get('authn')['user_id'])
 		{
-			\App::abort(404, 'Not Found');
+			\App::abort(403, 'Not Authorized');
 		}
 	}
 
