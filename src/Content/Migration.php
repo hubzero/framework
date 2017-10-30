@@ -140,6 +140,12 @@ class Migration
 						continue;
 					}
 
+					// Does the directory conform to extension naming conventions?
+					if (strstr($directory, '.') || strstr($directory, ' '))
+					{
+						continue;
+					}
+
 					$this->addSearchPath($base . DS . $directory);
 				}
 			}
@@ -165,6 +171,12 @@ class Migration
 
 					foreach ($subdirectories as $subdirectory)
 					{
+						// Does the directory conform to extension naming conventions?
+						if (strstr($subdirectory, '.') || strstr($subdirectory, ' '))
+						{
+							continue;
+						}
+
 						$this->addSearchPath($base . DS . $directory . DS . $subdirectory);
 					}
 				}
