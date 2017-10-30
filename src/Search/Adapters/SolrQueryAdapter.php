@@ -134,7 +134,7 @@ class SolrQueryAdapter implements QueryInterface
 	public function getSuggestions($terms)
 	{
 		// Rewrite for easier keyboard typing
-		$config = $this->config['endpoint']['hubsearch'];
+		$config = $this->config['endpoint']['hubzero-solr-core'];
 
 		// Create the base URL
 		$url = rtrim(Request::Root(), '/\\');
