@@ -184,7 +184,7 @@ class Loader
 	{
 		$result = $this->byName($module);
 
-		return !is_null($result);
+		return (is_object($result) && $result->id);
 	}
 
 	/**
