@@ -33,6 +33,7 @@ namespace Hubzero\Form\Rules;
 
 use Hubzero\Form\Form;
 use Hubzero\User\User;
+use Hubzero\Form\Rule;
 
 /**
  * Form Rule class for email.

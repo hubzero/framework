@@ -35,6 +35,7 @@ namespace Hubzero\Form;
 use Hubzero\Utility\Str;
 use SimpleXMLElement;
 use ReflectionClass;
+use Lang;
 
 /**
  * Abstract Form Field class.
