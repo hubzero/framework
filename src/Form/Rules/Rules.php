@@ -110,10 +110,13 @@ class Rules extends Rule
 
 		$elActions = Access::getActionsFromFile($component, $section);
 
-		// Iterate over the asset actions and add to the actions.
-		foreach ($elActions as $item)
+		if (is_array($elActions))
 		{
-			$actions[] = $item->name;
+			// Iterate over the asset actions and add to the actions.
+			foreach ($elActions as $item)
+			{
+				$actions[] = $item->name;
+			}
 		}
 
 		// Iterate over the children and add to the actions.

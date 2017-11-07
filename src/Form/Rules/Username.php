@@ -32,6 +32,7 @@
 namespace Hubzero\Form\Rules;
 
 use Hubzero\User\User;
+use Hubzero\Form\Rule;
 
 /**
  * Form Rule class for usernames.

@@ -67,10 +67,10 @@ class Rules extends Field
 		$assetField = $this->element['asset_field'] ? (string) $this->element['asset_field'] : 'asset_id';
 
 		// Get the actions for the asset.
-		$component = $component ? App::get('component')->path($component) . '/config/access.xml' : '';
-		$section   = $section ? "/access/section[@name='" . $section . "']/" : '';
+		$comfile = $component ? App::get('component')->path($component) . '/config/access.xml' : '';
+		$sectioned = "/access/section[@name='" . ($section ?: 'component') . "']/";
 
-		$actions = Access::getActionsFromFile($component, $section);
+		$actions = Access::getActionsFromFile($comfile, $sectioned);
 
 		// Iterate over the children and add to the actions.
 		foreach ($this->element->children() as $el)

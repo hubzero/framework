@@ -32,6 +32,7 @@
 namespace Hubzero\Form\Rules;
 
 use Hubzero\Form\Form;
+use Hubzero\Form\Rule;
 use Exception;
 
 /**
