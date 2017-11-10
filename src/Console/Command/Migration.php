@@ -295,18 +295,18 @@ class Migration extends Base implements CommandInterface
 							$complete = array();
 							foreach ($migration->get('log') as $log)
 							{
-								if (preg_match('/would run up\(\) (?:.*?)(Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches))
+								if (preg_match('/would run up\(\) (.*?)(Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches))
 								{
-									$pending[] = $matches[1];
+									$pending[] = $matches[1] . $matches[2];
 								}
-								if (preg_match('/completed up\(\) in (?:.*?)(Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches)
-									|| preg_match('/would ignore up\(\) (?:.*?)(Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches))
+								if (preg_match('/completed up\(\) in (.*?)(Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches)
+								 || preg_match('/would ignore up\(\) (.*?)(Migration[0-9]{14}[[:alnum:]_]*\.php)/i', $log['message'], $matches))
 								{
-									$complete[] = $matches[1];
+									$complete[] = $matches[1] . $matches[2];
 								}
-								if (preg_match('/migration up\(\) in (?:.*?)(Migration[0-9]{14}[[:alnum:]_]*\.php) has not been run/i', $log['message'], $matches))
+								if (preg_match('/migration up\(\) in (.*?)(Migration[0-9]{14}[[:alnum:]_]*\.php) has not been run/i', $log['message'], $matches))
 								{
-									$missed[] = $matches[1];
+									$missed[] = $matches[1] . $matches[2];
 								}
 							}
 
