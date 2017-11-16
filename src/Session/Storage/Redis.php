@@ -30,7 +30,8 @@
 
 namespace Hubzero\Session\Storage;
 
-use Hubzero\Redis\Database;
+use Hubzero\Session\Store;
+use Hubzero\Redis\Database as RedisDatabase;
 
 /**
  * Redis Session Storage class
@@ -88,7 +89,7 @@ class Redis extends Store
 	 */
 	public function open($save_path, $name)
 	{
-		$this->database = Database::connect('default');
+		$this->database = RedisDatabase::connect('default');
 		$this->database->connect();
 	}
 
@@ -277,6 +278,6 @@ class Redis extends Store
 	 */
 	public static function isAvailable()
 	{
-		return new Database != null;
+		return new RedisDatabase != null;
 	}
 }

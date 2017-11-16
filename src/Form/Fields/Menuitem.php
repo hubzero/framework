@@ -40,14 +40,14 @@ require_once realpath(PATH_CORE . '/components/com_menus/admin/helpers/menus.php
 /**
  * Supports an HTML grouped select list of menu item grouped by menu
  */
-class MenuItem extends GroupedList
+class Menuitem extends GroupedList
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	public $type = 'MenuItem';
+	public $type = 'Menuitem';
 
 	/**
 	 * Method to get the field option groups.

@@ -38,14 +38,14 @@ use App;
 /**
  * Provides a select list of session handler options.
  */
-class SessionHandler extends Select
+class Sessionhandler extends Select
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	protected $type = 'SessionHandler';
+	protected $type = 'Sessionhandler';
 
 	/**
 	 * Method to get the session handler field options.

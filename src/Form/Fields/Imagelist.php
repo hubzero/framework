@@ -31,65 +31,33 @@
 
 namespace Hubzero\Form\Fields;
 
-use App;
-
 /**
- * Provides a list of available database connections, optionally limiting to
- * a given list.
+ * Supports an HTML select list of image
  */
-class DatabaseConnection extends Select
+class Imagelist extends FileList
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	public $type = 'DatabaseConnection';
+	public $type = 'Imagelist';
 
 	/**
-	 * Method to get the list of database options.
-	 *
-	 * This method produces a drop down list of available databases supported
-	 * by Database drivers that are also supported by the application.
+	 * Method to get the list of images field options.
+	 * Use the filter attribute to specify allowable file extensions.
 	 *
 	 * @return  array  The field option objects.
 	 */
 	protected function getOptions()
 	{
-		// Initialize variables.
-		// This gets the connectors available in the platform and supported by the server.
-		$available = App::get('db')->getConnectors();
+		// Define the image file type filter.
+		$filter = '\.png$|\.gif$|\.jpg$|\.bmp$|\.ico$|\.jpeg$|\.psd$|\.eps$';
 
-		// This gets the list of database types supported by the application.
-		// This should be entered in the form definition as a comma separated list.
-		// If no supported databases are listed, it is assumed all available databases
-		// are supported.
-		$supported = $this->element['supported'];
-		if (!empty($supported))
-		{
-			$supported = explode(',', $supported);
-			foreach ($supported as $support)
-			{
-				if (in_array($support, $available))
-				{
-					$options[$support] = ucfirst($support);
-				}
-			}
-		}
-		else
-		{
-			foreach ($available as $support)
-			{
-				$options[$support] = ucfirst($support);
-			}
-		}
+		// Set the form field element attribute for file type filter.
+		$this->element->addAttribute('filter', $filter);
 
-		// This will come into play if an application is installed that requires
-		// a database that is not available on the server.
-		if (empty($options))
-		{
-			$options[''] = App::get('language')->txt('JNONE');
-		}
-		return $options;
+		// Get the field options.
+		return parent::getOptions();
 	}
 }

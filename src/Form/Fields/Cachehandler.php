@@ -38,14 +38,14 @@ use App;
 /**
  * Provides a list of available cache handlers
  */
-class CacheHandler extends Select
+class Cachehandler extends Select
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	public $type = 'CacheHandler';
+	public $type = 'Cachehandler';
 
 	/**
 	 * Method to get the field options.
