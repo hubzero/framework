@@ -36,7 +36,7 @@ use Hubzero\Html\Builder\Select as Dropdown;
 /**
  * Form Field class for selecting timezone
  */
-class Timezone extends GroupedList
+class Timezone extends Groupedlist
 {
 	/**
 	 * The form field type.

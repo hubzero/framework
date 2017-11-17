@@ -38,14 +38,14 @@ use App;
 /**
  * Supports a select grouped list of template styles
  */
-class TemplateStyle extends GroupedList
+class Templatestyle extends Groupedlist
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	public $type = 'TemplateStyle';
+	public $type = 'Templatestyle';
 
 	/**
 	 * Method to get the list of template style options

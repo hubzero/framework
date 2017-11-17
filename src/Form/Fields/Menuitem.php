@@ -40,7 +40,7 @@ require_once realpath(PATH_CORE . '/components/com_menus/admin/helpers/menus.php
 /**
  * Supports an HTML grouped select list of menu item grouped by menu
  */
-class Menuitem extends GroupedList
+class Menuitem extends Groupedlist
 {
 	/**
 	 * The form field type.
