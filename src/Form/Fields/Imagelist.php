@@ -34,7 +34,7 @@ namespace Hubzero\Form\Fields;
 /**
  * Supports an HTML select list of image
  */
-class Imagelist extends FileList
+class Imagelist extends Filelist
 {
 	/**
 	 * The form field type.
