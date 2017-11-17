@@ -36,14 +36,14 @@ use Hubzero\Html\Builder\Contentlanguage as ContentLang;
 /**
  * Provides a list of content languages
  */
-class ContentLanguage extends Select
+class Contentlanguage extends Select
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	public $type = 'ContentLanguage';
+	public $type = 'Contentlanguage';
 
 	/**
 	 * Method to get the field options for content languages.

@@ -31,33 +31,66 @@
 
 namespace Hubzero\Form\Fields;
 
+use App;
+
 /**
- * Supports an HTML select list of image
+ * Provides a list of available database connections, optionally limiting to
+ * a given list.
  */
-class ImageList extends FileList
+class Databaseconnection extends Select
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	public $type = 'ImageList';
+	public $type = 'Databaseconnection';
 
 	/**
-	 * Method to get the list of images field options.
-	 * Use the filter attribute to specify allowable file extensions.
+	 * Method to get the list of database options.
+	 *
+	 * This method produces a drop down list of available databases supported
+	 * by Database drivers that are also supported by the application.
 	 *
 	 * @return  array  The field option objects.
 	 */
 	protected function getOptions()
 	{
-		// Define the image file type filter.
-		$filter = '\.png$|\.gif$|\.jpg$|\.bmp$|\.ico$|\.jpeg$|\.psd$|\.eps$';
+		// Initialize variables.
+		// This gets the connectors available in the platform and supported by the server.
+		$available = App::get('db')->getConnectors();
+		$available = array_map('strtolower', $available);
 
-		// Set the form field element attribute for file type filter.
-		$this->element->addAttribute('filter', $filter);
+		// This gets the list of database types supported by the application.
+		// This should be entered in the form definition as a comma separated list.
+		// If no supported databases are listed, it is assumed all available databases
+		// are supported.
+		$supported = $this->element['supported'];
+		if (!empty($supported))
+		{
+			$supported = explode(',', $supported);
+			foreach ($supported as $support)
+			{
+				if (in_array($support, $available))
+				{
+					$options[$support] = ucfirst($support);
+				}
+			}
+		}
+		else
+		{
+			foreach ($available as $support)
+			{
+				$options[$support] = ucfirst($support);
+			}
+		}
 
-		// Get the field options.
-		return parent::getOptions();
+		// This will come into play if an application is installed that requires
+		// a database that is not available on the server.
+		if (empty($options))
+		{
+			$options[''] = App::get('language')->txt('JNONE');
+		}
+		return $options;
 	}
 }

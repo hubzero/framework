@@ -37,14 +37,14 @@ use App;
 /**
  * Supports an HTML select list of folder
  */
-class FolderList extends Select
+class Folderlist extends Select
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	public $type = 'FolderList';
+	public $type = 'Folderlist';
 
 	/**
 	 * Method to get the field options.
