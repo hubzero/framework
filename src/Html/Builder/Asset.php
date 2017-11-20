@@ -89,6 +89,12 @@ class Asset
 			// If relative search in template directory or media directory
 			if ($relative)
 			{
+				$appdir = basename(PATH_APP);
+				$appdir = ($appdir ? '/' . $appdir : '');
+
+				$coredir = basename(PATH_CORE);
+				$coredir = ($coredir ? '/' . $coredir : '');
+
 				// Get the template
 				$template = App::get('template')->template;
 
@@ -130,53 +136,53 @@ class Asset
 									list($element, $file) = explode('/', $file, 2);
 
 									// Try to deal with plugins group in the media folder
-									if (file_exists(PATH_ROOT . "/core/$extension/$element/$folder/$file"))
+									if (file_exists(PATH_CORE . "/$extension/$element/$folder/$file"))
 									{
-										$includes[] = $root . "/core/$extension/$element/$folder/$file" . '?v=' . filemtime(PATH_ROOT . "/core/$extension/$element/$folder/$file");
+										$includes[] = $root . $coredir . "/$extension/$element/$folder/$file" . '?v=' . filemtime(PATH_CORE . "/$extension/$element/$folder/$file");
 										break;
 									}
 									// Try to deal with classical file in a a media subfolder called element
-									elseif (file_exists(PATH_ROOT . "/core/$extension/$folder/$element/$file"))
+									elseif (file_exists(PATH_CORE . "/$extension/$folder/$element/$file"))
 									{
-										$includes[] = $root . "/core/$extension/$folder/$element/$file" . '?v=' . filemtime(PATH_ROOT . "/core/$extension/$folder/$element/$file");
+										$includes[] = $root . $coredir . "/$extension/$folder/$element/$file" . '?v=' . filemtime(PATH_CORE . "/$extension/$folder/$element/$file");
 										break;
 									}
 									// Try to deal with system files in the template folder
 									elseif (file_exists(PATH_APP . "/templates/$template/$folder/system/$element/$file"))
 									{
-										$includes[] = $root . "/app/templates/$template/$folder/system/$element/$file" . '?v=' . filemtime(PATH_APP . "/templates/$template/$folder/system/$element/$file");
+										$includes[] = $root . $appdir . "/templates/$template/$folder/system/$element/$file" . '?v=' . filemtime(PATH_APP . "/templates/$template/$folder/system/$element/$file");
 										break;
 									}
 									// Try to deal with system files in the media folder
-									elseif (file_exists(PATH_ROOT . "/core/assets/$folder/$element/$file"))
+									elseif (file_exists(PATH_CORE . "/assets/$folder/$element/$file"))
 									{
-										$includes[] = $root . "/core/assets/$folder/$element/$file" . '?v=' . filemtime(PATH_ROOT . "/core/assets/$folder/$element/$file");
+										$includes[] = $root . $coredir . "/assets/$folder/$element/$file" . '?v=' . filemtime(PATH_CORE . "/assets/$folder/$element/$file");
 										break;
 									}
 								}
 								// Try to deals in the extension media folder
-								elseif (file_exists(PATH_ROOT . "/core/$extension/$folder/$file"))
+								elseif (file_exists(PATH_CORE . "/$extension/$folder/$file"))
 								{
-									$includes[] = $root . "/core/$extension/$folder/$file" . '?v=' . filemtime(PATH_ROOT . "/core/$extension/$folder/$file");
+									$includes[] = $root . $coredir . "/$extension/$folder/$file" . '?v=' . filemtime(PATH_CORE . "/$extension/$folder/$file");
 									break;
 								}
 								// Try to deal with system files in the template folder
 								elseif (file_exists(PATH_APP . "/templates/$template/$folder/system/$file"))
 								{
-									$includes[] = $root . "/app/templates/$template/$folder/system/$file" . '?v=' . filemtime(PATH_APP . "/templates/$template/$folder/system/$file");
+									$includes[] = $root . $appdir . "/templates/$template/$folder/system/$file" . '?v=' . filemtime(PATH_APP . "/templates/$template/$folder/system/$file");
 									break;
 								}
 								// Try to deal with system files in the media folder
-								elseif (file_exists(PATH_ROOT . "/core/assets/$folder/$file"))
+								elseif (file_exists(PATH_CORE . "/assets/$folder/$file"))
 								{
-									$includes[] = $root . "/core/assets/$folder/$file" . '?v=' . filemtime(PATH_ROOT . "/core/assets/$folder/$file");
+									$includes[] = $root . $coredir . "/assets/$folder/$file" . '?v=' . filemtime(PATH_CORE . "/assets/$folder/$file");
 									break;
 								}
 							}
 							// Try to deal with system files in the media folder
-							elseif (file_exists(PATH_ROOT . "/core/assets/$folder/$file"))
+							elseif (file_exists(PATH_CORE . "/assets/$folder/$file"))
 							{
-								$includes[] = $root . "/core/assets/$folder/$file" . '?v=' . filemtime(PATH_ROOT . "/core/assets/$folder/$file");
+								$includes[] = $root . $coredir . "/assets/$folder/$file" . '?v=' . filemtime(PATH_CORE . "/assets/$folder/$file");
 								break;
 							}
 						}
