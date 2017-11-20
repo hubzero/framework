@@ -42,14 +42,14 @@ use App;
  * Form Field to display a list of the layouts for a component view from
  * the extension or template overrides.
  */
-class ComponentLayout extends Field
+class Componentlayout extends Field
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	protected $type = 'ComponentLayout';
+	protected $type = 'Componentlayout';
 
 	/**
 	 * Method to get the field input for a component layout field.
@@ -138,10 +138,20 @@ class ComponentLayout extends Field
 				throw new Exception(500, $db->getErrorMsg());
 			}
 
+			$paths = array(PATH_APP, PATH_CORE);
+
 			$filesystem = App::get('filesystem');
 
+			foreach ($paths as $path)
+			{
+				if (is_dir($path . '/components/' . $extn))
+				{
+					break;
+				}
+			}
+
 			// Build the search paths for component layouts.
-			$component_path = Util::normalizePath($client->path . '/components/' . $extn . '/views/' . $view . '/tmpl');
+			$component_path = Util::normalizePath($path . '/components/' . $extn . '/views/' . $view . '/tmpl');
 
 			// Prepare array of component layouts
 			$component_layouts = array();
@@ -197,11 +207,26 @@ class ComponentLayout extends Field
 			{
 				foreach ($templates as $template)
 				{
-					// Load language file
-						$lang->load('tpl_' . $template->element . '.sys', $client->path, null, false, true)
-					||	$lang->load('tpl_' . $template->element . '.sys', $client->path . '/templates/' . $template->element, null, false, true);
+					$template->path = '';
 
-					$template_path = Util::normalizePath($client->path . '/templates/' . $template->element . '/html/' . $extn . '/' . $view);
+					foreach ($paths as $p)
+					{
+						if (is_dir($p . '/templates/' . $template->element))
+						{
+							$template->path = $p . '/templates/' . $template->element;
+							break;
+						}
+					}
+
+					if (!$template->path)
+					{
+						continue;
+					}
+
+					// Load language file
+					$lang->load('tpl_' . $template->element . '.sys', $template->path, null, false, true);
+
+					$template_path = Util::normalizePath($template->path . '/html/' . $extn . '/' . $view);
 
 					// Add the layout options from the template path.
 					if (is_dir($template_path) && ($files = $filesystem->files($template_path, '^[^_]*\.php$', false, true)))

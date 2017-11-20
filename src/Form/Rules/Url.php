@@ -31,6 +31,8 @@
 
 namespace Hubzero\Form\Rules;
 
+use Hubzero\Form\Rule;
+
 /**
  * Form Rule class for URLs.
  */

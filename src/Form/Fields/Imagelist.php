@@ -24,45 +24,40 @@
  *
  * HUBzero is a registered trademark of Purdue University.
  *
- * @package   framework
+ * @package   hubzero-cms
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-namespace Hubzero\Form\Rules;
-
-use Hubzero\User\User;
-use Hubzero\Form\Rule;
+namespace Hubzero\Form\Fields;
 
 /**
- * Form Rule class for usernames.
+ * Supports an HTML select list of image
  */
-class Username extends Rule
+class Imagelist extends Filelist
 {
 	/**
-	 * Method to test for a valid color in hexadecimal.
+	 * The form field type.
 	 *
-	 * @param   object   &$element  The SimpleXMLElement object representing the <field /> tag for the form field object.
-	 * @param   mixed    $value     The form field value to validate.
-	 * @param   string   $group     The field name group control value. This acts as as an array container for the field.
-	 *                              For example if the field has name="foo" and the group value is set to "bar" then the
-	 *                              full field name would end up being "bar[foo]".
-	 * @param   object   &$input    An optional Registry object with the entire data set to validate against the entire form.
-	 * @param   object   &$form     The form object for which the field is being tested.
-	 * @return  boolean  True if the value is valid, false otherwise.
+	 * @var  string
 	 */
-	public function test(&$element, $value, $group = null, &$input = null, &$form = null)
+	public $type = 'Imagelist';
+
+	/**
+	 * Method to get the list of images field options.
+	 * Use the filter attribute to specify allowable file extensions.
+	 *
+	 * @return  array  The field option objects.
+	 */
+	protected function getOptions()
 	{
-		$duplicate = User::all()
-			->whereEquals('username', $value)
-			->where('id', '<>', (int) $userId)
-			->total();
+		// Define the image file type filter.
+		$filter = '\.png$|\.gif$|\.jpg$|\.bmp$|\.ico$|\.jpeg$|\.psd$|\.eps$';
 
-		if ($duplicate)
-		{
-			return false;
-		}
+		// Set the form field element attribute for file type filter.
+		$this->element->addAttribute('filter', $filter);
 
-		return true;
+		// Get the field options.
+		return parent::getOptions();
 	}
 }

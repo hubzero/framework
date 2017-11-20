@@ -213,9 +213,10 @@ class Base extends Obj
 			$test = true;
 			for ($i = 0, $count = count($attributes); $i < $count; $i++)
 			{
+				$c = $attributes[$i];
 				if (is_array($values[$i]))
 				{
-					if (!in_array($item->$attributes[$i], $values[$i]))
+					if (!in_array($item->$c, $values[$i]))
 					{
 						$test = false;
 						break;
@@ -223,7 +224,7 @@ class Base extends Obj
 				}
 				else
 				{
-					if ($item->$attributes[$i] != $values[$i])
+					if ($item->$c != $values[$i])
 					{
 						$test = false;
 						break;

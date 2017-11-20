@@ -348,7 +348,8 @@ class Manager extends Obj
 	 */
 	public static function getStores()
 	{
-		$glob = glob(__DIR__ . DS . 'storage' . DS . '*');
+		// Get a list of types, only including php files
+		$glob = glob(__DIR__ . DIRECTORY_SEPARATOR . 'Storage' . DIRECTORY_SEPARATOR . '*.php');
 
 		$names = array();
 
@@ -357,24 +358,25 @@ class Manager extends Obj
 			return $names;
 		}
 
-		$handlers = array_filter($glob, function($file)
+		// Loop through the types and find the ones that are available
+		foreach ($glob as $handler)
 		{
-			return filetype($file) == 'file';
-		});
+			// Get just the file name
+			$name = basename($handler);
 
-		foreach ($handlers as $handler)
-		{
-			$name  = substr($handler, 0, strrpos($handler, '.'));
-			$class = __NAMESPACE__ . '\\Storage\\' . ucfirst($name);
+			// Derive the class name from the type
+			$class = __NAMESPACE__ . '\\Storage\\' . str_ireplace('.php', '', ucfirst(trim($name)));
 
+			// If the class doesn't exist, these are not the droids you're looking for...
 			if (!class_exists($class))
 			{
 				continue;
 			}
 
-			if (call_user_func_array(array(trim($class), 'isAvailable'), array()))
+			// Our class exists, so now we just need to know if it passes it's test method
+			if (call_user_func_array(array($class, 'isAvailable'), array()))
 			{
-				$names[] = $name;
+				$names[] = str_ireplace('.php', '', $name);
 			}
 		}
 

@@ -37,14 +37,14 @@ use App;
 /**
  * Supports an HTML select list of files
  */
-class FileList extends Select
+class Filelist extends Select
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	public $type = 'FileList';
+	public $type = 'Filelist';
 
 	/**
 	 * Method to get the list of files for the field options.

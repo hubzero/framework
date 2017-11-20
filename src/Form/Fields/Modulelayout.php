@@ -41,14 +41,14 @@ use App;
 /**
  * Form Field to display a list of the layouts for module display from the module or template overrides.
  */
-class ModuleLayout extends Field
+class Modulelayout extends Field
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	protected $type = 'ModuleLayout';
+	protected $type = 'Modulelayout';
 
 	/**
 	 * Method to get the field input for module layouts.
@@ -96,8 +96,8 @@ class ModuleLayout extends Field
 
 			// Load language file
 			$lang = App::get('language');
-				$lang->load($module . '.sys', $client->path, null, false, true)
-			||	$lang->load($module . '.sys', $client->path . '/modules/' . $module, null, false, true);
+				$lang->load($module . '.sys', PATH_APP . '/modules/' . $module, null, false, true)
+			||	$lang->load($module . '.sys', PATH_CORE . '/modules/' . $module, null, false, true);
 
 			// Get the database object and a new query object.
 			$db = App::get('db');
@@ -106,7 +106,7 @@ class ModuleLayout extends Field
 			$query = $db->getQuery()
 				->select('e.element')
 				->select('e.name')
-				->from('#__extensions as e')
+				->from('#__extensions', 'e')
 				->whereEquals('e.client_id', (int) $clientId)
 				->whereEquals('e.type', 'template')
 				->whereEquals('e.enabled', '1');
@@ -133,8 +133,18 @@ class ModuleLayout extends Field
 				App::abort(500, $db->getErrorMsg());
 			}
 
+			$paths = array(PATH_APP, PATH_CORE);
+
+			foreach ($paths as $path)
+			{
+				if (is_dir($path . '/modules/' . $module))
+				{
+					break;
+				}
+			}
+
 			// Build the search paths for module layouts.
-			$module_path = Util::normalizePath($client->path . '/modules/' . $module . '/tmpl');
+			$module_path = Util::normalizePath($path . '/modules/' . $module . '/tmpl');
 
 			// Prepare array of component layouts
 			$module_layouts = array();
@@ -154,7 +164,7 @@ class ModuleLayout extends Field
 				foreach ($module_layouts as $file)
 				{
 					// Add an option to the module group
-					$value = App::get('filesystem')->name($file);
+					$value = App::get('filesystem')->name(ltrim($file, DIRECTORY_SEPARATOR));
 					$text = $lang->hasKey($key = strtoupper($module . '_LAYOUT_' . $value)) ? $lang->txt($key) : $value;
 					$groups['_']['items'][] = Dropdown::option('_:' . $value, $text);
 				}
@@ -165,11 +175,26 @@ class ModuleLayout extends Field
 			{
 				foreach ($templates as $template)
 				{
-					// Load language file
-						$lang->load('tpl_' . $template->element . '.sys', $client->path, null, false, true)
-					||	$lang->load('tpl_' . $template->element . '.sys', $client->path . '/templates/' . $template->element, null, false, true);
+					$template->path = '';
 
-					$template_path = Util::normalizePath($client->path . '/templates/' . $template->element . '/html/' . $module);
+					foreach ($paths as $p)
+					{
+						if (is_dir($p . '/templates/' . $template->element))
+						{
+							$template->path = $p . '/templates/' . $template->element;
+							break;
+						}
+					}
+
+					if (!$template->path)
+					{
+						continue;
+					}
+
+					// Load language file
+					$lang->load('tpl_' . $template->element . '.sys', $template->path, null, false, true);
+
+					$template_path = Util::normalizePath($template->path . '/html/' . $module);
 
 					// Add the layout options from the template path.
 					if (is_dir($template_path) && ($files = App::get('filesystem')->files($template_path, '^[^_]*\.php$')))
@@ -194,9 +219,10 @@ class ModuleLayout extends Field
 							foreach ($files as $file)
 							{
 								// Add an option to the template group
-								$value = App::get('filesystem')->name($file);
+								$value = App::get('filesystem')->name(ltrim($file, DIRECTORY_SEPARATOR));
 								$text = $lang->hasKey($key = strtoupper('TPL_' . $template->element . '_' . $module . '_LAYOUT_' . $value))
-									? $lang->txt($key) : $value;
+									? $lang->txt($key)
+									: $value;
 								$groups[$template->element]['items'][] = Dropdown::option($template->element . ':' . $value, $text);
 							}
 						}
@@ -214,8 +240,14 @@ class ModuleLayout extends Field
 
 			// Add a grouped list
 			$html[] = Dropdown::groupedlist(
-				$groups, $this->name,
-				array('id' => $this->id, 'group.id' => 'id', 'list.attr' => $attr, 'list.select' => $selected)
+				$groups,
+				$this->name,
+				array(
+					'id'          => $this->id,
+					'group.id'    => 'id',
+					'list.attr'   => $attr,
+					'list.select' => $selected
+				)
 			);
 
 			return implode($html);

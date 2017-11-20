@@ -37,14 +37,14 @@ use App;
  * Provides a list of available database connections, optionally limiting to
  * a given list.
  */
-class DatabaseConnection extends Select
+class Databaseconnection extends Select
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	public $type = 'DatabaseConnection';
+	public $type = 'Databaseconnection';
 
 	/**
 	 * Method to get the list of database options.
@@ -59,6 +59,7 @@ class DatabaseConnection extends Select
 		// Initialize variables.
 		// This gets the connectors available in the platform and supported by the server.
 		$available = App::get('db')->getConnectors();
+		$available = array_map('strtolower', $available);
 
 		// This gets the list of database types supported by the application.
 		// This should be entered in the form definition as a comma separated list.
