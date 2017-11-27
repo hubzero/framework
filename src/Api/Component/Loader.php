@@ -67,20 +67,16 @@ class Loader extends Base
 		// Build the component path.
 		$client = (isset($this->app['client']->alias) ? $this->app['client']->alias : $this->app['client']->name);
 
-		// Get component path
-		if (is_dir(PATH_APP . DS . 'components' . DS . $option . DS . $client))
-		{
-			$base = PATH_APP;
-		}
-		else
-		{
-			$base = PATH_CORE;
-		}
-
 		// Set path and constants
-		define('JPATH_COMPONENT', $base . DS . 'components' . DS . $option . DS . $client);
-		define('JPATH_COMPONENT_SITE', $base . DS . 'components' . DS . $option . DS . 'site');
-		define('JPATH_COMPONENT_ADMINISTRATOR', $base . DS . 'components' . DS . $option . DS . 'admin');
+		define('PATH_COMPONENT', $this->path($option) . DIRECTORY_SEPARATOR . $client);
+		define('PATH_COMPONENT_SITE', $this->path($option) . DIRECTORY_SEPARATOR . 'site');
+		define('PATH_COMPONENT_ADMINISTRATOR', $this->path($option) . DIRECTORY_SEPARATOR . 'admin');
+
+		// Legacy compatibility
+		// @TODO: Deprecate this!
+		define('JPATH_COMPONENT', PATH_COMPONENT);
+		define('JPATH_COMPONENT_SITE', PATH_COMPONENT_SITE);
+		define('JPATH_COMPONENT_ADMINISTRATOR', PATH_COMPONENT_ADMINISTRATOR);
 
 		$version    = $this->app['request']->getVar('version');
 		$controller = $this->app['request']->getCmd('controller', 'api');
@@ -89,7 +85,7 @@ class Loader extends Base
 		// recent version from the available controllers
 		if (!$version)
 		{
-			$files = glob(JPATH_COMPONENT . '/controllers/' . $controller . 'v*.php');
+			$files = glob(PATH_COMPONENT . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR . $controller . 'v*.php');
 
 			if (!empty($files))
 			{
@@ -104,7 +100,7 @@ class Loader extends Base
 			$controller .= 'v' . str_replace('.', '_', $version);
 		}
 
-		$path       = JPATH_COMPONENT . DS . 'controllers' . DS . $controller . '.php';
+		$path       = PATH_COMPONENT . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR . $controller . '.php';
 		$controller = '\\Components\\' . ucfirst(substr($option, 4)) . '\\Api\\Controllers\\' . ucfirst($controller);
 		$found      = false;
 
@@ -122,7 +118,7 @@ class Loader extends Base
 			{
 				$found = true;
 
-				$lang->load($option, JPATH_COMPONENT, null, false, true);
+				$lang->load($option, PATH_COMPONENT, null, false, true);
 			}
 		}
 

@@ -61,9 +61,9 @@ class View extends AbstractView
 		{
 			$config['base_path'] = '';
 
-			if (defined('JPATH_COMPONENT'))
+			if (defined('PATH_COMPONENT'))
 			{
-				$config['base_path'] = JPATH_COMPONENT;
+				$config['base_path'] = PATH_COMPONENT;
 			}
 		}
 		$this->_basePath = $config['base_path'];
