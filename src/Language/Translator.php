@@ -54,6 +54,13 @@ class Translator extends Obj
 	protected static $languages = array();
 
 	/**
+	 * javascript strings
+	 *
+	 * @var  array
+	 */
+	protected static $jsStrings = array();
+
+	/**
 	 * Application client
 	 *
 	 * @var  string
@@ -1526,5 +1533,42 @@ class Translator extends Obj
 		}
 
 		return $enabled;
+	}
+
+	/**
+	 * Translate a string into the current language and stores it in the JavaScript language store.
+	 *
+	 * @param   string   $string                The JText key.
+	 * @param   boolean  $jsSafe                Ensure the output is JavaScript safe.
+	 * @param   boolean  $interpretBackSlashes  Interpret \t and \n.
+	 * @return  mixed
+	 */
+	public function script($string = null, $jsSafe = false, $interpretBackSlashes = true)
+	{
+		if (is_array($jsSafe))
+		{
+			if (array_key_exists('interpretBackSlashes', $jsSafe))
+			{
+				$interpretBackSlashes = (boolean) $jsSafe['interpretBackSlashes'];
+			}
+
+			if (array_key_exists('jsSafe', $jsSafe))
+			{
+				$jsSafe = (boolean) $jsSafe['jsSafe'];
+			}
+			else
+			{
+				$jsSafe = false;
+			}
+		}
+
+		// Add the string to the array if not null.
+		if ($string !== null)
+		{
+			// Normalize the key and translate the string.
+			self::$jsStrings[strtoupper($string)] = $this->translate($string, $jsSafe, $interpretBackSlashes);
+		}
+
+		return self::$jsStrings;
 	}
 }
