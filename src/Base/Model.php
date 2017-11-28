@@ -109,7 +109,7 @@ abstract class Model extends Obj
 			$cls = $this->_tbl_name;
 			$this->_tbl = new $cls($this->_db);
 
-			if (!($this->_tbl instanceof \JTable))
+			if (!($this->_tbl instanceof \JTable) && !($this->_tbl instanceof \Hubzero\Database\Table))
 			{
 				$this->_logError(
 					__CLASS__ . '::' . __FUNCTION__ . '(); ' . \Lang::txt('Table class must be an instance of JTable.')
