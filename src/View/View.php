@@ -31,7 +31,7 @@
 
 namespace Hubzero\View;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Hubzero\View\Exception\InvalidLayoutException;
 use Exception;
 
@@ -40,7 +40,7 @@ use Exception;
  *
  * Inspired, in parts, by Joomla's JView class
  */
-class View extends Object
+class View extends Obj
 {
 	use \Hubzero\Base\Traits\Escapable;
 
@@ -171,9 +171,9 @@ class View extends Object
 		{
 			$config['base_path'] = '';
 
-			if (defined('JPATH_COMPONENT'))
+			if (defined('PATH_COMPONENT'))
 			{
-				$config['base_path'] = JPATH_COMPONENT;
+				$config['base_path'] = PATH_COMPONENT;
 			}
 		}
 		$this->_basePath = $config['base_path'];
@@ -568,6 +568,13 @@ class View extends Object
 
 		// Clear out the prior search dirs
 		$this->_path[$type] = array();
+
+		// Add view directories without the '/tmpl' legacy directory
+		if ($type == 'template' && basename($path) == 'tmpl')
+		{
+			// Push to the bottom of the stack
+			$this->addPath($type, dirname($path));
+		}
 
 		// Actually add the user-specified directories
 		$this->addPath($type, $path);

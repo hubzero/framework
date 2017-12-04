@@ -101,6 +101,7 @@ class Loader
 	{
 		$result = null;
 
+		$name    = $this->canonical($name);
 		$modules = $this->all();
 		$total   = count($modules);
 
@@ -183,7 +184,7 @@ class Loader
 	{
 		$result = $this->byName($module);
 
-		return !is_null($result);
+		return (is_object($result) && $result->id);
 	}
 
 	/**
@@ -280,13 +281,9 @@ class Loader
 		}
 
 		// Get module path
-		$module->module = preg_replace('/[^A-Z0-9_\.-]/i', '', $module->module);
-		$path = PATH_APP . DS . 'modules' . DS . $module->module . DS . $module->module . '.php';
+		$module->module = $this->canonical($module->module);
 
-		if (!file_exists($path))
-		{
-			$path = PATH_CORE . DS . 'modules' . DS . $module->module . DS . $module->module . '.php';
-		}
+		$path = $this->path($module->module);
 
 		// Load the module
 		// $module->user is a check for 1.0 custom modules and is deprecated refactoring
@@ -294,6 +291,8 @@ class Loader
 		{
 			$this->app['language']->load($module->module, PATH_APP . DS . 'bootstrap' . DS . $this->app['client']->name, null, false, true) ||
 			$this->app['language']->load($module->module, dirname($path), null, false, true);
+
+			$module->path = $path;
 
 			$content = '';
 			ob_start();
@@ -387,11 +386,7 @@ class Loader
 		// Build the template and base path for the layout
 		$tPath = $path . '/' . $template . '/html/' . $module . '/' . $layout . '.php';
 
-		$base = PATH_APP . '/modules/' . $module;
-		if (!is_dir($base))
-		{
-			$base = PATH_CORE . '/modules/' . $module;
-		}
+		$base = dirname($this->path($module));
 
 		$bPath = $base . '/tmpl/' . $default . '.php';
 		$dPath = $base . '/tmpl/default.php';
@@ -430,7 +425,10 @@ class Loader
 		$lang     = $this->app['language']->getTag();
 		$clientId = (int) $this->app['client']->id;
 
-		$cache = $this->app['cache.store'];
+		if (!$this->app->has('cache.store') || !($cache = $this->app['cache.store']))
+		{
+			$cache = new \Hubzero\Cache\Storage\None();
+		}
 		$cacheid = 'com_modules.' . md5(serialize(array($Itemid, $groups, $clientId, $lang)));
 
 		if (!($clean = $cache->get($cacheid)))
@@ -570,7 +568,10 @@ class Loader
 			$cacheparams->cachegroup = $module->module;
 		}
 
-		$cache = \JFactory::getCache($cacheparams->cachegroup, 'callback');
+		if (!$this->app->has('cache.store') || !($cache = $this->app['cache.store']))
+		{
+			$cache = new \Hubzero\Cache\Storage\None();
+		}
 
 		// Turn cache off for internal callers if parameters are set to off and for all logged in users
 		if ($moduleparams->get('owncache', null) === '0' || $this->app['config']->get('caching') == 0 || $this->app['user']->getInstance()->get('id'))
@@ -693,5 +694,51 @@ class Loader
 
 		//return params
 		return new Registry($params);
+	}
+
+	/**
+	 * Make sure module name follows naming conventions
+	 *
+	 * @param   string  $module  The element value for the extension
+	 * @return  string
+	 */
+	public function canonical($module)
+	{
+		$module = preg_replace('/[^A-Z0-9_\.-]/i', '', $module);
+		if (substr($module, 0, strlen('mod_')) != 'mod_')
+		{
+			$module = 'mod_' . $module;
+		}
+		return $module;
+	}
+
+	/**
+	 * Get the path to a module
+	 *
+	 * @param   string  $module  Module name
+	 * @return  string
+	 */
+	public function path($module)
+	{
+		$module     = $this->canonical($module);
+		$prefixed   = $module;
+		$unprefixed = substr($module, 4);
+
+		$paths = array(
+			PATH_APP . DS . 'modules' . DS . $prefixed . DS . $prefixed . '.php',
+			PATH_APP . DS . 'modules' . DS . $unprefixed . DS . $unprefixed . '.php',
+			PATH_CORE . DS . 'modules' . DS . $prefixed . DS . $prefixed . '.php',
+			PATH_CORE . DS . 'modules' . DS . $unprefixed . DS . $unprefixed . '.php'
+		);
+
+		foreach ($paths as $path)
+		{
+			if (file_exists($path))
+			{
+				return $path;
+			}
+		}
+
+		return '';
 	}
 }

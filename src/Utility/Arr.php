@@ -463,8 +463,8 @@ class Arr
 				$locale = self::$sortLocale[$i];
 			}
 
-			$va = $a->$key[$i];
-			$vb = $b->$key[$i];
+			$va = $a->{$key[$i]};
+			$vb = $b->{$key[$i]};
 
 			if ((is_bool($va) or is_numeric($va)) and (is_bool($vb) or is_numeric($vb)))
 			{
@@ -472,11 +472,11 @@ class Arr
 			}
 			elseif ($caseSensitive)
 			{
-				$cmp = \JString::strcmp($va, $vb, $locale);
+				$cmp = strcmp($va, $vb);
 			}
 			else
 			{
-				$cmp = \JString::strcasecmp($va, $vb, $locale);
+				$cmp = strcasecmp($va, $vb);
 			}
 
 			if ($cmp > 0)

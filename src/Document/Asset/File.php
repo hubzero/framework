@@ -32,12 +32,12 @@
 
 namespace Hubzero\Document\Asset;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Base asset class
  */
-class File extends Object
+class File extends Obj
 {
 	/**
 	 * Asset type

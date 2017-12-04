@@ -147,13 +147,13 @@ class FileWriter
 
 		if (!is_dir($path))
 		{
-			if (!mkdir($path, 0750))
+			if (!@mkdir($path, 0750))
 			{
 				return false;
 			}
 		}
 
-		$result = file_put_contents($file, $contents);
+		$result = @file_put_contents($file, $contents);
 
 		if ($result)
 		{

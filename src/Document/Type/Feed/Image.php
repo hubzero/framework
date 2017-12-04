@@ -28,14 +28,14 @@
 
 namespace Hubzero\Document\Type\Feed;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Image is an internal class that stores feed image information
  *
  * Inspired by Joomla's JFeedImage class
  */
-class Image extends Object
+class Image extends Obj
 {
 	/**
 	 * Title image attribute

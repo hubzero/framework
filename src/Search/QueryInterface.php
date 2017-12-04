@@ -47,6 +47,15 @@ interface QueryInterface
 	public function getSuggestions($terms);
 
 	/**
+	 * spellCheck - Get the relating terms suggestions or corrections
+	 *
+	 * @params mixed $terms
+	 * @access public
+	 * @return void
+	 */
+	public function spellCheck($terms);
+
+	/**
 	 * query - Sets the query string
 	 * 
 	 * @param mixed $terms 

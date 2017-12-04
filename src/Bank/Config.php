@@ -33,7 +33,7 @@
 namespace Hubzero\Bank;
 
 use Hubzero\Database\Relational;
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Class for getting and setting user point configuration
@@ -82,7 +82,7 @@ class Config extends Relational
 	{
 		$pc = self::all()->rows();
 
-		$config = new Object;
+		$config = new Obj;
 
 		foreach ($pc as $p)
 		{

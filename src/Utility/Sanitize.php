@@ -44,9 +44,9 @@ class Sanitize
 	/**
 	 * Removes any non-alphanumeric characters.
 	 *
-	 * @param  string $string  String to sanitize
-	 * @param  array  $allowed An array of additional characters that are not to be removed.
-	 * @return string Sanitized string
+	 * @param   string  $string   String to sanitize
+	 * @param   array   $allowed  An array of additional characters that are not to be removed.
+	 * @return  string  Sanitized string
 	 */
 	public static function paranoid($string, $allowed = array())
 	{
@@ -76,8 +76,8 @@ class Sanitize
 	/**
 	 * Strips extra whitespace from output
 	 *
-	 * @param  string $str String to sanitize
-	 * @return string whitespace sanitized string
+	 * @param   string  $str  String to sanitize
+	 * @return  string  whitespace sanitized string
 	 */
 	public static function stripWhitespace($str)
 	{
@@ -87,8 +87,8 @@ class Sanitize
 	/**
 	 * Strips image tags from output
 	 *
-	 * @param  string $str String to sanitize
-	 * @return string String with images stripped.
+	 * @param   string  $str  String to sanitize
+	 * @return  string  String with images stripped.
 	 */
 	public static function stripImages($str)
 	{
@@ -104,8 +104,8 @@ class Sanitize
 	/**
 	 * Strips given text of all links (<a href=....)
 	 *
-	 * @param  string $text Text
-	 * @return string The text without links
+	 * @param   string  $text  Text
+	 * @return  string  The text without links
 	 */
 	public static function stripLinks($text)
 	{
@@ -115,8 +115,8 @@ class Sanitize
 	/**
 	 * Strips scripts and stylesheets from output
 	 *
-	 * @param  string $str String to sanitize
-	 * @return string String with <link>, <img>, <script>, <style> elements and html comments removed.
+	 * @param   string  $str  String to sanitize
+	 * @return  string  String with <link>, <img>, <script>, <style> elements and html comments removed.
 	 */
 	public static function stripScripts($str)
 	{
@@ -133,8 +133,8 @@ class Sanitize
 	/**
 	 * Strips extra whitespace, images, scripts and stylesheets from output
 	 *
-	 * @param string $str String to sanitize
-	 * @return string sanitized string
+	 * @param   string  $str  String to sanitize
+	 * @return  string  sanitized string
 	 */
 	public static function stripAll($str)
 	{
@@ -156,8 +156,8 @@ class Sanitize
 	 *
 	 * Will remove all `<b>`, `<p>`, and `<div>` tags from the $dirty string.
 	 *
-	 * @param  string $str,... String to sanitize
-	 * @return string sanitized String
+	 * @param   string  $str  String to sanitize
+	 * @return  string  sanitized String
 	 */
 	public static function stripTags($str)
 	{
@@ -179,8 +179,8 @@ class Sanitize
 	/**
 	 * Clean out any cross site scripting attempts (XSS)
 	 *
-	 * @param  string $string Data to sanitize
-	 * @return string Sanitized data
+	 * @param   string  $string  Data to sanitize
+	 * @return  string  Sanitized data
 	 */
 	public static function clean($string)
 	{
@@ -244,9 +244,9 @@ class Sanitize
 	/**
 	 * Replace discouraged characters introduced by Microsoft Word
 	 *
-	 * @param      string  $text       Text to clean
-	 * @param      boolean $quotesOnly Only clean quotes (single and double)
-	 * @return     string
+	 * @param   string   $text        Text to clean
+	 * @param   boolean  $quotesOnly  Only clean quotes (single and double)
+	 * @return  string
 	 */
 	public static function cleanMsChar($text, $quotesOnly=false)
 	{
@@ -300,9 +300,9 @@ class Sanitize
 	/**
 	 * Run HTML through a purifier
 	 *
-	 * @param      string  $text    Text to clean
-	 * @param      array   $options Array of key => value pairs
-	 * @return     string
+	 * @param   string  $text     Text to clean
+	 * @param   array   $options  Array of key => value pairs
+	 * @return  string
 	 */
 	public static function html($text, $options=array())
 	{
@@ -388,5 +388,162 @@ class Sanitize
 		// purify text & return
 		$purifier = new \HTMLPurifier($config);
 		return $purifier->purify($text);
+	}
+
+	/**
+	 * Method to be called by another php script. Processes for XSS and
+	 * specified bad code.
+	 *
+	 * @param   mixed   $source  Input string/array-of-string to be 'cleaned'
+	 * @param   string  $type    Return type for the variable (INT, UINT, FLOAT, BOOLEAN, WORD, ALNUM, CMD, BASE64, STRING, ARRAY, PATH, NONE)
+	 * @return  mixed   Cleaned version of input parameter
+	 */
+	public static function filter($source, $type = 'string')
+	{
+		// Handle the type constraint
+		switch (strtoupper($type))
+		{
+			case 'INT':
+			case 'INTEGER':
+				// Only use the first integer value
+				preg_match('/-?[0-9]+/', (string) $source, $matches);
+				$result = @ (int) $matches[0];
+				break;
+
+			case 'UINT':
+				// Only use the first integer value
+				preg_match('/-?[0-9]+/', (string) $source, $matches);
+				$result = @ abs((int) $matches[0]);
+				break;
+
+			case 'FLOAT':
+			case 'DOUBLE':
+				// Only use the first floating point value
+				preg_match('/-?[0-9]+(\.[0-9]+)?/', (string) $source, $matches);
+				$result = @ (float) $matches[0];
+				break;
+
+			case 'BOOL':
+			case 'BOOLEAN':
+				$result = (bool) $source;
+				break;
+
+			case 'WORD':
+				$result = (string) preg_replace('/[^A-Z_]/i', '', $source);
+				break;
+
+			case 'ALNUM':
+				$result = (string) preg_replace('/[^A-Z0-9]/i', '', $source);
+				break;
+
+			case 'CMD':
+				$result = (string) preg_replace('/[^A-Z0-9_\.-]/i', '', $source);
+				$result = ltrim($result, '.');
+				break;
+
+			case 'BASE64':
+				$result = (string) preg_replace('/[^A-Z0-9\/+=]/i', '', $source);
+				break;
+
+			case 'STRING':
+				$result = (string) self::clean(self::_decode((string) $source));
+				break;
+
+			case 'HTML':
+				$result = (string) self::clean((string) $source);
+				break;
+
+			case 'ARRAY':
+				$result = (array) $source;
+				break;
+
+			case 'PATH':
+				$pattern = '/^[A-Za-z0-9_-]+[A-Za-z0-9_\.-]*([\\\\\/][A-Za-z0-9_-]+[A-Za-z0-9_\.-]*)*$/';
+				preg_match($pattern, (string) $source, $matches);
+				$result = @ (string) $matches[0];
+				break;
+
+			case 'USERNAME':
+				$result = (string) preg_replace('/[\x00-\x1F\x7F<>"\'%&]/', '', $source);
+				break;
+
+			default:
+				// Are we dealing with an array?
+				if (is_array($source))
+				{
+					foreach ($source as $key => $value)
+					{
+						// filter element for XSS and other 'bad' code etc.
+						if (is_string($value))
+						{
+							$source[$key] = self::clean(self::_decode($value));
+						}
+					}
+					$result = $source;
+				}
+				else
+				{
+					// Or a string?
+					if (is_string($source) && !empty($source))
+					{
+						// filter source for XSS and other 'bad' code etc.
+						$result = self::clean(self::_decode($source));
+					}
+					else
+					{
+						// Not an array or string.. return the passed parameter
+						$result = $source;
+					}
+				}
+				break;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Try to convert to plaintext
+	 *
+	 * @param   string  $source  The source string.
+	 * @return  string  Plaintext string
+	 */
+	protected static function _decode($source)
+	{
+		static $ttr;
+
+		if (!is_array($ttr))
+		{
+			// Entity decode
+			$trans_tbl = get_html_translation_table(HTML_ENTITIES, ENT_COMPAT);
+
+			foreach ($trans_tbl as $k => $v)
+			{
+				$ttr[$v] = utf8_encode($k);
+			}
+		}
+
+		$source = strtr($source, $ttr);
+
+		// Convert decimal
+		$source = preg_replace_callback(
+			'/&#(\d+);/m',
+			function ($matches)
+			{
+				return utf8_encode(chr($matches[1]));
+			},
+			$source
+		);
+
+		// Convert hex
+		$source = preg_replace_callback(
+			'/&#x([a-f0-9]+);/mi',
+			function ($matches)
+			{
+				return utf8_encode(chr('0x' . $matches[1]));
+			},
+			$source
+		);
+
+		return $source;
 	}
 }

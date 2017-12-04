@@ -28,14 +28,14 @@
 
 namespace Hubzero\Document\Type\Feed;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Item is an internal class that stores feed item information
  *
  * Inspired by Joomla's JFeedItem class
  */
-class Item extends Object
+class Item extends Obj
 {
 	/**
 	 * Title item element

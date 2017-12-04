@@ -214,7 +214,7 @@ class Head extends Renderer
 		}
 
 		// Generate script language declarations.
-		if (count(\JText::script()))
+		if (count(\Lang::script()))
 		{
 			$buffer[] = $tab . '<script type="text/javascript">';
 			$buffer[] = $tab . $tab . '(function() {';

@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2009-2015 HUBzero Foundation, LLC.
+ * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,50 +24,40 @@
  *
  * HUBzero is a registered trademark of Purdue University.
  *
- * @package   framework
- * @author    Sam Wilson <samwilson@purdue.edu>
- * @copyright Copyright 2009-2015 HUBzero Foundation, LLC.
+ * @package   hubzero-cms
+ * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-namespace Hubzero\User;
-
-use Hubzero\Base\Obj;
+namespace Hubzero\Form\Fields;
 
 /**
- * Logger model
- *
- * This is basically an aggregator class.  It helps us map our relational models
- * and namespaces in a similar fashion.
+ * Supports an HTML select list of image
  */
-class Logger extends Obj
+class Imagelist extends Filelist
 {
 	/**
-	 * User model
+	 * The form field type.
 	 *
-	 * @var  object  \Hubzero\User\User
+	 * @var  string
 	 */
-	private $user = null;
+	public $type = 'Imagelist';
 
 	/**
-	 * Constructs a new user logger class
+	 * Method to get the list of images field options.
+	 * Use the filter attribute to specify allowable file extensions.
 	 *
-	 * @return  void
-	 * @since   2.0.0
+	 * @return  array  The field option objects.
 	 */
-	public function __construct($user)
+	protected function getOptions()
 	{
-		$this->user = $user;
-	}
+		// Define the image file type filter.
+		$filter = '\.png$|\.gif$|\.jpg$|\.bmp$|\.ico$|\.jpeg$|\.psd$|\.eps$';
 
-	/**
-	 * Defines a one to many relationship between users and auth log entries
-	 *
-	 * @return  object  \Hubzero\Database\Relationship\OneToMany
-	 * @since   2.0.0
-	 */
-	public function auth()
-	{
-		return $this->user->oneToMany('Hubzero\User\Log\Auth');
+		// Set the form field element attribute for file type filter.
+		$this->element->addAttribute('filter', $filter);
+
+		// Get the field options.
+		return parent::getOptions();
 	}
 }

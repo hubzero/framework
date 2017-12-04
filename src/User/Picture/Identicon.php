@@ -33,7 +33,7 @@ namespace Hubzero\User\Picture;
 
 use Hubzero\Image\Identicon as Processor;
 use Hubzero\Content\Moderator;
-use Hubzero\Utility\String;
+use Hubzero\Utility\Str;
 
 /**
  * Identicon User picture
@@ -143,7 +143,7 @@ class Identicon implements Resolver
 			$file = $this->thumbnailName;
 		}
 
-		$dir  = $this->path . DIRECTORY_SEPARATOR . String::pad($id, 5) . DIRECTORY_SEPARATOR;
+		$dir  = $this->path . DIRECTORY_SEPARATOR . Str::pad($id, 5) . DIRECTORY_SEPARATOR;
 		$path = $dir . $file;
 
 		if (file_exists($path))

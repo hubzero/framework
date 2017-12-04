@@ -122,7 +122,9 @@ class Loader
 			$result->path = '';
 
 			$paths = array(
+				PATH_APP . DS . 'components' . DS . substr($result->option, 4),
 				PATH_APP . DS . 'components' . DS . $result->option,
+				PATH_CORE . DS . 'components' . DS . substr($result->option, 4),
 				PATH_CORE . DS . 'components' . DS . $result->option
 			);
 
@@ -193,22 +195,17 @@ class Loader
 		$client = (isset($this->app['client']->alias) ? $this->app['client']->alias : $this->app['client']->name);
 
 		// Get component path
-		if (is_dir(PATH_APP . DS . 'components' . DS . $option . DS . $client))
-		{
-			// Set path and constants for combined components
-			define('JPATH_COMPONENT', PATH_APP . DS . 'components' . DS . $option . DS . $client);
-			define('JPATH_COMPONENT_SITE', PATH_APP . DS . 'components' . DS . $option . DS . 'site');
-			define('JPATH_COMPONENT_ADMINISTRATOR', PATH_APP . DS . 'components' . DS . $option . DS . 'admin');
-		}
-		else
-		{
-			// Set path and constants for combined components
-			define('JPATH_COMPONENT', PATH_CORE . DS . 'components' . DS . $option . DS . $client);
-			define('JPATH_COMPONENT_SITE', PATH_CORE . DS . 'components' . DS . $option . DS . 'site');
-			define('JPATH_COMPONENT_ADMINISTRATOR', PATH_CORE . DS . 'components' . DS . $option . DS . 'admin');
-		}
+		define('PATH_COMPONENT', $this->path($option) . DS . $client);
+		define('PATH_COMPONENT_SITE', $this->path($option) . DS . 'site');
+		define('PATH_COMPONENT_ADMINISTRATOR', $this->path($option) . DS . 'admin');
 
-		$path      = JPATH_COMPONENT . DS . $file . '.php';
+		// Legacy compatibility
+		// @TODO: Deprecate this!
+		define('JPATH_COMPONENT', PATH_COMPONENT);
+		define('JPATH_COMPONENT_SITE', PATH_COMPONENT_SITE);
+		define('JPATH_COMPONENT_ADMINISTRATOR', PATH_COMPONENT_ADMINISTRATOR);
+
+		$path      = PATH_COMPONENT . DS . $file . '.php';
 		$namespace = '\\Components\\' . ucfirst(substr($option, 4)) . '\\' . ucfirst($client) . '\\Bootstrap';
 		$found     = false;
 
@@ -234,7 +231,7 @@ class Loader
 				$found = true;
 
 				// Load local language files
-				$lang->load($option, JPATH_COMPONENT, null, false, true);
+				$lang->load($option, PATH_COMPONENT, null, false, true);
 			}
 		}
 
@@ -245,7 +242,7 @@ class Loader
 		}
 
 		// Load base language file
-		$lang->load($option, JPATH_BASE, null, false, true);
+		$lang->load($option, PATH_APP, null, false, true);
 
 		// Handle template preview outlining.
 		$contents = null;

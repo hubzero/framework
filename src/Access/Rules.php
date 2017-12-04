@@ -31,7 +31,7 @@
 
 namespace Hubzero\Access;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Rules class.
@@ -186,7 +186,7 @@ class Rules
 	public function getAllowed($identity)
 	{
 		// Sweep for the allowed actions.
-		$allowed = new Object;
+		$allowed = new Obj;
 
 		foreach ($this->data as $name => &$action)
 		{

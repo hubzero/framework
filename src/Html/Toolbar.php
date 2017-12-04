@@ -32,14 +32,14 @@
 
 namespace Hubzero\Html;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * ToolBar handler
  *
  * Inspired by Joomla's JToolBar class
  */
-class Toolbar extends Object
+class Toolbar extends Obj
 {
 	/**
 	 * Toolbar name

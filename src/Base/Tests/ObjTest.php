@@ -32,12 +32,12 @@
 namespace Hubzero\Base\Tests;
 
 use Hubzero\Test\Basic;
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
- * Object test
+ * Obj test
  */
-class ObjectTest extends Basic
+class ObjTest extends Basic
 {
 	/**
 	 * Sample data
@@ -54,12 +54,12 @@ class ObjectTest extends Basic
 	/**
 	 * Test __construct
 	 *
-	 * @covers  \Hubzero\Base\Object::__construct
+	 * @covers  \Hubzero\Base\Obj::__construct
 	 * @return  void
 	 **/
 	public function testConstructor()
 	{
-		$obj = new Object($this->data);
+		$obj = new Obj($this->data);
 
 		foreach ($this->data as $key => $datum)
 		{
@@ -67,7 +67,7 @@ class ObjectTest extends Basic
 			$this->assertEquals($obj->$key, $datum);
 		}
 
-		$obj2 = new Object($obj);
+		$obj2 = new Obj($obj);
 
 		foreach ($this->data as $key => $datum)
 		{
@@ -79,27 +79,27 @@ class ObjectTest extends Basic
 	/**
 	 * Test __toString
 	 *
-	 * @covers  \Hubzero\Base\Object::__toString
+	 * @covers  \Hubzero\Base\Obj::__toString
 	 * @return  void
 	 **/
 	public function testToString()
 	{
-		$obj = new Object($this->data);
+		$obj = new Obj($this->data);
 
 		$result = (string)$obj;
 
-		$this->assertEquals($result, 'Hubzero\Base\Object');
+		$this->assertEquals($result, 'Hubzero\Base\Obj');
 	}
 
 	/**
 	 * Test setProperties
 	 *
-	 * @covers  \Hubzero\Base\Object::setProperties
+	 * @covers  \Hubzero\Base\Obj::setProperties
 	 * @return  void
 	 **/
 	public function testSetProperties()
 	{
-		$obj = new Object();
+		$obj = new Obj();
 
 		$this->assertFalse($obj->setProperties('foo'));
 		$this->assertTrue($obj->setProperties($this->data));
@@ -110,7 +110,7 @@ class ObjectTest extends Basic
 			$this->assertEquals($obj->$key, $datum);
 		}
 
-		$obj = new Object();
+		$obj = new Obj();
 
 		$data = new \stdClass;
 		$data->one   = 'for the money';
@@ -130,7 +130,7 @@ class ObjectTest extends Basic
 	/**
 	 * Test getProperties
 	 *
-	 * @covers  \Hubzero\Base\Object::getProperties
+	 * @covers  \Hubzero\Base\Obj::getProperties
 	 * @return  void
 	 **/
 	public function testGetProperties()
@@ -138,7 +138,7 @@ class ObjectTest extends Basic
 		$data = $this->data;
 		$data['_private'] = 'Private property';
 
-		$obj = new Object($data);
+		$obj = new Obj($data);
 
 		$prop = $obj->getProperties();
 
@@ -154,14 +154,14 @@ class ObjectTest extends Basic
 	/**
 	 * Test setting a property
 	 *
-	 * @covers  \Hubzero\Base\Object::set
+	 * @covers  \Hubzero\Base\Obj::set
 	 * @return  void
 	 **/
 	public function testSet()
 	{
-		$obj = new Object();
+		$obj = new Obj();
 
-		$this->assertInstanceOf('Hubzero\Base\Object', $obj->set('foo', 'bar'));
+		$this->assertInstanceOf('Hubzero\Base\Obj', $obj->set('foo', 'bar'));
 		$this->assertTrue(isset($obj->foo));
 		$this->assertEquals($obj->foo, 'bar');
 	}
@@ -170,12 +170,12 @@ class ObjectTest extends Basic
 	 * Test retrieving a set property and
 	 * retriving a default value if a property isn't set
 	 *
-	 * @covers  \Hubzero\Base\Object::get
+	 * @covers  \Hubzero\Base\Obj::get
 	 * @return  void
 	 **/
 	public function testGet()
 	{
-		$obj = new Object();
+		$obj = new Obj();
 		$obj->set('foo', 'bar');
 
 		$this->assertEquals($obj->get('foo'), 'bar');
@@ -185,12 +185,12 @@ class ObjectTest extends Basic
 	/**
 	 * Test setting a default value if not alreay assigned
 	 *
-	 * @covers  \Hubzero\Base\Object::def
+	 * @covers  \Hubzero\Base\Obj::def
 	 * @return  void
 	 **/
 	public function testDef()
 	{
-		$obj = new Object();
+		$obj = new Obj();
 
 		$obj->def('bar', 'ipsum');
 

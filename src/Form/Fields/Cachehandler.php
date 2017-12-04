@@ -31,28 +31,40 @@
 
 namespace Hubzero\Form\Fields;
 
-use Hubzero\Html\Builder\Contentlanguage as ContentLang;
+use Hubzero\Html\Builder\Select as Dropdown;
+use Hubzero\Cache\Manager;
+use App;
 
 /**
- * Provides a list of content languages
+ * Provides a list of available cache handlers
  */
-class ContentLanguage extends Select
+class Cachehandler extends Select
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	public $type = 'ContentLanguage';
+	public $type = 'Cachehandler';
 
 	/**
-	 * Method to get the field options for content languages.
+	 * Method to get the field options.
 	 *
 	 * @return  array  The field option objects.
 	 */
 	protected function getOptions()
 	{
-		// Merge any additional options in the XML definition.
-		return array_merge(parent::getOptions(), ContentLang::existing());
+		// Initialize variables.
+		$options = array();
+
+		// Convert to name => name array.
+		foreach (Manager::getStores() as $store)
+		{
+			$options[] = Dropdown::option($store, App::get('language')->txt('JLIB_FORM_VALUE_CACHE_' . $store), 'value', 'text');
+		}
+
+		$options = array_merge(parent::getOptions(), $options);
+
+		return $options;
 	}
 }

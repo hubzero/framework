@@ -227,4 +227,44 @@ class Manager
 	{
 		return call_user_func_array(array($this->storage(), $method), $parameters);
 	}
+
+	/**
+	 * Get a list of available cache stores.
+	 *
+	 * @return  array
+	 * @since   2.1.12
+	 */
+	public static function getStores()
+	{
+		// Instantiate variables
+		$stores = [];
+
+		// Get a list of types, only including php files
+		$types = glob(__DIR__ . DIRECTORY_SEPARATOR . 'Storage' . DIRECTORY_SEPARATOR . '*.php');
+
+		// Loop through the types and find the ones that are available
+		foreach ($types as $type)
+		{
+			// Get just the file name
+			$type = basename($type);
+
+			// Derive the class name from the type
+			$class = __NAMESPACE__ . '\\Storage\\' . str_ireplace('.php', '', ucfirst(trim($type)));
+
+			// If the class doesn't exist...these are not the droids you're looking for...
+			if (!class_exists($class))
+			{
+				continue;
+			}
+
+			// Our class exists, so now we just need to know if it passes it's test method
+			if (call_user_func_array(array($class, 'isAvailable'), array()))
+			{
+				// Connector names should not have file extensions
+				$stores[] = str_ireplace('.php', '', $type);
+			}
+		}
+
+		return $stores;
+	}
 }

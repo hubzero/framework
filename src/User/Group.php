@@ -32,15 +32,15 @@
 
 namespace Hubzero\User;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Hubzero\Utility\Validate;
-use Hubzero\Utility\String;
+use Hubzero\Utility\Str;
 use Hubzero\User\User;
 
 /**
  * Group model
  */
-class Group extends Object
+class Group extends Obj
 {
 	/**
 	 * Group ID
@@ -1549,7 +1549,7 @@ class Group extends Object
 
 		if ($shorten)
 		{
-			$content = String::truncate($content, $shorten, $options);
+			$content = Str::truncate($content, $shorten, $options);
 		}
 
 		// set our descriptions to be html

@@ -32,7 +32,7 @@
 
 namespace Hubzero\View\Helper;
 
-use Hubzero\Utility\String;
+use Hubzero\Utility\Str;
 
 /**
  * Helper for autolinking text that matches a URL or email address pattern
@@ -138,7 +138,7 @@ class Autolink extends AbstractHelper
 		if ($prtcl == 'mailto')
 		{
 			$txt  = $url;
-			$href = 'mailto:' . String::obfuscate($url);
+			$href = 'mailto:' . Str::obfuscate($url);
 		}
 
 		return $prfx . '<a class="ext-link" href="' . $href . '" rel="external">' . $txt . '</a>';

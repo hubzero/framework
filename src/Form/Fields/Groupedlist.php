@@ -38,14 +38,14 @@ use App;
 /**
  * Provides a grouped list select field.
  */
-class GroupedList extends Field
+class Groupedlist extends Field
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	protected $type = 'GroupedList';
+	protected $type = 'Groupedlist';
 
 	/**
 	 * Method to get the field option groups.

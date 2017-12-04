@@ -32,14 +32,14 @@
 namespace Hubzero\Menu\Type;
 
 use Hubzero\Config\Registry;
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Base Menu class
  *
  * Inspired by Joomla's JMenu class
  */
-class Base extends Object
+class Base extends Obj
 {
 	/**
 	 * Array to hold the menu items
@@ -213,9 +213,10 @@ class Base extends Object
 			$test = true;
 			for ($i = 0, $count = count($attributes); $i < $count; $i++)
 			{
+				$c = $attributes[$i];
 				if (is_array($values[$i]))
 				{
-					if (!in_array($item->$attributes[$i], $values[$i]))
+					if (!in_array($item->$c, $values[$i]))
 					{
 						$test = false;
 						break;
@@ -223,7 +224,7 @@ class Base extends Object
 				}
 				else
 				{
-					if ($item->$attributes[$i] != $values[$i])
+					if ($item->$c != $values[$i])
 					{
 						$test = false;
 						break;

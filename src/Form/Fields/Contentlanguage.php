@@ -31,33 +31,28 @@
 
 namespace Hubzero\Form\Fields;
 
+use Hubzero\Html\Builder\Contentlanguage as ContentLang;
+
 /**
- * Supports an HTML select list of image
+ * Provides a list of content languages
  */
-class ImageList extends FileList
+class Contentlanguage extends Select
 {
 	/**
 	 * The form field type.
 	 *
 	 * @var  string
 	 */
-	public $type = 'ImageList';
+	public $type = 'Contentlanguage';
 
 	/**
-	 * Method to get the list of images field options.
-	 * Use the filter attribute to specify allowable file extensions.
+	 * Method to get the field options for content languages.
 	 *
 	 * @return  array  The field option objects.
 	 */
 	protected function getOptions()
 	{
-		// Define the image file type filter.
-		$filter = '\.png$|\.gif$|\.jpg$|\.bmp$|\.ico$|\.jpeg$|\.psd$|\.eps$';
-
-		// Set the form field element attribute for file type filter.
-		$this->element->addAttribute('filter', $filter);
-
-		// Get the field options.
-		return parent::getOptions();
+		// Merge any additional options in the XML definition.
+		return array_merge(parent::getOptions(), ContentLang::existing());
 	}
 }

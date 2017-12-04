@@ -32,7 +32,7 @@
 
 namespace Hubzero\Message;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Event;
 use Lang;
 use User;
@@ -41,7 +41,7 @@ use Date;
 /**
  * Hubzero message class for handling message routing
  */
-class Helper extends Object
+class Helper extends Obj
 {
 	/**
 	 * Marks action items as completed

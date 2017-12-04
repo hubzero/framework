@@ -32,15 +32,15 @@
 
 namespace Hubzero\Pagination;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 use Hubzero\Html\Builder\Grid;
 
 /**
- * Pagination Class. Provides a common interface for content pagination for the platform.
- *
- * Inspired by Joomla's JPagination class
+ * Pagination Class
+ * 
+ * Provides a common interface for content pagination for the platform.
  */
-class Paginator extends Object
+class Paginator extends Obj
 {
 	/**
 	 * The record number to start displaying from.

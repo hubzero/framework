@@ -46,6 +46,13 @@ use Hubzero\Database\Exception\QueryFailedException;
 class Pdo extends Driver
 {
 	/**
+	 * The name of the driver
+	 *
+	 * @var	string
+	 */
+	public $name = 'pdo';
+
+	/**
 	 * Constructs a new database object based on the given params
 	 *
 	 * @param   array  $options  The database connection params

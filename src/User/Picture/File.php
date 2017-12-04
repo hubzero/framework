@@ -32,7 +32,7 @@
 namespace Hubzero\User\Picture;
 
 use Hubzero\Content\Moderator;
-use Hubzero\Utility\String;
+use Hubzero\Utility\Str;
 
 /**
  * User picture
@@ -102,7 +102,7 @@ class File implements Resolver
 			$file = $this->thumbnailName;
 		}
 
-		$path = $this->path . DIRECTORY_SEPARATOR . String::pad($id, 5) . DIRECTORY_SEPARATOR . $file;
+		$path = $this->path . DIRECTORY_SEPARATOR . Str::pad($id, 5) . DIRECTORY_SEPARATOR . $file;
 
 		if (file_exists($path))
 		{

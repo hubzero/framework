@@ -32,7 +32,7 @@
 
 namespace Hubzero\View\Helper;
 
-use Hubzero\Utility\String;
+use Hubzero\Utility\Str;
 
 /**
  * Helper for truncating text
@@ -60,6 +60,6 @@ class Truncate extends AbstractHelper
 			throw new \InvalidArgumentException(__METHOD__ . '(); Length must be an integer');
 		}
 
-		return String::truncate($text, $length, $options);
+		return Str::truncate($text, $length, $options);
 	}
 }

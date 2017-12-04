@@ -28,14 +28,14 @@
 
 namespace Hubzero\Document\Type\Opensearch;
 
-use Hubzero\Base\Object;
+use Hubzero\Base\Obj;
 
 /**
  * Image for the OpenSearch Description
  *
  * Inspired by Joomla's JOpenSearchImage class
  */
-class Image extends Object
+class Image extends Obj
 {
 	/**
 	 * The images MIME type

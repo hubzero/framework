@@ -33,7 +33,7 @@
 
 namespace Hubzero\Database;
 
-use Hubzero\Utility\String;
+use Hubzero\Utility\Str;
 use Hubzero\Error\Exception\RuntimeException;
 use Hubzero\Error\Exception\BadMethodCallException;
 use Event;
@@ -858,7 +858,7 @@ abstract class Driver
 		$differential = strlen($this->tablePrefix) - strlen($prefix);
 		$count        = 0;
 
-		foreach (String::findLiteral($prefix, $sql) as $prefixPosition)
+		foreach (Str::findLiteral($prefix, $sql) as $prefixPosition)
 		{
 			$sql = substr_replace($sql, $this->tablePrefix, $prefixPosition + ($differential*$count), strlen($prefix));
 			$count++;
@@ -880,7 +880,7 @@ abstract class Driver
 		$length  = strlen($sql);
 		$queries = [];
 
-		foreach (String::findLiteral(';', $sql) as $queryEndPosition)
+		foreach (Str::findLiteral(';', $sql) as $queryEndPosition)
 		{
 			$queries[] = trim(substr($sql, $start, $queryEndPosition - $start + 1));
 			$start     = $queryEndPosition + 1;
@@ -952,7 +952,7 @@ abstract class Driver
 		$offset = 0;
 		$index  = 0;
 
-		foreach (String::findLiteral('?', $query) as $placeholder)
+		foreach (Str::findLiteral('?', $query) as $placeholder)
 		{
 			$sub     = (is_null($bindings[$index])) ? 'NULL' : $this->quote($bindings[$index]);
 			$query   = substr_replace($query, $sub, $placeholder + $offset, 1);
