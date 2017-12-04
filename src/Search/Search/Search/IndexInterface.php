@@ -31,43 +31,19 @@
 
 namespace Hubzero\Search;
 
-use Hubzero\Search\Adapters;
-
 /**
- * Index - For indexing operations
- * 
+ * IndexInterface  - The interface for Index Adapters
+ *
  */
-class Index
+interface IndexInterface
 {
-	/**
-	 * __construct 
-	 * 
-	 * @param mixed $config - Configuration object
-	 * @access public
-	 * @return void
-	 */
-	public function __construct($config)
-	{
-		$engine = $config->get('engine');
-		if ($engine != 'hubgraph')
-		{
-			$adapter = "\\Hubzero\\Search\\Adapters\\" . ucfirst($engine) . 'IndexAdapter';
-			$this->adapter = new $adapter($config);
-		}
-		return $this;
-	}
-
 	/**
 	 * getLogs - Returns an array of search engine query log entries
 	 * 
 	 * @access public
 	 * @return void
 	 */
-	public function getLogs()
-	{
-		$logs = $this->adapter->getLogs();
-		return $logs;
-	}
+	public function getLogs();
 
 	/**
 	 * lastInsert - Returns the timestamp of the last document indexed
@@ -75,11 +51,7 @@ class Index
 	 * @access public
 	 * @return void
 	 */
-	public function lastInsert()
-	{
-		$lastInsert = $this->adapter->lastInsert();
-		return $lastInsert;
-	}
+	public function lastInsert();
 
 	/**
 	 * status - Checks whether or not the search engine is responding 
@@ -87,10 +59,7 @@ class Index
 	 * @access public
 	 * @return void
 	 */
-	public function status()
-	{
-		return $this->adapter->status();
-	}
+	public function status();
 
 	/**
 	 * index - Stores a document within an index
@@ -99,32 +68,13 @@ class Index
 	 * @access public
 	 * @return void
 	 */
-	public function index($document, $commitWithin = 3000)
-	{
-		return $this->adapter->index($document, null, $commitWithin);
-	}
+	public function index($document);
 
 	/**
-	 * updateIndex - Update existing index item
-	 * 
-	 * @param mixed $document 
-	 * @access public
-	 * @return void
-	 */
-	public function updateIndex($document, $commitWithin = 3000)
-	{
-		return $this->adapter->updateIndex($document, $commitWithin);
-	}
-
-	/**
-	 * delete - Deletes a document from the index
+	 * delete 
 	 * 
 	 * @param string $id 
-	 * @access public
 	 * @return void
 	 */
-	public function delete($id)
-	{
-		return $this->adapter->delete($id);
-	}
+	public function delete($id);
 }

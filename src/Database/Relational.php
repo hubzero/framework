@@ -1446,6 +1446,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 			}
 		}
 
+		\Event::trigger('system.onContentDestroy', array($this->getTableName(), $this));
 		return $this->query->remove(
 			$this->getTableName(),
 			$this->getPrimaryKey(),
