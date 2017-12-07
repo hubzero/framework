@@ -174,6 +174,7 @@ class Input
 
 		$readonly = isset($options['readonly']) && $options['readonly'] == 'readonly';
 		$disabled = isset($options['disabled']) && $options['disabled'] == 'disabled';
+		$time     = isset($options['time']) ? (bool)$options['time'] : true;
 
 		$format = 'yy-mm-dd';
 		if (isset($options['format']))
@@ -202,11 +203,17 @@ class Input
 			// Only display the triggers once for each control.
 			if (!in_array($id, $done))
 			{
-				$format = ($format == 'Y-m-d H:i:s' || $format == '%Y-%m-%d %H:%M:%S' || $format == 'Y-m-d' ? 'yy-mm-dd' : $format);
+				if ($format == 'Y-m-d H:i:s' || $format == '%Y-%m-%d %H:%M:%S')
+				{
+					$time = true;
+				}
+				$altformats = array('Y-m-d H:i:s', '%Y-%m-%d %H:%M:%S', 'Y-m-d', '%Y-%m-%d');
+
+				$format = (in_array($format, $altformats) ? 'yy-mm-dd' : $format);
 
 				\App::get('document')->addScriptDeclaration("
 					jQuery(document).ready(function($){
-						$('#" . $id . "').datetimepicker({
+						" . ($time ? "$('#" . $id . "').datetimepicker({" : "$('#" . $id . "').datepicker({") . "
 							duration: '',
 							showTime: true,
 							constrainInput: false,
@@ -214,8 +221,7 @@ class Input
 							stepHours: 1,
 							altTimeField: '',
 							time24h: true,
-							dateFormat: '" . $format . "',
-							timeFormat: 'HH:mm:00'
+							dateFormat: '" . $format . "'" . ($time ? ", timeFormat: 'HH:mm:00'" : "") . "
 						});
 					});
 				");
