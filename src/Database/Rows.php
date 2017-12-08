@@ -98,7 +98,7 @@ class Rows implements Iterator, Countable
 	{
 		// Index by primary key if possible, otherwise plain incremental array
 		// Also check to see if that key already exists.  If so, we'll just start
-		// appending items to the array.  This will result in a mixed array and 
+		// appending items to the array.  This will result in a mixed array and
 		// subsequent items will not be seekable.
 		if ($model->getPkValue() && (!is_array($this->rows) || !array_key_exists($model->getPkValue(), $this->rows)))
 		{
@@ -130,6 +130,40 @@ class Rows implements Iterator, Countable
 	public function clear()
 	{
 		$this->rows = array();
+	}
+
+	/**
+	 * Selects a number of randomly selected rows
+	 *
+	 * @param   integer  $n  The number of rows to randomly select
+	 * @return  Rows
+	 * @since   2.1.13
+	 **/
+	public function pickRandom($n)
+	{
+		$rows = $this->rows;
+
+		shuffle($rows);
+		$randomRows = array_slice($rows, 0, $n);
+		$rowsObject = new self();
+		$rowsObject->_setRows($randomRows);
+
+		return $rowsObject;
+	}
+
+	/**
+	 * Set the array of rows
+	 *
+	 * @param   array  $rows  The array to set the $rows attribute to
+	 * @return  null
+	 * @since   2.1.13
+	 **/
+	protected function _setRows($rows)
+	{
+		if (is_array($rows))
+		{
+			$this->rows = $rows;
+		}
 	}
 
 	/**
