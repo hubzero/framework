@@ -58,7 +58,7 @@ class Calendar extends Field
 	protected function getInput()
 	{
 		// Initialize some field attributes.
-		$format = $this->element['format'] ? (string) $this->element['format'] : '%Y-%m-%d';
+		$format = $this->element['format'] ? (string) $this->element['format'] : 'yy-mm-dd';
 
 		// Build the attributes array.
 		$attributes = array();
@@ -81,6 +81,11 @@ class Calendar extends Field
 		if ((string) $this->element['disabled'] == 'true')
 		{
 			$attributes['disabled'] = 'disabled';
+		}
+		$attributes['time'] = false;
+		if ((string) $this->element['time'] == 'true')
+		{
+			$attributes['time'] = true;
 		}
 		if ($this->element['onchange'])
 		{
