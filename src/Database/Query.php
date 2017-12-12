@@ -460,6 +460,9 @@ class Query
 	 **/
 	public function start($start)
 	{
+		$start = intval($start);
+		$start = $start > 0 ?: 0;
+
 		$this->syntax->setStart($start);
 		return $this;
 	}
@@ -473,6 +476,9 @@ class Query
 	 **/
 	public function limit($limit)
 	{
+		$limit = intval($limit);
+		$limit = abs($limit);
+
 		$this->syntax->setLimit($limit);
 		return $this;
 	}
