@@ -460,10 +460,7 @@ class Query
 	 **/
 	public function start($start)
 	{
-		$start = intval($start);
-		$start = $start > 0 ?: 0;
-
-		$this->syntax->setStart($start);
+		$this->syntax->setStart((int)$start);
 		return $this;
 	}
 
@@ -476,10 +473,7 @@ class Query
 	 **/
 	public function limit($limit)
 	{
-		$limit = intval($limit);
-		$limit = abs($limit);
-
-		$this->syntax->setLimit($limit);
+		$this->syntax->setLimit((int)$limit);
 		return $this;
 	}
 
@@ -551,8 +545,8 @@ class Query
 	public function fetch($structure = 'rows', $noCache = false)
 	{
 		// Build and hash query
-		$query    = $this->buildQuery();
-		$key      = hash('md5', $structure . $query . serialize($this->syntax->getBindings()));
+		$query = $this->buildQuery();
+		$key   = hash('md5', $structure . $query . serialize($this->syntax->getBindings()));
 
 		// Check cache for results first
 		if ($noCache || !isset(self::$cache[$key]))
