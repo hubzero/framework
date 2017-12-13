@@ -148,7 +148,7 @@ class Identicon implements Resolver
 
 		if (file_exists($path))
 		{
-			return with(new Moderator($path))->getUrl();
+			return with(new Moderator($path, 'public'))->getUrl();
 		}
 
 		$image = $processor->getImageData($email, $size, $this->color);
@@ -164,6 +164,6 @@ class Identicon implements Resolver
 			return sprintf('data:image/png;base64,%s', base64_encode($image));
 		}
 
-		return with(new Moderator($path))->getUrl();
+		return with(new Moderator($path, 'public'))->getUrl();
 	}
 }
