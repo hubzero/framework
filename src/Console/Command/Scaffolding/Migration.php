@@ -34,6 +34,7 @@ namespace Hubzero\Console\Command\Scaffolding;
 
 use Hubzero\Console\Command\Scaffolding;
 use Hubzero\Utility\Date;
+use App;
 
 /**
  * Scaffolding class for migrations
@@ -159,26 +160,26 @@ class Migration extends Scaffolding
 	 **/
 	private function isValidExtension($extension, $base)
 	{
-		$ext = explode("_", $extension);
+		$ext = explode('_', $extension);
 		$dir = '';
 
 		switch ($ext[0])
 		{
 			case 'com':
 				$dir = $base . DS . 'components' . DS . $extension;
-				$alt = $base . DS . 'administrator' . DS . 'components' . DS . $extension;
 			break;
 			case 'mod':
 				$dir = $base . DS . 'modules' . DS . $extension;
-				$alt = $base . DS . 'administrator' . DS . 'modules' . DS . $extension;
 			break;
 			case 'plg':
 				$dir = $base . DS . 'plugins' . DS . $ext[1] . DS . $ext[2];
-				$alt = 'invalidfilepath';
+			break;
+			default:
+				return false;
 			break;
 		}
 
-		return (is_dir($dir) || is_dir($alt)) ? true : false;
+		return (is_dir($dir)) ? true : false;
 	}
 
 	/**
