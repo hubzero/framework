@@ -33,6 +33,8 @@
 
 namespace Hubzero\Database\Syntax;
 
+use InvalidArgumentException;
+
 /**
  * Database mysql query syntax class
  */
@@ -343,6 +345,11 @@ class Mysql
 	 **/
 	public function setLimit($limit)
 	{
+		if (!is_int($limit) || $limit < 0)
+		{
+			throw new InvalidArgumentException('Limit must be a whole integer of 0 or greater.');
+		}
+
 		$this->limit = $limit;
 	}
 
@@ -355,6 +362,11 @@ class Mysql
 	 **/
 	public function setStart($start)
 	{
+		if (!is_int($start) || $start < 0)
+		{
+			throw new InvalidArgumentException('Start must be a whole integer of 0 or greater.');
+		}
+
 		$this->start = $start;
 	}
 
@@ -368,6 +380,11 @@ class Mysql
 	 **/
 	public function setOrder($column, $dir)
 	{
+		if (!in_array(strtolower($dir), ['asc', 'desc']))
+		{
+			throw new InvalidArgumentException('Order direction must be one of ASC or DESC.');
+		}
+
 		$this->order[] = [
 			'column' => $column,
 			'dir'    => $dir
