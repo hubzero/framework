@@ -79,7 +79,7 @@ class Component extends Scaffolding
 			$install_dir = PATH_CORE . DS . trim($this->arguments->getOpt('install-dir'), DS) . DS . 'components';
 		}
 
-		if (substr($name, 0, 3) == 'com')
+		if (substr($name, 0, 4) == 'com_')
 		{
 			$name = substr($name, 4);
 		}
