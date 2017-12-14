@@ -165,6 +165,36 @@ class Loader implements LoaderInterface
 	}
 
 	/**
+	 * Checks if a plugin is enabled.
+	 *
+	 * @param   string  $type    The plugin type, relates to the sub-directory in the plugins directory.
+	 * @param   string  $plugin  The plugin name.
+	 * @return  string
+	 */
+	public function path($type, $plugin = null)
+	{
+		static $paths = array();
+
+		if (!isset($paths[$type . $plugin]))
+		{
+			$paths[$type . $plugin] = '';
+
+			$p = DS . 'plugins' . DS . $type . ($plugin ? DS . $plugin : '');
+
+			foreach (array(PATH_APP, PATH_CORE) as $base)
+			{
+				if (is_dir($base . $p))
+				{
+					$paths[$type . $plugin] = $base . $p;
+					break;
+				}
+			}
+		}
+
+		return $paths[$type . $plugin];
+	}
+
+	/**
 	 * Loads all the plugin files for a particular type if no specific plugin is specified
 	 * otherwise only the specific plugin is loaded.
 	 *
@@ -227,15 +257,8 @@ class Loader implements LoaderInterface
 	 */
 	protected function init(&$plugin, $autocreate = true, $dispatcher = null)
 	{
-		static $paths = array();
-
 		$plugin->type = preg_replace('/[^A-Z0-9_\.-]/i', '', $plugin->type);
 		$plugin->name = preg_replace('/[^A-Z0-9_\.-]/i', '', $plugin->name);
-
-		$p = array(
-			'app'  => PATH_APP . DS . 'plugins' . DS . $plugin->type . DS . $plugin->name . DS . $plugin->name . '.php',
-			'core' => PATH_CORE . DS . 'plugins' . DS . $plugin->type . DS . $plugin->name . DS . $plugin->name . '.php'
-		);
 
 		$classNameL = 'plg' . $plugin->type . $plugin->name;
 		$classNameN = 'Plugins\\' . ucfirst($plugin->type) . '\\' . ucfirst($plugin->name);
@@ -243,46 +266,29 @@ class Loader implements LoaderInterface
 		// If the class exists, the file was already loaded
 		if (!class_exists($classNameL) && !class_exists($classNameN))
 		{
-			// Loop through each path the plugin may be located at
-			foreach ($p as $path)
+			$path = $this->path($plugin->type, $plugin->name) . DS . $plugin->name . '.php';
+
+			if (file_exists($path))
 			{
-				// Was the current path already checked?
-				if (!isset($paths[$path]))
+				require_once $path;
+
+				if ($autocreate)
 				{
-					if (!file_exists($path))
+					foreach (array($classNameL, $classNameN) as $className)
 					{
-						// File not found
-						// Move along to the next available path
-						$paths[$path] = false;
-						continue;
-					}
-
-					// File exists, try to include it
-					if (!isset($paths[$path]))
-					{
-						require_once $path;
-					}
-
-					$paths[$path] = true;
-
-					if ($autocreate)
-					{
-						foreach (array($classNameL, $classNameN) as $className)
+						if (!class_exists($className))
 						{
-							if (!class_exists($className))
-							{
-								continue;
-							}
-
-							// Makes sure we have an event dispatcher
-							if (!($dispatcher instanceof DispatcherInterface))
-							{
-								$dispatcher = new Dispatcher();
-							}
-
-							// Instantiate and register the plugin.
-							return new $className($dispatcher, (array) $plugin);
+							continue;
 						}
+
+						// Makes sure we have an event dispatcher
+						if (!($dispatcher instanceof DispatcherInterface))
+						{
+							$dispatcher = new Dispatcher();
+						}
+
+						// Instantiate and register the plugin.
+						return new $className($dispatcher, (array) $plugin);
 					}
 				}
 			}
