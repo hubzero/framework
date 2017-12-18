@@ -41,6 +41,20 @@ use Countable;
  */
 class Rows implements Iterator, Countable
 {
+
+	public function __construct($rows = array())
+	{
+    		// While arrays are traversable with foreach,
+    		// they will not return true as an instance of Traverable
+    		if (is_array($rows) || $rows instance of \Traversable)
+    		{
+        		foreach ($rows as $row)
+        		{
+            			$this->push($row);
+        		}
+    		}
+	}
+
 	/*
 	 * Errors trait for error handling
 	 **/
@@ -145,25 +159,9 @@ class Rows implements Iterator, Countable
 
 		shuffle($rows);
 		$randomRows = array_slice($rows, 0, $n);
-		$rowsObject = new self();
-		$rowsObject->_setRows($randomRows);
+		$rowsObject new self($randomRows);
 
 		return $rowsObject;
-	}
-
-	/**
-	 * Set the array of rows
-	 *
-	 * @param   array  $rows  The array to set the $rows attribute to
-	 * @return  null
-	 * @since   2.1.13
-	 **/
-	protected function _setRows($rows)
-	{
-		if (is_array($rows))
-		{
-			$this->rows = $rows;
-		}
 	}
 
 	/**
