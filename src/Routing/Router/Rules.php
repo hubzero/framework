@@ -70,10 +70,14 @@ class Rules implements Countable, Iterator
 	 */
 	public function close($value)
 	{
-		if (! $value instanceof Closure)
+		if (!($value instanceof Closure))
 		{
-			$value = function() use ($value)
+			$value = function($uri) use ($value)
 			{
+				if (is_callable($value))
+				{
+					return call_user_func_array($value, array($uri));
+				}
 				return $value;
 			};
 		}

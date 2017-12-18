@@ -106,7 +106,7 @@ class File implements Resolver
 
 		if (file_exists($path))
 		{
-			return with(new Moderator($path))->getUrl();
+			return with(new Moderator($path, 'public'))->getUrl();
 		}
 
 		return '';

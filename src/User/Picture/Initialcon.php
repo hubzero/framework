@@ -148,7 +148,7 @@ class Initialcon implements Resolver
 
 		if (file_exists($path))
 		{
-			return with(new Moderator($path))->getUrl();
+			return with(new Moderator($path, 'public'))->getUrl();
 		}
 
 		// If the name has a space
@@ -181,6 +181,6 @@ class Initialcon implements Resolver
 			return sprintf('data:image/png;base64,%s', base64_encode($image));
 		}
 
-		return with(new Moderator($path))->getUrl();
+		return with(new Moderator($path, 'public'))->getUrl();
 	}
 }
