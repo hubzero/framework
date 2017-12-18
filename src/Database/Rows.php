@@ -158,7 +158,7 @@ class Rows implements Iterator, Countable
 
 		shuffle($rows);
 		$randomRows = array_slice($rows, 0, $n);
-		$rowsObject new self($randomRows);
+		$rowsObject = new self($randomRows);
 
 		return $rowsObject;
 	}
