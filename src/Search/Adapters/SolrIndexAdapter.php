@@ -159,37 +159,41 @@ class SolrIndexAdapter implements IndexInterface
 	 * @access public
 	 * @return void
 	 */
-	public function index($documents, $overwrite = null, $commitWithin = 3000)
+	public function index($document, $overwrite = null, $commitWithin = null, $buffer = 1500)
 	{
-		// Instantiate an update object
-		$update = $this->connection->createUpdate();
-		$buffer = $this->connection->getPlugin('bufferedadd');
-		$buffer->setBufferSize(500);
-		$solrDocuments = array();
-		foreach ($documents as $document)
-		{
-			// Add the document to the update
-			$newDoc = $update->createDocument();
-			foreach ($document as $field => $value)
-			{
-				if (is_array($value))
-				{
-					foreach ($value as $segment)
-					{
-						$newDoc->addField($field, $segment);
-					}
-				}
-				else
-				{
-					$newDoc->setField($field, $value);
-				}
-			}
-			$solrDocuments[] = $newDoc;
-		}
-		$buffer->addDocuments($solrDocuments);
+		$this->initBufferAdd($overwrite, $commitWithin, $buffer);
+		$this->addDocument($document);
+		
+	}
 
-		// Create a commit
-		$buffer->flush($overwrite, $commitWithin);
+	public function initBufferAdd($overwrite = null, $commitWithin = null, $buffer = null)
+	{
+		if (!isset($this->bufferAdd))
+		{
+			$this->bufferAdd = $this->connection->getPlugin('bufferedadd');
+			$this->bufferAdd->setBufferSize($buffer);
+			$this->bufferAdd->setOverwrite($overwrite);
+			$this->bufferAdd->setCommitWithin($commitWithin);
+		}
+		return $this->bufferAdd;
+	}
+
+	public function addDocument($document)
+	{
+		$update = $this->connection->createUpdate();
+		$newDoc = $update->createDocument();
+		foreach ($document as $field => $value)
+		{
+			if (is_array($value))
+			{
+				$newDoc->$field = $value;
+			}
+			else
+			{
+				$newDoc->setField($field, $value);
+			}
+		}
+		$this->initBufferAdd()->addDocument($newDoc);
 	}
 
 	/**
@@ -230,8 +234,7 @@ class SolrIndexAdapter implements IndexInterface
 	 */
 	public function updateIndex($document, $commitWithin = 3000)
 	{
-		$documents = array($document);
-		$this->index($documents, true, $commitWithin);
+		$this->index($document, true, $commitWithin);
 	}
 
 	/**
@@ -257,5 +260,13 @@ class SolrIndexAdapter implements IndexInterface
 			$string = 'id:' . $query;
 		}
 		return $string;
+	}
+
+	public function __destruct()
+	{
+		if (isset($this->bufferAdd))
+		{
+			$this->bufferAdd->flush();
+		}
 	}
 }
