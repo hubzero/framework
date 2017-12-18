@@ -1,5 +1,4 @@
-<?php
-/**
+<?php /**
  * HUBzero CMS
  *
  * Copyright 2005-2015 HUBzero Foundation, LLC.
@@ -44,15 +43,15 @@ class Rows implements Iterator, Countable
 
 	public function __construct($rows = array())
 	{
-    		// While arrays are traversable with foreach,
-    		// they will not return true as an instance of Traverable
-    		if (is_array($rows) || $rows instance of \Traversable)
-    		{
-        		foreach ($rows as $row)
-        		{
-            			$this->push($row);
-        		}
-    		}
+		// While arrays are traversable with foreach,
+		// they will not return true as an instance of Traverable
+		if (is_array($rows) || $rows instanceof \Traversable)
+		{
+			foreach ($rows as $row)
+			{
+				$this->push($row);
+			}
+		}
 	}
 
 	/*
