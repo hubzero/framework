@@ -66,55 +66,59 @@ class Loader extends Base
 
 		// Build the component path.
 		$client = (isset($this->app['client']->alias) ? $this->app['client']->alias : $this->app['client']->name);
-
-		// Set path and constants
-		define('PATH_COMPONENT', $this->path($option) . DIRECTORY_SEPARATOR . $client);
-		define('PATH_COMPONENT_SITE', $this->path($option) . DIRECTORY_SEPARATOR . 'site');
-		define('PATH_COMPONENT_ADMINISTRATOR', $this->path($option) . DIRECTORY_SEPARATOR . 'admin');
-
-		// Legacy compatibility
-		// @TODO: Deprecate this!
-		define('JPATH_COMPONENT', PATH_COMPONENT);
-		define('JPATH_COMPONENT_SITE', PATH_COMPONENT_SITE);
-		define('JPATH_COMPONENT_ADMINISTRATOR', PATH_COMPONENT_ADMINISTRATOR);
+		$found      = false;
 
 		$version    = $this->app['request']->getVar('version');
-		$controller = $this->app['request']->getCmd('controller', 'api');
-
-		// If no version is specified, try to determine the most
-		// recent version from the available controllers
-		if (!$version)
-		{
-			$files = glob(PATH_COMPONENT . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR . $controller . 'v*.php');
-
-			if (!empty($files))
-			{
-				natsort($files);
-
-				$file = end($files);
-				$controller = basename($file, '.php');
-			}
-		}
-		else
-		{
-			$controller .= 'v' . str_replace('.', '_', $version);
-		}
-
-		$path       = PATH_COMPONENT . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR . $controller . '.php';
-		$controller = '\\Components\\' . ucfirst(substr($option, 4)) . '\\Api\\Controllers\\' . ucfirst($controller);
-		$found      = false;
+		$controller = $this->app['request']->getCmd('controller', $this->app['request']->segment(2, 'api'));
+		$controllerClass = '\\Hubzero\\Component\\ApiController';
 
 		// Make sure the component is enabled
 		if ($this->isEnabled($option))
 		{
-			// Include the file
-			if (file_exists($path))
+			// Set path and constants
+			define('PATH_COMPONENT', $this->path($option) . DIRECTORY_SEPARATOR . $client);
+			define('PATH_COMPONENT_SITE', $this->path($option) . DIRECTORY_SEPARATOR . 'site');
+			define('PATH_COMPONENT_ADMINISTRATOR', $this->path($option) . DIRECTORY_SEPARATOR . 'admin');
+
+			// Legacy compatibility
+			// @TODO: Deprecate this!
+			define('JPATH_COMPONENT', PATH_COMPONENT);
+			define('JPATH_COMPONENT_SITE', PATH_COMPONENT_SITE);
+			define('JPATH_COMPONENT_ADMINISTRATOR', PATH_COMPONENT_ADMINISTRATOR);
+
+			if (is_dir(PATH_COMPONENT))
 			{
-				require_once $path;
+				// If no version is specified, try to determine the most
+				// recent version from the available controllers
+				if (!$version)
+				{
+					$files = glob(PATH_COMPONENT . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR . $controller . 'v*.php');
+
+					if (!empty($files))
+					{
+						natsort($files);
+
+						$file = end($files);
+						$controller = basename($file, '.php');
+					}
+				}
+				else
+				{
+					$controller .= 'v' . str_replace('.', '_', $version);
+				}
+
+				$path       = PATH_COMPONENT . DIRECTORY_SEPARATOR . 'controllers' . DIRECTORY_SEPARATOR . $controller . '.php';
+				$controllerClass = '\\Components\\' . ucfirst(substr($option, 4)) . '\\Api\\Controllers\\' . ucfirst($controller);
+
+				// Include the file
+				if (file_exists($path))
+				{
+					require_once $path;
+				}
 			}
 
 			// Check to see if the class exists
-			if (class_exists($controller))
+			if ($controllerClass && class_exists($controllerClass))
 			{
 				$found = true;
 
@@ -128,7 +132,10 @@ class Loader extends Base
 		}
 
 		// Handle template preview outlining.
-		$action = new $controller($this->app->get('response'));
+		$action = new $controllerClass($this->app->get('response'), array(
+			'name'       => substr($option, 4),
+			'controller' => $controller
+		));
 		$action->execute();
 
 		// Revert the scope
