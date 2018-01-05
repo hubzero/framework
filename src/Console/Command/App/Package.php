@@ -166,7 +166,7 @@ class Package extends Base implements CommandInterface
 		{
 			$this->output->error('A package name is required');
 		}
-		
+
 		Composer::removePackage($package);
 		$this->output->addLine("Done. $package has been removed.");
 	}

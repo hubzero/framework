@@ -31,6 +31,7 @@
  */
 
 namespace Hubzero\Utility;
+
 use Composer\IO\NullIO;
 use Composer\Json\JsonFile;
 use Composer\Json\JsonManipulator;
@@ -57,7 +58,7 @@ class Composer
 	 * @var object
 	 */
 	private static $factory = null;
-	
+
 	/**
 	 * Composer\Repository\RepositoryManager object
 	 * 
