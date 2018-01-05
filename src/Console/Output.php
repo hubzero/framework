@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
+ * Copyright 2005-2018 HUBzero Foundation, LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
  *
  * @package   framework
  * @author    Sam Wilson <samwilson@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @copyright Copyright 2005-2018 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
@@ -269,6 +269,29 @@ class Output
 		foreach ($lines as $line)
 		{
 			$this->addLine($line['message'], ((isset($line['type'])) ? $line['type'] : null));
+		}
+	}
+
+	/**
+	 * Helper method to add an associative array to the output buffer.
+	 * 
+	 * @param array $lines The lines to add
+	 * @return void
+	 **/
+	public function addRawFromAssocArray($lines, $indentation = 0)
+	{
+		foreach ($lines as $key => $value)
+		{
+			if (is_array($value))
+			{
+				$this->addLine($key . ': [', array("indentation"=>$indentation));
+				$this->addRawFromAssocArray($value, $indentation + 1);
+				$this->addLine(']', array("indentation"=>$indentation));
+			}
+			else
+			{
+				$this->addLine($key . ': ' . $value, array("indentation"=>$indentation));
+			}
 		}
 	}
 
