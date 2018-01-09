@@ -41,13 +41,6 @@ use Monolog\Logger as Monolog;
 class Manager
 {
 	/**
-	 * The application instance.
-	 *
-	 * @var  object
-	 */
-	protected $app;
-
-	/**
 	 * The registered log configs
 	 *
 	 * @var  array
@@ -72,18 +65,22 @@ class Manager
 		'format'      => '',
 		'level'       => 'debug',
 		'dateFormat'  => 'Y-m-d H:i:s',
-		'permissions' => 0640
+		'permissions' => 0640,
+		'dispatcher'  => null
 	);
 
 	/**
 	 * Create a new manager instance.
 	 *
-	 * @param   object  $app
+	 * @param   string  $path
 	 * @return  void
 	 */
-	public function __construct($app)
+	public function __construct($path = null)
 	{
-		$this->app = $app;
+		if ($path)
+		{
+			$this->defaults['path'] = (string) $path;
+		}
 	}
 
 	/**
@@ -143,20 +140,21 @@ class Manager
 
 			if (!$config['path'])
 			{
-				$config['path'] = $this->app['config']->get('log_path');
-				if (is_dir('/var/log/hubzero'))
-				{
-					$config['path'] = '/var/log/hubzero';
-				}
+				throw new InvalidArgumentException("Log path not specified for [$name].");
+			}
+
+			if (!$config['file'])
+			{
+				throw new InvalidArgumentException("Log file name not specified for [$name].");
 			}
 
 			$log = new Writer(
-				new Monolog($this->app['config']->get('application_env')),
-				$this->app['dispatcher']
+				new Monolog($name),
+				$config['dispatcher']
 			);
 
 			$log->useFiles(
-				$config['path'] . DS . $config['file'],
+				$config['path'] . DIRECTORY_SEPARATOR . $config['file'],
 				$config['level'],
 				$config['format'],
 				$config['dateFormat'],
