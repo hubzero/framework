@@ -37,5 +37,6 @@ namespace Hubzero\Search;
 interface Searchable
 {
 	public function searchResult();
-	public static function searchResults($limit, $offset);
+	public static function searchResults($offset, $limit);
+	public static function searchTotal();
 }

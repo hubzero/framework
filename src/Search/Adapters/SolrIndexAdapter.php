@@ -171,9 +171,14 @@ class SolrIndexAdapter implements IndexInterface
 		if (!isset($this->bufferAdd))
 		{
 			$this->bufferAdd = $this->connection->getPlugin('bufferedadd');
+			$this->commitWithin = $commitWithin;
+			$this->overwrite = $overwrite;
+
+			// When Solarium updates with the ability to preset commitWithin and Overwrite, this buffer increase won't be necessary.
+			// This prevents the automatically flushing in the event there are more records than the batch size, since the automatically flushing
+			// doesn't set the commitWithin or overwrite values for the records flushed.
+			$buffer++;
 			$this->bufferAdd->setBufferSize($buffer);
-			$this->bufferAdd->setOverwrite($overwrite);
-			$this->bufferAdd->setCommitWithin($commitWithin);
 		}
 		return $this->bufferAdd;
 	}
@@ -266,7 +271,7 @@ class SolrIndexAdapter implements IndexInterface
 	{
 		if (isset($this->bufferAdd))
 		{
-			$this->bufferAdd->flush();
+			$this->bufferAdd->flush($this->overwrite, $this->commitWithin);
 		}
 	}
 }

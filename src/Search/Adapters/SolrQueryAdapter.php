@@ -335,6 +335,13 @@ class SolrQueryAdapter implements QueryInterface
 	 */
 	public function restrictAccess()
 	{
+		$accessFilter = $this->getAccessString();
+		$this->addFilter('userPerms', $accessFilter, 'root_type');
+	}
+
+	public function getAccessString()
+	{
+		$accessFilter = '';
 		if (User::isGuest())
 		{
 			$accessFilter = "(access_level:public)";
@@ -373,8 +380,7 @@ class SolrQueryAdapter implements QueryInterface
 				$accessFilter .= $add;
 			}
 		}
-
-		$this->addFilter('userPerms', $accessFilter, 'root_type');
+		return $accessFilter;
 	}
 
 	/**

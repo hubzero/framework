@@ -99,9 +99,9 @@ class Index
 	 * @access public
 	 * @return void
 	 */
-	public function index($document, $commitWithin = 3000)
+	public function index($document, $overwrite = null, $commitWithin = 3000, $buffer = 1500)
 	{
-		return $this->adapter->index($document, null, $commitWithin);
+		return $this->adapter->index($document, $overwrite, $commitWithin, $buffer);
 	}
 
 	/**
