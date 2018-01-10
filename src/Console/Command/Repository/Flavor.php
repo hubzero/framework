@@ -109,7 +109,7 @@ class Flavor extends Base implements CommandInterface
 					$welcome_params->set('template', 'hubbasic2013');
 				}
 	                        $query = "UPDATE `#__template_styles` SET `params`=".$database->quote(json_encode($welcome_params->toArray()))." WHERE `template`='welcome';";
-				$database->setQuery();
+				$database->setQuery($query);
 				$database->query();
 
 				$this->output->addLine('Setting amazon flavor flag in welcome template');

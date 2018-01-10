@@ -35,6 +35,7 @@ use Hubzero\Form\Field;
 use Hubzero\Form\Form;
 use Hubzero\Base\ClientManager;
 use Hubzero\Html\Builder\Select as Dropdown;
+use Hubzero\Filesystem\Util;
 use Exception;
 use App;
 
@@ -111,7 +112,7 @@ class Componentlayout extends Field
 			$query = $db->getQuery()
 				->select('e.element')
 				->select('e.name')
-				->from('#__extensions as e')
+				->from('#__extensions', 'e')
 				->whereEquals('e.client_id', (int) $clientId)
 				->whereEquals('e.type', 'template')
 				->whereEquals('e.enabled', '1');

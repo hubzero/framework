@@ -380,6 +380,8 @@ class Manager extends Obj
 			}
 		}
 
+		$names = array_map('strtolower', $names);
+
 		return $names;
 	}
 
