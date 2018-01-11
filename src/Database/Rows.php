@@ -1,4 +1,5 @@
-<?php /**
+<?php
+/**
  * HUBzero CMS
  *
  * Copyright 2005-2015 HUBzero Foundation, LLC.
