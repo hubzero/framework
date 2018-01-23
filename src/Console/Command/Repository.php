@@ -621,6 +621,11 @@ class Repository extends Base implements CommandInterface
 			->addTasks($this);
 	}
 
+	/**
+	 * Call composer
+	 *
+	 * @return void
+	 **/
 	public function composer()
 	{
 		$option = $this->arguments->getOpt('option');
