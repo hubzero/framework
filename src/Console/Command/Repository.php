@@ -620,4 +620,21 @@ class Repository extends Base implements CommandInterface
 			)
 			->addTasks($this);
 	}
+
+	public function composer()
+	{
+		$option = $this->arguments->getOpt('option');
+		$task = $this->arguments->getOpt('task');
+		$valid_tasks = array("show", "available", "install", "update", "remove", "add");
+		if ($option == 'package' && in_array($task, $valid_tasks))
+		{
+			$newCommand = new \Hubzero\Console\Command\App\Package($this->output, $this->arguments);
+			$newCommand->$task();
+		}
+		if ($option == 'repository' && in_array($task, $valid_tasks))
+		{
+			$newCommand = new \Hubzero\Console\Command\App\Repository($this->output, $this->arguments);
+			$newCommand->$task();
+		}
+	}
 }
