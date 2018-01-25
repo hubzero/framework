@@ -293,6 +293,7 @@ class File extends Obj
 
 				$client = (isset(\App::get('client')->alias) ? \App::get('client')->alias : \App::get('client')->name);
 
+				$path2 = '';
 				switch ($this->extensionType())
 				{
 					case 'plugins':
@@ -302,10 +303,18 @@ class File extends Obj
 
 					case 'components':
 						$path = $this->extensionType() . DS . $this->extensionName() . DS . $client . DS;
+						if (substr($this->extensionName(), 0, 4) == 'com_')
+						{
+							$path2 = $this->extensionType() . DS . substr($this->extensionName(), 4) . DS . $client . DS;
+						}
 					break;
 
 					case 'modules':
 						$path = $this->extensionType() . DS . $this->extensionName() . DS;
+						if (substr($this->extensionName(), 0, 4) == 'mod_')
+						{
+							$path2 = $this->extensionType() . DS . substr($this->extensionName(), 4) . DS;
+						}
 					break;
 
 					case 'system':
@@ -322,6 +331,17 @@ class File extends Obj
 				// Core
 				$paths[] = $basec . $path . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . $this->file();
 				$paths[] = $basec . $path . ($this->directory ? $this->directory . DS : '') . $this->file();
+
+				if ($path2)
+				{
+					// App
+					$paths[] = $basea . $path2 . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . $this->file();
+					$paths[] = $basea . $path2 . ($this->directory ? $this->directory . DS : '') . $this->file();
+
+					// Core
+					$paths[] = $basec . $path2 . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . $this->file();
+					$paths[] = $basec . $path2 . ($this->directory ? $this->directory . DS : '') . $this->file();
+				}
 
 				// Run through each path until we find one that works
 				foreach ($paths as $path)

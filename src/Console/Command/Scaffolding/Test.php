@@ -78,7 +78,11 @@ class Test extends Scaffolding
 		{
 			case 'lib':
 				unset($parts[0]);
-				$path .= 'libraries' . DS . 'Hubzero' . DS . implode(DS, $parts) . DS;
+				// Hubzero\Console\Command\Scaffolding = __DIR__
+				// Hubzero\Console\Command             = dirname(__DIR__)
+				// Hubzero\Console                     = dirname(dirname(__DIR__))
+				// Hubzero                             = dirname(dirname(dirname(__DIR__)))
+				$path = dirname(dirname(dirname(__DIR__))) . DS . implode(DS, $parts) . DS;
 
 				$this->addReplacement('namespace', 'Hubzero\\' . ucfirst($parts[1]) . '\\Tests');
 				break;

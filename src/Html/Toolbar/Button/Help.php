@@ -97,11 +97,127 @@ class Help extends Button
 	protected function _getCommand($ref, $com, $override, $component)
 	{
 		// Get Help URL
-		jimport('joomla.language.help');
-		$url = \JHelp::createURL($ref, $com, $override, $component);
+		$url = self::createURL($ref, $com, $override, $component);
 		$url = htmlspecialchars($url, ENT_QUOTES);
 		$cmd = "Joomla.popupWindow('$url', '" . \Lang::txt('JHELP', true) . "', 700, 500, 1)";
 
 		return $cmd;
+	}
+
+	/**
+	 * Create a URL for a given help key reference
+	 *
+	 * @param   string   $ref           The name of the help screen (its key reference)
+	 * @param   boolean  $useComponent  Use the help file in the component directory
+	 * @param   string   $override      Use this URL instead of any other
+	 * @param   string   $component     Name of component (or null for current component)
+	 * @return  string
+	 */
+	public static function createURL($ref, $useComponent = false, $override = null, $component = null)
+	{
+		$local = false;
+
+		//  Determine the location of the help file.  At this stage the URL
+		//  can contain substitution codes that will be replaced later.
+
+		if ($override)
+		{
+			$url = $override;
+		}
+		else
+		{
+			// Get the user help URL.
+			$user = \User::getInstance();
+			$url = $user->getParam('helpsite');
+
+			// If user hasn't specified a help URL, then get the global one.
+			if ($url == '')
+			{
+				$url = $app->getCfg('helpurl');
+			}
+
+			// Component help URL overrides user and global.
+			if ($useComponent)
+			{
+				// Look for help URL in component parameters.
+				$params = \Component::params($component);
+				$url = $params->get('helpURL');
+
+				if ($url == '')
+				{
+					$local = true;
+					$url = 'components/{component}/help/{language}/{keyref}';
+				}
+			}
+
+			// Set up a local help URL.
+			if (!$url)
+			{
+				$local = true;
+				$url = 'help/{language}/{keyref}';
+			}
+		}
+
+		// If the URL is local then make sure we have a valid file extension on the URL.
+		if ($local)
+		{
+			if (!preg_match('#\.html$|\.xml$#i', $ref))
+			{
+				$url .= '.html';
+			}
+		}
+
+		//  Replace substitution codes in the URL.
+		$lang    = \App::get('language');
+		$version = HVERSION;
+		$hver    = explode('.', $version);
+		$hlang   = explode('-', $lang->getTag());
+
+		$debug  = $lang->setDebug(false);
+		$keyref = $lang->txt($ref);
+		$lang->setDebug($debug);
+
+		// Replace substitution codes in help URL.
+		$search = array(
+			'{app}', // Application name (eg. 'Administrator')
+			'{component}', // Component name (eg. 'com_content')
+			'{keyref}', // Help screen key reference
+			'{language}', // Full language code (eg. 'en-GB')
+			'{langcode}', // Short language code (eg. 'en')
+			'{langregion}', // Region code (eg. 'GB')
+			'{major}', // Joomla major version number
+			'{minor}', // Joomla minor version number
+			'{maintenance}'// Joomla maintenance version number
+		);
+
+		$replace = array(
+			\App::get('client')->name, // {app}
+			$component, // {component}
+			$keyref, // {keyref}
+			$lang->getTag(), // {language}
+			$hlang[0], // {langcode}
+			$hlang[1], // {langregion}
+			$hver[0], // {major}
+			$hver[1], // {minor}
+			$hver[2]// {maintenance}
+		);
+
+		// If the help file is local then check it exists.
+		// If it doesn't then fallback to English.
+		if ($local)
+		{
+			$try = str_replace($search, $replace, $url);
+
+			if (!\Filesystem::exists(PATH_ROOT . '/' . $try))
+			{
+				$replace[3] = 'en-GB';
+				$replace[4] = 'en';
+				$replace[5] = 'GB';
+			}
+		}
+
+		$url = str_replace($search, $replace, $url);
+
+		return $url;
 	}
 }

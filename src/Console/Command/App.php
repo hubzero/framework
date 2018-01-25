@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
+ * Copyright 2005-2018 HUBzero Foundation, LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,64 +25,44 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @author    Zach Weidner <zweidner@purdue.edu>
+ * @copyright Copyright 2005-2018 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
  */
 
-namespace Framework\Providers;
+namespace Hubzero\Console\Command;
 
-use Hubzero\Log\Manager;
-use Hubzero\Base\ServiceProvider;
+use Hubzero\Console\Output;
+use Hubzero\Console\Arguments;
+use Hubzero\Utility\Composer;
 
 /**
- * Event service provider
- *
- * @codeCoverageIgnore
- */
-class LogServiceProvider extends ServiceProvider
+ * Migration class
+ **/
+class App extends Base implements CommandInterface
 {
 	/**
-	 * Register the service provider.
+	 * Default (required) command - just executes run
 	 *
 	 * @return  void
-	 */
-	public function register()
+	 **/
+	public function execute()
 	{
-		$this->app['log'] = function($app)
-		{
-			$path = $app['config']->get('log_path');
-			if (is_dir('/var/log/hubzero'))
-			{
-				$path = '/var/log/hubzero';
-			}
+		$this->run();
+	}
 
-			$dispatcher = null;
-			if ($app->has('dispatcher'))
-			{
-				$dispatcher = $app['dispatcher'];
-			}
-
-			$manager = new Manager($path);
-
-			$manager->register('debug', array(
-				'file'       => 'cmsdebug.log',
-				'dispatcher' => $dispatcher
-			));
-
-			$manager->register('auth', array(
-				'file'       => 'cmsauth.log',
-				'level'      => 'info',
-				'format'     => "%datetime% %message%\n",
-				'dispatcher' => $dispatcher
-			));
-
-			$manager->register('spam', array(
-				'file'       => 'cmsspam.log',
-				'dispatcher' => $dispatcher
-			));
-
-			return $manager;
-		};
+	/**
+	 * Output help documentation
+	 *
+	 * @return  void
+	 **/
+	public function help()
+	{
+		$this
+			->output
+			->addOverview(
+				'Helper for the app directory'
+			)
+			->addTasks($this);
 	}
 }

@@ -48,7 +48,7 @@ class Writer
 	 *
 	 * @var  object
 	 */
-	protected $monolog;
+	protected $monolog = null;
 
 	/**
 	 * All of the error levels.
@@ -71,7 +71,7 @@ class Writer
 	 *
 	 * @var  object
 	 */
-	protected $dispatcher;
+	protected $dispatcher = null;
 
 	/**
 	 * Create a new log writer instance.
@@ -94,7 +94,7 @@ class Writer
 	 * Call Monolog with the given method and parameters.
 	 *
 	 * @param   string  $method
-	 * @param   array  $parameters
+	 * @param   array   $parameters
 	 * @return  mixed
 	 */
 	protected function callMonolog($method, $parameters)
@@ -185,7 +185,7 @@ class Writer
 				return MonologLogger::EMERGENCY;
 
 			default:
-				throw new \InvalidArgumentException(\Lang::txt('Invalid log level.'));
+				throw new \InvalidArgumentException('Invalid log level.');
 		}
 	}
 
@@ -193,17 +193,17 @@ class Writer
 	 * Register a new callback handler for when
 	 * a log event is triggered.
 	 *
-	 * @param   object  $callback  Closure
+	 * @param   object  $handler  Closure
 	 * @return  void
 	 */
 	public function listen($handler)
 	{
-		if (!isset($this->dispatcher))
+		if (!($this->dispatcher instanceof DispatcherInterface))
 		{
-			throw new \RuntimeException(\Lang::txt('Events dispatcher has not been set.'));
+			throw new \RuntimeException('Event dispatcher has not been set.');
 		}
 
-		$this->dispatcher->register('onLog', $handler);
+		$this->dispatcher->addListener($handler, 'onLog');
 	}
 
 	/**
@@ -219,7 +219,7 @@ class Writer
 	/**
 	 * Get the event dispatcher instance.
 	 *
-	 * @return  object
+	 * @return  mixed  object or null
 	 */
 	public function getEventDispatcher()
 	{
@@ -229,7 +229,7 @@ class Writer
 	/**
 	 * Set the event dispatcher instance.
 	 *
-	 * @param   object
+	 * @param   object  $dispatcher
 	 * @return  void
 	 */
 	public function setEventDispatcher($dispatcher)
@@ -250,9 +250,9 @@ class Writer
 		// If the event dispatcher is set, we will pass along the parameters to the
 		// log listeners. These are useful for building profilers or other tools
 		// that aggregate all of the log messages for a given "request" cycle.
-		if (isset($this->dispatcher))
+		if ($this->dispatcher instanceof DispatcherInterface)
 		{
-			$this->dispatcher->trigger('system.onLog', array($level, $message, $context));
+			$this->dispatcher->trigger('onLog', array($level, $message, $context));
 		}
 	}
 
@@ -274,6 +274,6 @@ class Writer
 			return $this->callMonolog($method, $parameters);
 		}
 
-		throw new \BadMethodCallException(\Lang::txt('Method [%s] does not exist.', $method));
+		throw new \BadMethodCallException(sprintf('Method [%s] does not exist.', $method));
 	}
 }
