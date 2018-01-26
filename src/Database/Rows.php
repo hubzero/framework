@@ -41,6 +41,20 @@ use Countable;
  */
 class Rows implements Iterator, Countable
 {
+
+	public function __construct($rows = array())
+	{
+		// While arrays are traversable with foreach,
+		// they will not return true as an instance of Traverable
+		if (is_array($rows) || $rows instanceof \Traversable)
+		{
+			foreach ($rows as $row)
+			{
+				$this->push($row);
+			}
+		}
+	}
+
 	/*
 	 * Errors trait for error handling
 	 **/
@@ -98,7 +112,7 @@ class Rows implements Iterator, Countable
 	{
 		// Index by primary key if possible, otherwise plain incremental array
 		// Also check to see if that key already exists.  If so, we'll just start
-		// appending items to the array.  This will result in a mixed array and 
+		// appending items to the array.  This will result in a mixed array and
 		// subsequent items will not be seekable.
 		if ($model->getPkValue() && (!is_array($this->rows) || !array_key_exists($model->getPkValue(), $this->rows)))
 		{
@@ -130,6 +144,24 @@ class Rows implements Iterator, Countable
 	public function clear()
 	{
 		$this->rows = array();
+	}
+
+	/**
+	 * Selects a number of randomly selected rows
+	 *
+	 * @param   integer  $n  The number of rows to randomly select
+	 * @return  Rows
+	 * @since   2.1.13
+	 **/
+	public function pickRandom($n)
+	{
+		$rows = $this->rows;
+
+		shuffle($rows);
+		$randomRows = array_slice($rows, 0, $n);
+		$rowsObject = new self($randomRows);
+
+		return $rowsObject;
 	}
 
 	/**
