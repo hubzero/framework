@@ -166,6 +166,19 @@ class SolrIndexAdapter implements IndexInterface
 		
 	}
 
+	/**
+	 * optimize - Defragment the index
+	 * 
+	 * @access public
+	 * @return Solarium\QueryType\Update\Result
+	 */
+	public function optimize()
+	{
+		$update = $this->connection->createUpdate();
+		$update->addOptimize();
+		return $this->connection->update($update);
+	}
+
 	public function initBufferAdd($overwrite = null, $commitWithin = null, $buffer = null)
 	{
 		if (!isset($this->bufferAdd))
@@ -174,9 +187,12 @@ class SolrIndexAdapter implements IndexInterface
 			$this->commitWithin = $commitWithin;
 			$this->overwrite = $overwrite;
 
-			// When Solarium updates with the ability to preset commitWithin and Overwrite, this buffer increase won't be necessary.
-			// This prevents the automatically flushing in the event there are more records than the batch size, since the automatically flushing
-			// doesn't set the commitWithin or overwrite values for the records flushed.
+			// When Solarium updates with the ability to preset commitWithin and Overwrite, 
+			// 	this buffer increase won't be necessary.
+			// This prevents the automatically flushing in the event there are more records than the batch size, 
+			// since the automatically flushing doesn't set the commitWithin or overwrite values 
+			// for the records flushed.
+
 			$buffer++;
 			$this->bufferAdd->setBufferSize($buffer);
 		}
@@ -218,7 +234,7 @@ class SolrIndexAdapter implements IndexInterface
 			$update->addDeleteQuery($deleteQuery);
 			$update->addCommit();
 			$response = $this->connection->update($update);
-
+			$this->optimize();
 			// @FIXME: Increase error checking 
 			// Wild assumption that the update was successful
 			return true;
@@ -267,6 +283,11 @@ class SolrIndexAdapter implements IndexInterface
 		return $string;
 	}
 
+	/**
+	 * Automatically flushes any remaining documents in the buffer
+	 *
+	 * @return void
+	 */
 	public function __destruct()
 	{
 		if (isset($this->bufferAdd))

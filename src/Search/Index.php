@@ -68,6 +68,16 @@ class Index
 		$logs = $this->adapter->getLogs();
 		return $logs;
 	}
+	
+	/**
+	 * defragment search index
+	 *
+	 * @return void
+	 */
+	public function optimize()
+	{
+		return $this->adapter->optimize();
+	}
 
 	/**
 	 * lastInsert - Returns the timestamp of the last document indexed
