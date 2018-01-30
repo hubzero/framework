@@ -215,7 +215,7 @@ class SolrQueryAdapter implements QueryInterface
 	 * @param string $name name provided for the multiFacet set.
 	 * @access public
 	 * @return \Solarium\QueryType\Select\Query\Component\Facet\MultiQuery
-	 */ 
+	 */
 	public function getFacetMultiQuery($name)
 	{
 		$facet = $this->query->getFacetSet()->createFacetMultiQuery($name);

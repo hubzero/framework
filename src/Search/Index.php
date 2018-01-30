@@ -68,7 +68,7 @@ class Index
 		$logs = $this->adapter->getLogs();
 		return $logs;
 	}
-	
+
 	/**
 	 * defragment search index
 	 *

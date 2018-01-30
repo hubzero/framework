@@ -163,7 +163,6 @@ class SolrIndexAdapter implements IndexInterface
 	{
 		$this->initBufferAdd($overwrite, $commitWithin, $buffer);
 		$this->addDocument($document);
-		
 	}
 
 	/**
@@ -273,7 +272,7 @@ class SolrIndexAdapter implements IndexInterface
 			foreach ($query as $index => $value)
 			{
 				$string .= !empty($deleteQuery) ? ' AND ' : '';
-				$string .= $index . ':' . $value; 	
+				$string .= $index . ':' . $value;
 			}
 		}
 		else
