@@ -178,6 +178,13 @@ class SolrIndexAdapter implements IndexInterface
 		return $this->connection->update($update);
 	}
 
+	/**
+	 * Initialize Solarium bufferAdd plugin
+	 * @param boolean $overwrite if true, overwrites existing entries with the same docId
+	 * @param int $commitWithin time in milliseconds that a commit should happen
+	 * @param int $buffer max number of documents to add before flushing
+	 * @return Solarium\Plugin\BufferAdd\BufferAdd
+	 */
 	public function initBufferAdd($overwrite = null, $commitWithin = null, $buffer = null)
 	{
 		if (!isset($this->bufferAdd))
@@ -225,7 +232,7 @@ class SolrIndexAdapter implements IndexInterface
 	 */
 	public function delete($query)
 	{
-		$deleteQuery= $this->parseQuery($query);
+		$deleteQuery = $this->parseQuery($query);
 
 		if (!empty($deleteQuery))
 		{
@@ -271,7 +278,7 @@ class SolrIndexAdapter implements IndexInterface
 		{
 			foreach ($query as $index => $value)
 			{
-				$string .= !empty($deleteQuery) ? ' AND ' : '';
+				$string .= !empty($string) ? ' AND ' : '';
 				$string .= $index . ':' . $value;
 			}
 		}
