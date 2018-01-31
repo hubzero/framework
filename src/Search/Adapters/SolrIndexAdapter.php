@@ -159,41 +159,68 @@ class SolrIndexAdapter implements IndexInterface
 	 * @access public
 	 * @return void
 	 */
-	public function index($document)
+	public function index($document, $overwrite = null, $commitWithin = null, $buffer = 1500)
 	{
-		// Instantiate an update object
+		$this->initBufferAdd($overwrite, $commitWithin, $buffer);
+		$this->addDocument($document);
+	}
+
+	/**
+	 * optimize - Defragment the index
+	 * 
+	 * @access public
+	 * @return Solarium\QueryType\Update\Result
+	 */
+	public function optimize()
+	{
 		$update = $this->connection->createUpdate();
+		$update->addOptimize();
+		return $this->connection->update($update);
+	}
 
-		// Create the document for updating
-		$solrDoc = $update->createDocument();
-
-		// Iterate through and set the appropriate fields
-		foreach ($document as $key => $value)
+	/**
+	 * Initialize Solarium bufferAdd plugin
+	 * @param boolean $overwrite if true, overwrites existing entries with the same docId
+	 * @param int $commitWithin time in milliseconds that a commit should happen
+	 * @param int $buffer max number of documents to add before flushing
+	 * @return Solarium\Plugin\BufferAdd\BufferAdd
+	 */
+	public function initBufferAdd($overwrite = null, $commitWithin = null, $buffer = null)
+	{
+		if (!isset($this->bufferAdd))
 		{
-			$solrDoc->$key = $value;
-		}
+			$this->bufferAdd = $this->connection->getPlugin('bufferedadd');
+			$this->commitWithin = $commitWithin;
+			$this->overwrite = $overwrite;
 
-		if (!isset($solrDoc->id))
+			// When Solarium updates with the ability to preset commitWithin and Overwrite, 
+			// 	this buffer increase won't be necessary.
+			// This prevents the automatically flushing in the event there are more records than the batch size, 
+			// since the automatically flushing doesn't set the commitWithin or overwrite values 
+			// for the records flushed.
+
+			$buffer++;
+			$this->bufferAdd->setBufferSize($buffer);
+		}
+		return $this->bufferAdd;
+	}
+
+	public function addDocument($document)
+	{
+		$update = $this->connection->createUpdate();
+		$newDoc = $update->createDocument();
+		foreach ($document as $field => $value)
 		{
-			// Generate a unique ID, hopefully
-			$solrDoc->id = hash('md5', time()*rand());
+			if (is_array($value))
+			{
+				$newDoc->$field = $value;
+			}
+			else
+			{
+				$newDoc->setField($field, $value);
+			}
 		}
-
-		// Add the document to the update
-		$update->addDocuments(array($solrDoc));
-
-		// Create a commit
-		$update->addCommit();
-
-		// Run the update query
-		if ($this->connection->update($update))
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		$this->initBufferAdd()->addDocument($newDoc);
 	}
 
 	/**
@@ -203,15 +230,17 @@ class SolrIndexAdapter implements IndexInterface
 	 * @access public
 	 * @return boolean 
 	 */
-	public function delete($id)
+	public function delete($query)
 	{
-		if ($id != null)
+		$deleteQuery = $this->parseQuery($query);
+
+		if (!empty($deleteQuery))
 		{
 			$update = $this->connection->createUpdate();
-			$update->addDeleteQuery('id:'.$id);
+			$update->addDeleteQuery($deleteQuery);
 			$update->addCommit();
 			$response = $this->connection->update($update);
-
+			$this->optimize();
 			// @FIXME: Increase error checking 
 			// Wild assumption that the update was successful
 			return true;
@@ -230,24 +259,9 @@ class SolrIndexAdapter implements IndexInterface
 	 * @access public
 	 * @return void
 	 */
-	public function updateIndex($document, $id)
+	public function updateIndex($document, $commitWithin = 3000)
 	{
-			$update = $this->connection->createUpdate();
-
-			$solrDoc = $update->createDocument();
-
-			foreach ($document as $key => $value)
-			{
-				$solrDoc->$key = $value;
-			}
-
-			$solrDoc->id = $id;
-
-			$update->addDocuments(array($solrDoc));
-			$update->addCommit();
-			$this->connection->update($update);
-
-			return true;
+		$this->index($document, true, $commitWithin);
 	}
 
 	/**
@@ -259,12 +273,32 @@ class SolrIndexAdapter implements IndexInterface
 	 */
 	private function parseQuery($query)
 	{
-		switch ($query['operator'])
+		$string = '';
+		if (is_array($query))
 		{
-			case '=':
-				$string = $query['field'] . ':' . $query['value'];
-			break;
+			foreach ($query as $index => $value)
+			{
+				$string .= !empty($string) ? ' AND ' : '';
+				$string .= $index . ':' . $value;
+			}
+		}
+		else
+		{
+			$string = 'id:' . $query;
 		}
 		return $string;
+	}
+
+	/**
+	 * Automatically flushes any remaining documents in the buffer
+	 *
+	 * @return void
+	 */
+	public function __destruct()
+	{
+		if (isset($this->bufferAdd))
+		{
+			$this->bufferAdd->flush($this->overwrite, $this->commitWithin);
+		}
 	}
 }

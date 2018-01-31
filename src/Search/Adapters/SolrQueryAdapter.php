@@ -62,16 +62,15 @@ class SolrQueryAdapter implements QueryInterface
 		$this->logPath = $config->get('solr_log_path');
 
 		// Build the Solr config object
-		$solrConfig = array(
-			'endpoint' => array(
-				$core  => array(
-					'host' => $host,
-					'port' => $port,
-					'path' => $path,
-					'core' => $core,
-				)
-			)
-		);
+		$solrConfig = array( 'endpoint' =>
+			array( $core  =>
+				array('host' => $host,
+							'port' => $port,
+							'path' => $path,
+							'core' => $core,
+							)
+						)
+					);
 
 		// Create the client
 		$this->connection = new Solarium\Client($solrConfig);
@@ -81,49 +80,6 @@ class SolrQueryAdapter implements QueryInterface
 
 		// Create the Solr Query object
 		$this->query = $this->connection->createSelect();
-	}
-
-	/**
-	 * Get MoreLikeThis
-	 * 
-	 * @access public
-	 * @return SolariumQuery
-	 */
-	public function getMoreLikeThis($terms)
-	{
-		// Get morelikethis settings
-		$mltQuery = $this->connection->createSelect();
-		$mltQuery->setQuery($terms)
-			->getMoreLikeThis()
-			->setFields('text');
-
-		// Executes the query and returns the result
-		$resultSet = $this->connection->select($mltQuery);
-		$mlt = $resultSet->getMoreLikeThis();
-
-		return $resultSet;
-	}
-
-	/**
-	 * spellCheck Returns terms suggestions
-	 * 
-	 * @param mixed $terms 
-	 * @access public
-	 * @return dictionary
-	 */
-	public function spellCheck($terms)
-	{
-		// Set the spellCheck Query
-		$scQuery = $this->connection->createSelect();
-		$scQuery->setRows(0)
-				->getSpellcheck()
-				->setQuery($terms)
-				->setCount('5');
-
-		// This executes the query and returns the result
-		$spellcheckResults = $this->connection->select($scQuery)->getSpellcheck();
-
-		return $spellcheckResults;
 	}
 
 	/**
@@ -222,9 +178,10 @@ class SolrQueryAdapter implements QueryInterface
 	 */
 	public function run()
 	{
-		$this->resultset = $this->connection->execute($this->query);
+		$this->resultset = $this->connection->select($this->query);
 		$this->numFound = $this->resultset->getNumFound();
 		$this->results = $this->getResults();
+		$this->resultsFacetSet = $this->resultset->getFacetSet();
 		return $this;
 	}
 
@@ -253,6 +210,19 @@ class SolrQueryAdapter implements QueryInterface
 	}
 
 	/**
+	 *
+	 *
+	 * @param string $name name provided for the multiFacet set.
+	 * @access public
+	 * @return \Solarium\QueryType\Select\Query\Component\Facet\MultiQuery
+	 */
+	public function getFacetMultiQuery($name)
+	{
+		$facet = $this->query->getFacetSet()->createFacetMultiQuery($name);
+		return $facet;
+	}
+
+	/**
 	 * addFacet 
 	 * 
 	 * @param mixed $name 
@@ -278,7 +248,7 @@ class SolrQueryAdapter implements QueryInterface
 	 * @access public
 	 * @return void
 	 */
-	public function addFilter($name, $query = array())
+	public function addFilter($name, $query = array(), $tag = 'root_type')
 	{
 		if (is_array($query))
 		{
@@ -292,8 +262,15 @@ class SolrQueryAdapter implements QueryInterface
 				$this->query->setOptions(array('geo'=> true));
 			}
 		}
+		$filterParams = array();
+		$filterParams['key'] = $name;
+		$filterParams['query'] = $string;
+		if ($tag)
+		{
+			$filterParams['tag'] = $tag;
+		}
 
-		$this->query->createFilterQuery($name)->setQuery($string);
+		$this->query->createFilterQuery($filterParams);
 		return $this;
 	}
 
@@ -358,6 +335,13 @@ class SolrQueryAdapter implements QueryInterface
 	 */
 	public function restrictAccess()
 	{
+		$accessFilter = $this->getAccessString();
+		$this->addFilter('userPerms', $accessFilter, 'root_type');
+	}
+
+	public function getAccessString()
+	{
+		$accessFilter = '';
 		if (User::isGuest())
 		{
 			$accessFilter = "(access_level:public)";
@@ -396,8 +380,7 @@ class SolrQueryAdapter implements QueryInterface
 				$accessFilter .= $add;
 			}
 		}
-
-		$this->query->createFilterQuery('userPerms')->setQuery($accessFilter);
+		return $accessFilter;
 	}
 
 	/**

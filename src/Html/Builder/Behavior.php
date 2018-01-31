@@ -404,7 +404,7 @@ class Behavior
 						var tip = $(this),
 							tipText = tip.attr('title');
 
-						if (tipText.indexOf('::') != -1) {
+						if (tipText && tipText.indexOf('::') != -1) {
 							var parts = tipText.split('::');
 							tip.attr('title', '<div class=\"tip-title\">' + parts[0] + '</div><div class=\"tip-text\">' + parts[1] + '</div>');
 						} else {

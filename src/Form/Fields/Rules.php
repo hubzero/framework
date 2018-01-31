@@ -128,6 +128,8 @@ class Rules extends Field
 		$html[] = '<div id="permissions-sliders" class="pane-sliders">';
 		$html[] = '<p class="rule-desc">' . $lang->txt('JLIB_RULES_SETTINGS_DESC') . '</p>';
 		$html[] = '<div id="permissions-rules">';
+		// If AssetId is blank and section wasn't set to component, set it to the component name here for inheritance checks.
+		$assetId = empty($assetId) && $section != 'component' ? $component : $assetId;
 
 		// Start a row for each user group.
 		foreach ($groups as $group)
@@ -179,7 +181,6 @@ class Rules extends Field
 				$html[] = '<select name="' . $this->name . '[' . $action->name . '][' . $group->value . ']" id="' . $this->id . '_' . $action->name
 					. '_' . $group->value . '" title="'
 					. $lang->txt('JLIB_RULES_SELECT_ALLOW_DENY_GROUP', $lang->txt($action->title), trim($group->text)) . '">';
-
 				$inheritedRule = Access::checkGroup($group->value, $action->name, $assetId);
 
 				// Get the actual setting for the action for this group.

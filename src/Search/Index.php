@@ -70,6 +70,16 @@ class Index
 	}
 
 	/**
+	 * defragment search index
+	 *
+	 * @return void
+	 */
+	public function optimize()
+	{
+		return $this->adapter->optimize();
+	}
+
+	/**
 	 * lastInsert - Returns the timestamp of the last document indexed
 	 * 
 	 * @access public
@@ -99,9 +109,21 @@ class Index
 	 * @access public
 	 * @return void
 	 */
-	public function index($document)
+	public function index($document, $overwrite = null, $commitWithin = 3000, $buffer = 1500)
 	{
-		return $this->adapter->index($document);
+		return $this->adapter->index($document, $overwrite, $commitWithin, $buffer);
+	}
+
+	/**
+	 * updateIndex - Update existing index item
+	 * 
+	 * @param mixed $document 
+	 * @access public
+	 * @return void
+	 */
+	public function updateIndex($document, $commitWithin = 3000)
+	{
+		return $this->adapter->updateIndex($document, $commitWithin);
 	}
 
 	/**

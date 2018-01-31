@@ -68,19 +68,6 @@ class Query
 	}
 
 	/**
-	 * spellCheck - Get the relating terms suggestions or corrections
-	 *
-	 * @param mixed $terms 
-	 * @access public
-	 * @return void
-	 */
-	public function spellCheck($terms)
-	{
-		$spellChecks = $this->adapter->spellCheck($terms);
-		return $spellChecks;
-	}
-
-	/**
 	 * query - Sets the query string
 	 * 
 	 * @param mixed $terms 
