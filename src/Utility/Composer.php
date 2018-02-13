@@ -117,6 +117,7 @@ class Composer
 	private static function _init()
 	{
 		//Set environment up for composer
+		ini_set('memory_limit', '1024M');
 		if (getenv('COMPOSER_HOME') != PATH_APP)
 		{
 			putenv('COMPOSER_HOME=' . PATH_APP);
