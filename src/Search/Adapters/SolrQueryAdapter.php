@@ -356,7 +356,7 @@ class SolrQueryAdapter implements QueryInterface
 
 			if (!empty($userGroups))
 			{
-				$groupFilter = 'OR (access_level:private AND owner_type:group AND (owner:';
+				$groupFilter = 'OR (access_level:private AND owner_type:group AND owner:(';
 				$i = 0;
 				foreach ($userGroups as $group)
 				{
@@ -367,7 +367,7 @@ class SolrQueryAdapter implements QueryInterface
 					}
 					else
 					{
-						$groupFilter .= ' ';
+						$groupFilter .= ' OR ';
 					}
 					$i++;
 				}
