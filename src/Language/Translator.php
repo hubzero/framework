@@ -1332,9 +1332,10 @@ class Translator extends Obj
 	 * @param   string   $basePath        Base path to use
 	 * @param   boolean  $caching         True if caching is used
 	 * @param   array    $installed       An array of arrays (text, value, selected)
+	 * @param   integer  $client          Client ID
 	 * @return  array    List of system languages
 	 */
-	public static function getList($actualLanguage, $basePath = PATH_APP, $caching = false, $installed = false)
+	public static function getList($actualLanguage, $basePath = PATH_APP, $caching = false, $installed = false, $client = null)
 	{
 		$list = array();
 
@@ -1349,9 +1350,8 @@ class Translator extends Obj
 				->whereEquals('type', 'language')
 				->whereEquals('state', 0)
 				->whereEquals('enabled', 1)
-				->whereEquals('client_id', \App::get('client')->id);
+				->whereEquals('client_id', (is_null($client) ? \App::get('client')->id : (int)$client));
 			$db->setQuery($query->toString());
-
 			$installed_languages = $db->loadObjectList('element');
 		}
 
