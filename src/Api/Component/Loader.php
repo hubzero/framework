@@ -73,7 +73,7 @@ class Loader extends Base
 		$controllerClass = '\\Hubzero\\Component\\ApiController';
 
 		// Make sure the component is enabled
-		if ($this->isEnabled($option))
+		if ($this->isEnabled($option) && is_dir($this->path($option)))
 		{
 			// Set path and constants
 			define('PATH_COMPONENT', $this->path($option) . DIRECTORY_SEPARATOR . $client);
