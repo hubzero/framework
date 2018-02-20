@@ -75,6 +75,9 @@ class SolrQueryAdapter implements QueryInterface
 		// Create the client
 		$this->connection = new Solarium\Client($solrConfig);
 
+		// Add plugin to accept bigger requests
+		$this->connection->getPlugin('postbigrequest');
+
 		// Make config accessible
 		$this->config = $solrConfig;
 
@@ -353,24 +356,14 @@ class SolrQueryAdapter implements QueryInterface
 			$accessFilter = "(access_level:public) OR (access_level:registered) " . $userFilter;
 
 			$userGroups = \Hubzero\User\Helper::getGroups($user);
-
+			$userGroups = array_map(function($group){
+				return $group->gidNumber;
+			}, $userGroups);
+			$userGroups = array_unique($userGroups);
 			if (!empty($userGroups))
 			{
-				$groupFilter = 'OR (access_level:private AND owner_type:group AND owner:(';
-				$i = 0;
-				foreach ($userGroups as $group)
-				{
-					$groupFilter .= $group->gidNumber;
-					if ($i >= count($userGroups) - 1)
-					{
-						$groupFilter .= '))';
-					}
-					else
-					{
-						$groupFilter .= ' OR ';
-					}
-					$i++;
-				}
+				$userGroupString = implode(' OR ', $userGroups);
+				$groupFilter = 'OR (access_level:private AND owner_type:group AND owner:(' . $userGroupString . '))';
 				$accessFilter .= ' ' . $groupFilter;
 			}
 
