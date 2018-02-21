@@ -99,6 +99,22 @@ class Asset extends Nested
 	}
 
 	/**
+	 * Generates automatic parent_id field value
+	 *
+	 * @param   array   $data  the data being saved
+	 * @return  string
+	 */
+	public function automaticParentId($data)
+	{
+		if (!isset($data['parent_id']) || $data['parent_id'] == 0)
+		{
+			$data['parent_id'] = self::getRootId();
+		}
+
+		return $data['parent_id'];
+	}
+
+	/**
 	 * Method to load an asset by it's name.
 	 *
 	 * @param   string  $name
