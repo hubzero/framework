@@ -457,10 +457,17 @@ class Composer
 		$remotePackages = array();
 		foreach ($remoteRepos as $repo)
 		{
-			$packages = $repo->getPackages();
-			foreach ($packages as $package)
+			if (method_exists($repo, "getRepoConfig"))
 			{
-				$remotePackages[$package->getName()] = $package;
+				$config = $repo->getRepoConfig();
+				if (is_array($config) && isset($config['type']) && $config['type'] != 'composer')
+				{
+					$packages = $repo->getPackages();
+					foreach ($packages as $package)
+					{
+						$remotePackages[$package->getName()] = $package;
+					}
+				}
 			}
 		}
 		return $remotePackages;
