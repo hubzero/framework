@@ -59,6 +59,13 @@ class Language extends Select
 			$client = 'site';
 		}
 
+		$client_id = 0;
+
+		if ($client == 'administrator')
+		{
+			$client_id = 1;
+		}
+
 		$path = PATH_APP . DS . 'bootstrap' . DS . $client;
 		if (!is_dir($path))
 		{
@@ -68,7 +75,7 @@ class Language extends Select
 		// Merge any additional options in the XML definition.
 		$options = array_merge(
 			parent::getOptions(),
-			App::get('language')->getList($this->value, $path, true, true)
+			App::get('language')->getList($this->value, $path, true, true, $client_id)
 		);
 
 		return $options;
