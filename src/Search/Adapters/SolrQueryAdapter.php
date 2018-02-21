@@ -75,11 +75,56 @@ class SolrQueryAdapter implements QueryInterface
 		// Create the client
 		$this->connection = new Solarium\Client($solrConfig);
 
+		// Add plugin to accept bigger requests
+		$this->connection->getPlugin('postbigrequest');
+
 		// Make config accessible
 		$this->config = $solrConfig;
 
 		// Create the Solr Query object
 		$this->query = $this->connection->createSelect();
+	}
+
+	/**		
+	 * Get MoreLikeThis		
+	 * 		
+	 * @access public		
+	 * @return SolariumQuery		
+	 */
+	public function getMoreLikeThis($terms)
+	{
+		// Get morelikethis settings
+		$mltQuery = $this->connection->createSelect();
+		$mltQuery->setQuery($terms)
+			->getMoreLikeThis()
+			->setFields('text');
+
+		// Executes the query and returns the result
+		$resultSet = $this->connection->select($mltQuery);
+		$mlt = $resultSet->getMoreLikeThis();
+
+		return $resultSet;
+	}
+
+	/**
+	 * spellCheck Returns terms suggestions
+	 * 
+	 * @param mixed $terms
+	 * @access public
+	 * @return dictionary
+	 */
+	public function spellCheck($terms)
+	{
+		// Set the spellCheck Query
+	$scQuery = $this->connection->createSelect();
+	$scQuery->setRows(0)
+			->getSpellcheck()
+			->setQuery($terms)
+			->setCount('5');
+		// This executes the query and returns the result
+		$spellcheckResults = $this->connection->select($scQuery)->getSpellcheck();
+
+		return $spellcheckResults;
 	}
 
 	/**
@@ -353,24 +398,14 @@ class SolrQueryAdapter implements QueryInterface
 			$accessFilter = "(access_level:public) OR (access_level:registered) " . $userFilter;
 
 			$userGroups = \Hubzero\User\Helper::getGroups($user);
-
+			$userGroups = array_map(function($group){
+				return $group->gidNumber;
+			}, $userGroups);
+			$userGroups = array_unique($userGroups);
 			if (!empty($userGroups))
 			{
-				$groupFilter = 'OR (access_level:private AND owner_type:group AND owner:(';
-				$i = 0;
-				foreach ($userGroups as $group)
-				{
-					$groupFilter .= $group->gidNumber;
-					if ($i >= count($userGroups) - 1)
-					{
-						$groupFilter .= '))';
-					}
-					else
-					{
-						$groupFilter .= ' OR ';
-					}
-					$i++;
-				}
+				$userGroupString = implode(' OR ', $userGroups);
+				$groupFilter = 'OR (access_level:private AND owner_type:group AND owner:(' . $userGroupString . '))';
 				$accessFilter .= ' ' . $groupFilter;
 			}
 
