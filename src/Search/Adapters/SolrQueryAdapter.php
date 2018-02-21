@@ -85,6 +85,48 @@ class SolrQueryAdapter implements QueryInterface
 		$this->query = $this->connection->createSelect();
 	}
 
+	/**		
+	 * Get MoreLikeThis		
+	 * 		
+	 * @access public		
+	 * @return SolariumQuery		
+	 */
+	public function getMoreLikeThis($terms)
+	{
+		// Get morelikethis settings
+		$mltQuery = $this->connection->createSelect();
+		$mltQuery->setQuery($terms)
+			->getMoreLikeThis()
+			->setFields('text');
+
+		// Executes the query and returns the result
+		$resultSet = $this->connection->select($mltQuery);
+		$mlt = $resultSet->getMoreLikeThis();
+
+		return $resultSet;
+	}
+
+	/**
+	 * spellCheck Returns terms suggestions
+	 * 
+	 * @param mixed $terms
+	 * @access public
+	 * @return dictionary
+	 */
+	public function spellCheck($terms)
+	{
+		// Set the spellCheck Query
+	$scQuery = $this->connection->createSelect();
+	$scQuery->setRows(0)
+			->getSpellcheck()
+			->setQuery($terms)
+			->setCount('5');
+		// This executes the query and returns the result
+		$spellcheckResults = $this->connection->select($scQuery)->getSpellcheck();
+
+		return $spellcheckResults;
+	}
+
 	/**
 	 * getSuggestions Returns indexed terms
 	 * 
