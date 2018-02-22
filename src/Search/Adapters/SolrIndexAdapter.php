@@ -240,7 +240,6 @@ class SolrIndexAdapter implements IndexInterface
 			$update->addDeleteQuery($deleteQuery);
 			$update->addCommit();
 			$response = $this->connection->update($update);
-			$this->optimize();
 			// @FIXME: Increase error checking 
 			// Wild assumption that the update was successful
 			return true;
