@@ -110,6 +110,17 @@ class Mysql
 	}
 
 	/**
+	 * Empty select values
+	 *
+	 * @return  void
+	 * @since   2.2.2
+	 **/
+	public function resetSelect()
+	{
+		$this->select = [];
+	}
+
+	/**
 	 * Sets a select element on the query
 	 *
 	 * @param   string  $column  The column to select
@@ -124,7 +135,7 @@ class Mysql
 		// This wouldn't get rid of table.* as that is likely added intentionally
 		if (isset($this->select[0]) && $this->select[0]['column'] == '*')
 		{
-			$this->select = [];
+			$this->resetSelect();
 		}
 
 		$this->select[] = [
@@ -389,6 +400,17 @@ class Mysql
 			'column' => $column,
 			'dir'    => $dir
 		];
+	}
+
+	/**
+	 * Resets an order element on the query
+	 *
+	 * @return  void
+	 * @since   2.2.2
+	 **/
+	public function resetOrder()
+	{
+		$this->order = [];
 	}
 
 	/**

@@ -1040,9 +1040,15 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	public function total()
 	{
 		// Note that we do not need to parse includes at this stage, as includes do not effect
-		// the primary result set, and thus do not effect the count.  whereRelated could effect
+		// the primary result set, and thus do not effect the count. whereRelated() could effect
 		// the count, but that method is not currently in use.
-		$first = $this->select($this->getQualifiedFieldName($this->getPrimaryKey()), 'count', true)
+		//
+		// We also reset the 'select' clause to avoid pulling unnecessary records and reset
+		// the 'order by' clause to avoid referenced fields in the aforementioned 'select' clauses
+		// that mgiht have been removed. Neither of these should have any effect on a count.
+		$first = $this->deselect()
+		              ->select($this->getQualifiedFieldName($this->getPrimaryKey()), 'count', true)
+		              ->unordered()
 		              ->rows(false)
 		              ->first();
 		              //->count;
@@ -1733,6 +1739,19 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		// Set state for future use
 		$this->setState('orderby', $this->orderBy);
 		$this->setState('orderdir', $this->orderDir);
+
+		return $this;
+	}
+
+	/**
+	 * Unsets the ordering
+	 *
+	 * @return  $this
+	 * @since   2.2.2
+	 **/
+	public function unordered()
+	{
+		$this->unorder();
 
 		return $this;
 	}

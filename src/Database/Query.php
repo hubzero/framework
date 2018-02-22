@@ -171,6 +171,18 @@ class Query
 	}
 
 	/**
+	 * Empties a query of current select values
+	 *
+	 * @return  $this
+	 * @since   2.2.2
+	 **/
+	public function deselect()
+	{
+		$this->syntax->resetSelect();
+		return $this;
+	}
+
+	/**
 	 * Applies a select field to the pending query
 	 *
 	 * @param   string  $column  The column to select
@@ -438,7 +450,7 @@ class Query
 	}
 
 	/**
-	 * Applies order by clause
+	 * Applies 'order by' clause
 	 *
 	 * @param   string  $column  The column to which the order by will apply
 	 * @param   string  $dir     The direction in which the results will be ordered
@@ -448,6 +460,18 @@ class Query
 	public function order($column, $dir)
 	{
 		$this->syntax->setOrder($column, $dir);
+		return $this;
+	}
+
+	/**
+	 * Removes 'order by' clause
+	 *
+	 * @return  $this
+	 * @since   2.0.0
+	 **/
+	public function unorder()
+	{
+		$this->syntax->resetOrder();
 		return $this;
 	}
 
