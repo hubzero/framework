@@ -59,7 +59,14 @@ class View extends Obj
 	protected $_basePath = null;
 
 	/**
-	 * The base override path
+	 * Root directory of the override
+	 *
+	 * @var  string
+	 */
+	protected $_overrideRoot = null;
+
+	/**
+	 * The override path
 	 *
 	 * @var  string
 	 */
@@ -125,7 +132,9 @@ class View extends Obj
 	 *                          charset: the character set to use for display<br/>
 	 *                          escape: the name (optional) of the function to use for escaping strings<br/>
 	 *                          base_path: the parent path (optional) of the views directory (defaults to the component folder)<br/>
-	 *                          template_plath: the path (optional) of the layout directory (defaults to base_path + /views/ + view name<br/>
+	 *                          template_path: the path (optional) of the layout directory (defaults to base_path + /views/ + view name<br/>
+	 *                          override_root: the root directory (optional) of the template override directory
+	 *                          override_path: the path (optional) of the template files inside override_root
 	 *                          helper_path: the path (optional) of the helper files (defaults to base_path + /helpers/)<br/>
 	 *                          layout: the layout (optional) to use to display the view
 	 * @return  void
@@ -136,16 +145,21 @@ class View extends Obj
 		//
 		// NOTE: This needs to come before getName()
 		// as it calls setPath()
-		if (!array_key_exists('override_path', $config))
+		if (!array_key_exists('override_root', $config))
 		{
-			$config['override_path'] = '';
+			$config['override_root'] = '';
 
 			if (\App::has('template'))
 			{
-				$config['override_path'] = \App::get('template')->path;
+				$config['override_root'] = \App::get('template')->path . '/html';
 			}
 		}
-		$this->_overridePath = $config['override_path'];
+		$this->_overrideRoot = $config['override_root'];
+
+		if (array_key_exists('override_path', $config))
+		{
+			$this->_overridePath = $config['override_path'];
+		}
 
 		// Set the view name
 		if (!array_key_exists('name', $config))
@@ -580,13 +594,21 @@ class View extends Obj
 		$this->addPath($type, $path);
 
 		// Always add the fallback directories as last resort
-		if ($type == 'template' && $this->_overridePath)
+		if ($type == 'template' && $this->_overrideRoot)
 		{
 			// Set the alternative template search dir
-			$component = strtolower(\App::get('request')->getCmd('option'));
-			$component = preg_replace('/[^A-Z0-9_\.-]/i', '', $component);
+			if (empty($this->_overridePath))
+			{
+				$component = strtolower(\App::get('request')->getCmd('option'));
+				$component = preg_replace('/[^A-Z0-9_\.-]/i', '', $component);
+				$this->_overridePath = $component . DIRECTORY_SEPARATOR . $this->getName();
+			}
+			else
+			{
+				$this->_overridePath = ltrim($this->_overridePath, DIRECTORY_SEPARATOR);
+			}
 
-			$path = $this->_overridePath . DIRECTORY_SEPARATOR . 'html' . DIRECTORY_SEPARATOR . $component . DIRECTORY_SEPARATOR . $this->getName();
+			$path = $this->_overrideRoot . DIRECTORY_SEPARATOR . $this->_overridePath;
 
 			$this->addPath($type, $path);
 		}
