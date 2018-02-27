@@ -60,19 +60,14 @@ class NativeStringProcessor implements StringProcessorInterface
 	 */
 	public function __construct(array $options = array())
 	{
-		foreach ($options as $option => $value)
+		if (isset($options['ascii_conversion']))
 		{
-			switch ($option)
-			{
-				case 'ascii_conversion':
-					$this->asciiConversion = (bool) $value;
-				break;
-				case 'aggressive':
-					$this->aggressive = (bool) $value;
-				break;
-				default:
-				break;
-			}
+			$this->asciiConversion = (bool) $options['ascii_conversion'];
+		}
+
+		if (isset($options['aggressive']))
+		{
+			$this->aggressive = (bool) $options['aggressive'];
 		}
 	}
 
@@ -80,7 +75,7 @@ class NativeStringProcessor implements StringProcessorInterface
 	 * Prepare a string
 	 *
 	 * @param   string  $string
-	 * @return  mixed
+	 * @return  string
 	 */
 	public function prepare($string)
 	{
@@ -96,7 +91,7 @@ class NativeStringProcessor implements StringProcessorInterface
 			$string = str_replace(array('@', '$', '[dot]', '(dot)'), array('at', 's', '.', '.'), $string);
 
 			// Remove special characters
-			$string = preg_replace("/[^a-zA-Z0-9-\.]/", "", $string);
+			$string = preg_replace("/[^a-zA-Z0-9-\.]/", '', $string);
 
 			// Strip multiple dots (.) to one. eg site......com to site.com
 			$string = preg_replace("/\.{2,}/", '.', $string);

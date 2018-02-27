@@ -43,7 +43,7 @@ interface StringProcessorInterface
 	 * Prepare a string
 	 *
 	 * @param   string  $string
-	 * @return  mixed
+	 * @return  string
 	 */
 	public function prepare($string);
 }
