@@ -86,6 +86,39 @@ class HandlerTest extends Basic
 
 		$this->assertTrue(is_array($messages), 'Getting all messages should return an array');
 		$this->assertCount(1, $messages, 'Total messages returned does not equal number added');
+
+		$handler = new Handler(new Memory);
+		$handler->message($item['message'], 'info');
+		$handler->message($item['message'], 'warning');
+		$handler->message($item['message'], 'info');
+
+		$messages = $handler->messages();
+
+		$this->assertCount(2, $messages, 'Duplicate message+type combinations should not be added');
+
+		// We should have only one 'info' and one 'warning'
+		$info = 0;
+		$warning = 0;
+		$msg = 0;
+		foreach ($messages as $message)
+		{
+			if ($message['message'] == $item['message'])
+			{
+				$msg++;
+			}
+			if ($message['type'] == 'info')
+			{
+				$info++;
+			}
+			if ($message['type'] == 'warning')
+			{
+				$warning++;
+			}
+		}
+
+		$this->assertEquals($msg, 2);
+		$this->assertEquals($info, 1);
+		$this->assertEquals($warning, 1);
 	}
 
 	/**

@@ -49,6 +49,7 @@ class Handler
 	 *
 	 * @param   object  $storage
 	 * @return  void
+	 * @codeCoverageIgnore
 	 */
 	public function __construct(MessageStore $storage)
 	{
