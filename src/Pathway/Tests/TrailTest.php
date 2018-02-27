@@ -286,5 +286,19 @@ class TrailTest extends Basic
 			}
 			$this->assertEquals(5, $i);
 		}
+
+		// both cycles must pass
+		$first = reset($items);
+
+		$i = 0;
+		foreach ($pathway as $key => $val)
+		{
+			if ($i > 3)
+			{
+				break;
+			}
+			$i++;
+		}
+		$this->assertEquals($first, $pathway->rewind());
 	}
 }
