@@ -79,7 +79,7 @@ class Profiler
 	{
 		$this->reset();
 
-		$this->prefix  = $prefix;
+		$this->prefix = $prefix;
 	}
 
 	/**
@@ -89,10 +89,10 @@ class Profiler
 	 */
 	public function reset()
 	{
-		$this->started  = $this->now();
-		$this->prefix   = '';
-		$this->marks    = array();
-		$this->memory   = memory_get_usage(true);
+		$this->started = $this->now();
+		$this->prefix  = '';
+		$this->marks   = array();
+		$this->memory  = memory_get_usage(true);
 	}
 
 	/**
@@ -208,10 +208,10 @@ class Profiler
 	public function summary()
 	{
 		$summary = array(
-			'start'   => $this->started(),
-			'end'     => $this->ended(),
-			'total'   => $this->duration(),
-			'memory'  => $this->memory()
+			'start'  => $this->started(),
+			'end'    => $this->ended(),
+			'total'  => $this->duration(),
+			'memory' => $this->memory()
 		);
 
 		return $summary;
