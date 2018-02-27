@@ -250,6 +250,7 @@ class TrailTest extends Basic
 	 * @covers  \Hubzero\Pathway\Trail::key
 	 * @covers  \Hubzero\Pathway\Trail::next
 	 * @covers  \Hubzero\Pathway\Trail::valid
+	 * @covers  \Hubzero\Pathway\Trail::rewind
 	 * @return  void
 	 **/
 	public function testIterator()
