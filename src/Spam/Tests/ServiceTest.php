@@ -103,7 +103,7 @@ class ServiceTest extends Basic
 
 		$isSpam = true;
 
-		$this->assertTrue($stub->learn('foo', $isSpam));
+		$this->assertTrue($stub->forget('foo', $isSpam));
 	}
 
 	/**
