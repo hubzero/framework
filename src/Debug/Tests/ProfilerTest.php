@@ -57,6 +57,26 @@ class ProfilerTest extends Basic
 	}
 
 	/**
+	 * Tests the __constructor.
+	 *
+	 * @covers  \Hubzero\Debug\Profiler::__construct
+	 * @return  void
+	 **/
+	public function testConstructor()
+	{
+		$instance = new Profiler();
+
+		$this->assertGreaterThan(0, $instance->started());
+		$this->assertGreaterThan(0, $instance->memory());
+		$this->assertEquals(count($instance->marks()), 0);
+		$this->assertEquals($instance->label(), '');
+
+		$instance = new Profiler('test');
+
+		$this->assertEquals($instance->label(), 'test');
+	}
+
+	/**
 	 * Tests the marks() method.
 	 *
 	 * @covers  \Hubzero\Debug\Profiler::marks

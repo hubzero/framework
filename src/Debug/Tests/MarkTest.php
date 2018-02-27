@@ -137,6 +137,7 @@ class MarkTest extends Basic
 	 *
 	 * @return  void
 	 * @covers  \Hubzero\Debug\Profile\Mark::toString
+	 * @covers  \Hubzero\Debug\Profile\Mark::__toString
 	 */
 	public function testToString()
 	{
@@ -145,6 +146,8 @@ class MarkTest extends Basic
 		$result = sprintf('%s: %.2F MiB - %d ms', 'test', 1048576 / 1024 / 1024, 1.5);
 
 		$this->assertEquals($mark->toString(), $result);
+		$this->assertEquals($mark->__toString(), $result);
+		$this->assertEquals((string)$mark, $result);
 	}
 
 	/**
