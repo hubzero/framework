@@ -1,4 +1,8 @@
 <?php
+/**
+ * @codeCoverageIgnore
+ */
+// @codeCoverageIgnoreStart
 return array(
 	'app' => array(
 		'application_env' => 'development',
@@ -23,3 +27,4 @@ return array(
 		'sitename_pagetitles' => '0',
 	),
 );
+// @codeCoverageIgnoreEnd
