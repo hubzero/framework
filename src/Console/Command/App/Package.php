@@ -65,7 +65,7 @@ class Package extends Base implements CommandInterface
 	 **/
 	public function show()
 	{
-		$package = $this->arguments->getOpt(3) ? $this->arguments->getOpt(3) : $this->arguments->getOpt('package');
+		$package = $this->arguments->getOpt('package');
 		if (!empty($package))
 		{
 			$versions = Composer::findRemotePackages($package, '*');
@@ -87,7 +87,7 @@ class Package extends Base implements CommandInterface
 	 **/
 	public function available()
 	{
-		$package = $this->arguments->getOpt(3) ? $this->arguments->getOpt(3) : $this->arguments->getOpt('package');
+		$package = $this->arguments->getOpt('package');
 		if (!empty($package))
 		{
 			$versions = Composer::findRemotePackages($package, '*');
@@ -142,7 +142,7 @@ class Package extends Base implements CommandInterface
 	 **/
 	public function update()
 	{
-		$package = $this->arguments->getOpt(3);
+		$package = $this->arguments->getOpt('package');
 		if (empty($package))
 		{
 			$this->output->error('A package name is required');
@@ -161,7 +161,7 @@ class Package extends Base implements CommandInterface
 	 **/
 	public function remove()
 	{
-		$package = $this->arguments->getOpt(3);
+		$package = $this->arguments->getOpt('package');
 		if (empty($package))
 		{
 			$this->output->error('A package name is required');
