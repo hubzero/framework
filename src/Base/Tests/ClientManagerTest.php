@@ -103,6 +103,8 @@ class ClientManagerTest extends Basic
 	 **/
 	public function testAppend()
 	{
+		$clients = ClientManager::client();
+
 		$foo = array(
 			'id' => 9,
 			'name' => 'foo',
@@ -114,8 +116,23 @@ class ClientManagerTest extends Basic
 		$bar->name = 'bar';
 		$bar->url = 'bar';
 
+		$tur = new \stdClass;
+		$tur->name = 'tur';
+		$tur->url = 'tur';
+
+		$glu = 'foobar';
+
+		ClientManager::append($tur);
 		ClientManager::append($foo);
 		ClientManager::append($bar);
+
+		$this->assertFalse(ClientManager::append($glu));
+
+		$client = ClientManager::client('tur', true);
+
+		$this->assertTrue(is_object($client));
+		$this->assertEquals($client->name, 'tur');
+		$this->assertEquals($client->id, count($clients));
 
 		$client = ClientManager::client(9);
 
