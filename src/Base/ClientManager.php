@@ -62,7 +62,7 @@ class ClientManager
 		{
 			self::$_clients = array();
 
-			$dirIterator = new \DirectoryIterator(__DIR__ . DS . 'Client');
+			$dirIterator = new \DirectoryIterator(__DIR__ . DIRECTORY_SEPARATOR . 'Client');
 			foreach ($dirIterator as $file)
 			{
 				if ($file->isDot() || $file->isDir())
@@ -120,14 +120,17 @@ class ClientManager
 	/**
 	 * Modify information on a client.
 	 *
-	 * @param   mixed    $client    A client identifier either an array or object
+	 * @param   integer  $client    A client identifier
 	 * @param   string   $property  Property to set
 	 * @param   mixed    $value     Value to set
 	 * @return  void
 	 */
 	public static function modify($client, $property, $value)
 	{
-		self::client($client)->$property = $value;
+		if ($cl = self::client($client))
+		{
+			$cl->$property = $value;
+		}
 	}
 
 	/**
