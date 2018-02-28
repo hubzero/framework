@@ -1,4 +1,7 @@
 <?php
+/**
+ * @codeCoverageIgnore
+ */
 return array(
 	'app' => array(
 		'application_env' => 'development',
