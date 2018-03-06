@@ -401,7 +401,6 @@ class View extends Obj
 				$this->_name = strtolower($r[3]);
 			}
 		}
-
 		return $this->_name;
 	}
 
@@ -523,13 +522,11 @@ class View extends Obj
 		{
 			$this->_path['template'] = str_replace($template, $layoutTemplate, $this->_path['template']);
 		}
-
 		// Load the template script
 		$this->_template = $this->find(
 			$this->_path['template'],
 			$this->createFileName('template', array('name' => $file))
 		);
-
 		// If alternate layout can't be found, fall back to default layout
 		if ($this->_template == false)
 		{
@@ -538,7 +535,6 @@ class View extends Obj
 				$this->createFileName('', array('name' => 'default' . ($tpl ? '_' . $tpl : $tpl)))
 			);
 		}
-
 		if ($this->_template != false)
 		{
 			// Unset so as not to introduce into template scope
@@ -601,15 +597,13 @@ class View extends Obj
 			{
 				$component = strtolower(\App::get('request')->getCmd('option'));
 				$component = preg_replace('/[^A-Z0-9_\.-]/i', '', $component);
-				$this->_overridePath = $component . DIRECTORY_SEPARATOR . $this->getName();
 			}
 			else
 			{
-				$this->_overridePath = ltrim($this->_overridePath, DIRECTORY_SEPARATOR);
+				$component = ltrim($this->_overridePath, DIRECTORY_SEPARATOR);
 			}
 
-			$path = $this->_overrideRoot . DIRECTORY_SEPARATOR . $this->_overridePath;
-
+			$path = $this->_overrideRoot . DIRECTORY_SEPARATOR . $component . DIRECTORY_SEPARATOR . $this->getName();
 			$this->addPath($type, $path);
 		}
 	}
@@ -675,11 +669,9 @@ class View extends Obj
 	protected function find($paths, $file)
 	{
 		$paths = is_array($paths) ? $paths : array($paths);
-
 		foreach ($paths as $path)
 		{
-			$fullname = $path . DIRECTORY_SEPARATOR . $file;
-
+			$fullname = $path . $file;
 			// Is the path based on a stream?
 			if (strpos($path, '://') === false)
 			{
