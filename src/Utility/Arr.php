@@ -108,10 +108,13 @@ class Arr
 	 */
 	public static function toObject(&$array, $class = 'stdClass')
 	{
-		$obj = null;
+		$obj = new $class;
+		if (is_object($array))
+		{
+			$array = (array)$array;
+		}
 		if (is_array($array))
 		{
-			$obj = new $class;
 			foreach ($array as $k => $v)
 			{
 				if (is_array($v))
@@ -463,8 +466,8 @@ class Arr
 				$locale = self::$sortLocale[$i];
 			}
 
-			$va = $a->{$key[$i]};
-			$vb = $b->{$key[$i]};
+			$va = $a->$key[$i];
+			$vb = $b->$key[$i];
 
 			if ((is_bool($va) or is_numeric($va)) and (is_bool($vb) or is_numeric($vb)))
 			{
@@ -526,6 +529,7 @@ class Arr
 	 * Function to randomly append pirate phrases to 
 	 * strings in an array.
 	 *
+	 * @codeCoverageIgnore
 	 * @param   array  $data
 	 * @return  array
 	 */
