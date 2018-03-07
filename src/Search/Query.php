@@ -55,15 +55,100 @@ class Query
 	}
 
 	/**
-	 * getSuggestions  - Returns an array of suggested terms given terms
-	 * 
-	 * @param mixed $terms 
+	 * Get MoreLikeThis
+	 *
 	 * @access public
-	 * @return void
+	 * @return SolariumQuery
+	 */
+	public function getMoreLikeThis($terms)
+	{
+		// Get morelikethis settings
+		$mltQuery = $this->connection->createSelect();
+		$mltQuery->setQuery($terms)
+			->getMoreLikeThis()
+			->setFields('text');
+		// Executes the query and returns the result
+		$resultSet = $this->connection->select($mltQuery);
+		$mlt = $resultSet->getMoreLikeThis();
+		return $resultSet;
+	}
+
+	/**
+	 * spellCheck Returns terms suggestions
+	 *
+	 * @param mixed $terms
+	 * @access public
+	 * @return dictionary
+	 */
+	public function spellCheck($terms)
+	{
+		// Set the spellCheck Query
+		$scQuery = $this->connection->createSelect();
+		$scQuery->setRows(0)
+				->getSpellcheck()
+				->setQuery($terms)
+				->setCount('5');
+		// This executes the query and returns the result
+		$spellcheckResults = $this->connection->select($scQuery)->getSpellcheck();
+		return $spellcheckResults;
+	}
+
+	/**
+	 * getSuggestions Returns indexed terms
+	 *
+	 * @param mixed $terms
+	 * @access public
+	 * @return array
 	 */
 	public function getSuggestions($terms)
 	{
-		$suggestions = $this->adapter->getSuggestions($terms);
+		// Rewrite for easier keyboard typing
+		$config = $this->config['endpoint']['hubsearch'];
+		// Create the base URL
+		$url = rtrim(Request::Root(), '/\\');
+		// Use the correct port
+		$url .= ':' . $config['port'];
+		// Use the correct core
+		$url .= '/solr/' . $config['core'];
+		// Perform a select operation
+		$url .= '/select?fl=id';
+		// Derive user permission filters
+		$this->restrictAccess();
+		$userPerms = $this->query->getFilterQuery('userPerms')->getQuery();
+		$url .= '&fq=' . $userPerms;
+		// Limit rows, not interested in results, just facets
+		$url .= '&rows=0';
+		// Select all, honestly doesn't matter
+		$url .= '&q=*:*';
+		// Enable Facets, set the mandatory field
+		$url .= '&facet=true&facet.field=author_auto&facet.field=tags_auto&facet.field=title_auto';
+		// Set the minimum count, could tweak to only most popular things
+		$url .= '&facet.mincount=1';
+		//  The actual searching part
+		$url .= '&facet.prefix=' . strtolower($terms);
+		// Make it JSON
+		$url .= '&wt=json';
+		$client = new \GuzzleHttp\Client();
+		$res = $client->get($url);
+		$resultSet = $res->json()['facet_counts']['facet_fields'];
+		$suggestions = array();
+		foreach ($resultSet as $results)
+		{
+			$x = 0;
+			foreach ($results as $i => $result)
+			{
+				if ($i % 2 == 0)
+				{
+					// Prevents too many results from being suggested
+					if ($x >= 10)
+					{
+						break;
+					}
+					array_push( $suggestions, $result);
+					$x++;
+				}
+			}
+		}
 		return $suggestions;
 	}
 
