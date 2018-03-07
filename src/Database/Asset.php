@@ -33,8 +33,10 @@
 
 namespace Hubzero\Database;
 
+use Hubzero\Access\Asset as Model;
+
 /**
- * Database asset helper class for Joomla permissions compatibility
+ * Database asset helper class for permissions compatibility
  */
 class Asset
 {
@@ -94,36 +96,35 @@ class Asset
 		$parentId = $this->getAssetParentId();
 		$name     = $this->getAssetName();
 		$title    = $this->getAssetTitle();
+		$title    = $title ?: $name;
 
-		// Get joomla jtable model for assets
-		$asset = \JTable::getInstance('Asset', 'JTable', array('dbo' => \App::get('db')));
-		$asset->loadByName($name);
+		// Get model for assets
+		$asset = Model::oneByName($name);
 
 		// Re-inject the asset id into the model
-		$this->model->set('asset_id', $asset->id);
+		$this->model->set('asset_id', $asset->get('id'));
 
-		if ($asset->getError())
+		// Prepare the asset to be stored
+		$asset->set('parent_id', $parentId);
+		$asset->set('name', $name);
+		$asset->set('title', $title);
+
+		if ($this->model->assetRules instanceof \JAccessRules || $this->model->assetRules instanceof \Hubzero\Access\Rules)
 		{
-			return false;
+			$asset->set('rules', (string)$this->model->assetRules);
 		}
 
 		// Specify how a new or moved node asset is inserted into the tree
 		if (!$this->model->get('asset_id', null) || $asset->parent_id != $parentId)
 		{
-			$asset->setLocation($parentId, 'last-child');
+			$parent = Model::one($parentId);
+
+			if (!$asset->saveAsLastChildOf($parent))
+			{
+				return false;
+			}
 		}
-
-		// Prepare the asset to be stored
-		$asset->parent_id = $parentId;
-		$asset->name      = $name;
-		$asset->title     = $title;
-
-		if ($this->model->assetRules instanceof \JAccessRules || $this->model->assetRules instanceof \Hubzero\Access\Rules)
-		{
-			$asset->rules = (string)$this->model->assetRules;
-		}
-
-		if (!$asset->check() || !$asset->store())
+		elseif (!$asset->save())
 		{
 			return false;
 		}
@@ -132,16 +133,18 @@ class Asset
 		if ($this->model->isNew())
 		{
 			$me = $this;
-			Event::listen(
+			\Event::listen(
 				function($event) use ($asset, $me)
 				{
-					$asset->name = $me->getAssetName();
-					$asset->store();
-				}, $this->model->getTableName() . '_new');
+					$asset->set('name', $me->getAssetName());
+					$asset->save();
+				},
+				$this->model->getTableName() . '_new'
+			);
 		}
 
 		// Return the id
-		return (int)$asset->id;
+		return (int)$asset->get('id');
 	}
 
 	/**
@@ -152,11 +155,11 @@ class Asset
 	 **/
 	public function delete()
 	{
-		$asset = \JTable::getInstance('Asset');
+		$asset = Model::oneByName($this->getAssetName());
 
-		if ($asset->loadByName($this->getAssetName()))
+		if ($asset->get('id'))
 		{
-			if (!$asset->delete())
+			if (!$asset->destroy())
 			{
 				return false;
 			}
@@ -203,15 +206,11 @@ class Asset
 		$assetId = null;
 
 		// Build the query to get the asset id for the parent category
-		$query = new Query;
-		$query->select('id')
-		      ->from('#__assets')
-		      ->whereEquals('name', 'com_' . $this->model->getNamespace());
+		$asset = Model::oneByName('com_' . $this->model->getNamespace());
 
-		if ($results = $query->fetch())
+		if ($asset->get('id'))
 		{
-			$result  = $results[0];
-			$assetId = (int)$result->id;
+			$assetId = (int)$asset->get('id');
 		}
 
 		return ($assetId) ? $assetId : $this->getRootId();
@@ -225,14 +224,13 @@ class Asset
 	 */
 	private function getRootId()
 	{
-		$assets = \JTable::getInstance('Asset', 'JTable', array('dbo' => \App::get('db')));
-		$rootId = $assets->getRootId();
+		$rootId = Model::getRootId();
 
-		if (!empty($rootId))
+		if (empty($rootId))
 		{
-			return $rootId;
+			$rootId = 1;
 		}
 
-		return 1;
+		return $rootId;
 	}
 }
