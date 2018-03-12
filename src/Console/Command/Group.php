@@ -130,7 +130,7 @@ class Group extends Base implements CommandInterface
 		// Set our needed args
 		$this->arguments->setOpt(3, $createWhat);
 		$this->arguments->setOpt('install-dir', $directory);
-		App::get('client')->call('scaffolding', 'create', $this->arguments, $this->output);
+		\App::get('client')->call('scaffolding', 'create', $this->arguments, $this->output);
 	}
 
 	/**
@@ -142,7 +142,7 @@ class Group extends Base implements CommandInterface
 	{
 		// Set our group arg & call migration
 		$this->arguments->setOpt('group', $this->group->get('cn'));
-		App::get('client')->call('migration', 'run', $this->arguments, $this->output);
+		\App::get('client')->call('migration', 'run', $this->arguments, $this->output);
 	}
 
 	/**
@@ -164,7 +164,7 @@ class Group extends Base implements CommandInterface
 
 		// Set our group directory & call update
 		$this->arguments->setOpt('r', $directory);
-		App::get('client')->call('repository', $task, $this->arguments, $this->output);
+		\App::get('client')->call('repository', $task, $this->arguments, $this->output);
 	}
 
 	/**
