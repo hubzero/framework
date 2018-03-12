@@ -467,8 +467,14 @@ class File extends Obj
 		}
 		else
 		{
-			$relative = rtrim(str_replace('/administrator', '', \Request::base(true)), '/') . substr($output, strlen(PATH_ROOT));
-			$relative = rtrim(\Request::root(true), '/') . rtrim(substr($output, strlen(PATH_ROOT)), '/');
+			if (strpos($output, PATH_ROOT) === 0)
+			{
+				$relative = rtrim(\Request::root(true), '/') . rtrim(substr($output, strlen(PATH_ROOT)), '/');
+			}
+			else if (strpos($output, PATH_CORE) === 0)
+			{
+				$relative = rtrim(\Request::root(true), '/') . "/core/" . rtrim(substr($output, strlen(PATH_CORE)), '/');
+			}
 		}
 
 		return $relative . ($timestamp ? '?v=' . $this->lastModified() : '');
