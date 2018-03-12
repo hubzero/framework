@@ -655,7 +655,7 @@ class Str
 
 	/**
 	 * Convert a string to snake case.
-	 * "this text is sname case" -> this_text_is_snake_case
+	 * "this text is snake case" -> this_text_is_snake_case
 	 *
 	 * @param   string  $value
 	 * @param   string  $delimiter
@@ -664,9 +664,12 @@ class Str
 	 */
 	public static function snake($value, $delimiter = '_')
 	{
-		$replace = '$1' . $delimiter . '$2';
-
-		return ctype_lower($value) ? $value : strtolower(preg_replace('/(.)([A-Z])/', $replace, $value));
+		if (!ctype_lower($value))
+		{
+			$value = preg_replace('/\s+/u', '', ucwords($value));
+			$value = strtolower(preg_replace('/(.)(?=[A-Z])/u', '$1' . $delimiter, $value));
+		}
+		return $value;
 	}
 
 	/**
