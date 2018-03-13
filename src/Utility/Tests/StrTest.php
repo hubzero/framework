@@ -232,4 +232,55 @@ class StrTest extends Basic
 
 		$this->assertFalse(Str::endsWith($string, $strings), 'String does not end with given value.');
 	}
+
+	/**
+	 * Tests prefixing a string to a specificed length.
+	 *
+	 * @covers  \Hubzero\Utility\Str::pad
+	 * @return  void
+	 **/
+	public function testPad()
+	{
+		$string = '5';
+
+		$result = Str::pad($string, 4);
+
+		$this->assertEquals(strlen($result), 4);
+		$this->assertEquals(substr($result, 0, 3), '000');
+		$this->assertEquals(substr($result, -1), $string);
+
+		$string = '05';
+
+		$result = Str::pad($string, 4);
+
+		$this->assertEquals(strlen($result), 4);
+		$this->assertEquals(substr($result, 0, 3), '000');
+		$this->assertEquals(substr($result, -1), $string);
+
+		$string = '12345';
+
+		$result = Str::pad($string, 4);
+
+		$this->assertEquals(strlen($result), 5);
+		$this->assertEquals($result, $string);
+	}
+
+	/**
+	 * Tests prefixing a string to a specificed length.
+	 *
+	 * @covers  \Hubzero\Utility\Str::obfuscate
+	 * @return  void
+	 **/
+	public function testObfuscate()
+	{
+		$string = 'test@example.com';
+
+		$result = Str::obfuscate($string);
+
+		$this->assertNotEquals($result, $string);
+
+		preg_match('/&#/', $result, $matches);
+
+		$this->assertTrue(count($matches) > 0);
+	}
 }
