@@ -599,6 +599,8 @@ abstract class Table extends Obj
 			return false;
 		}
 
+		\Event::trigger('system.onContentSave', array($this->getTableName(), $this));
+
 		// If the table is not set to track assets return true.
 		if (!$this->_trackAssets)
 		{
