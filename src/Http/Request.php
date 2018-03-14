@@ -210,7 +210,9 @@ class Request extends BaseRequest
 	 */
 	public function getInt($key, $default = 0, $hash = 'input')
 	{
-		preg_match('/-?[0-9]+/', (string) $this->getVar($key, $default, $hash), $matches);
+		$str = $this->getVar($key, $default, $hash);
+		$str = is_array($str) ? implode('', $str) : $str;
+		preg_match('/-?[0-9]+/', $str, $matches);
 		$result = @ $matches[0];
 		return (!is_null($result) ? (int) $result : $default);
 	}
@@ -239,7 +241,9 @@ class Request extends BaseRequest
 	 */
 	public function getFloat($name, $default = 0.0, $hash = 'input')
 	{
-		return preg_replace(static::$filters['float'], '', $this->getVar($key, $default, $hash));
+		$result = $this->getVar($key, $default, $hash);
+		$result = is_array($result) ? implode('', $result) : $result;
+		return preg_replace(static::$filters['float'], '', $result);
 	}
 
 	/**
@@ -252,7 +256,8 @@ class Request extends BaseRequest
 	 */
 	public function getBool($key = null, $default = null, $hash = 'input')
 	{
-		return (bool) $this->getVar($key, $default, $hash);
+		$result = (bool) $this->getVar($key, $default, $hash);
+		return $result ? true : false;
 	}
 
 	/**
@@ -265,7 +270,9 @@ class Request extends BaseRequest
 	 */
 	public function getWord($key, $default = null, $hash = 'input')
 	{
-		return preg_replace(static::$filters['word'], '', $this->getVar($key, $default, $hash));
+		$result = $this->getVar($key, $default, $hash);
+		$result = is_array($result) ? implode('', $result) : $result;
+		return preg_replace(static::$filters['word'], '', $result);
 	}
 
 	/**
@@ -278,7 +285,9 @@ class Request extends BaseRequest
 	 */
 	public function getCmd($key = null, $default = null, $hash = 'input')
 	{
-		$result = (string) preg_replace(static::$filters['cmd'], '', $this->getVar($key, $default, $hash));
+		$result = $this->getVar($key, $default, $hash);
+		$result = is_array($result) ? implode('', $result) : $result;
+		$result = (string) preg_replace(static::$filters['cmd'], '', $result);
 		return ltrim($result, '.');
 	}
 
@@ -305,7 +314,9 @@ class Request extends BaseRequest
 	 */
 	public function getString($name, $default = null, $hash = 'input')
 	{
-		return (string) $this->getVar($name, $default, $hash);
+		$result = $this->getVar($name, $default, $hash);
+		$result = is_array($result) ? implode('', $result) : $result;
+		return (string) $result;
 	}
 
 	/**
@@ -489,7 +500,7 @@ class Request extends BaseRequest
 		{
 			foreach (func_get_args() as $value)
 			{
-				if (! $this->has($value))
+				if (!$this->has($value))
 				{
 					return false;
 				}
@@ -503,7 +514,7 @@ class Request extends BaseRequest
 			return true;
 		}
 
-		return trim((string) $this->input($key)) !== '';
+		return (trim((string) $this->input($key)) !== '');
 	}
 
 	/**
