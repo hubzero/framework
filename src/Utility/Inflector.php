@@ -46,7 +46,7 @@ class Inflector
 		'equipment', 'information', 'rice', 'money',
 		'species', 'series', 'fish', 'meta', 'metadata',
 		'buffalo', 'elk', 'rhinoceros', 'salmon',
-		'bison', 'headquarters', 'series'
+		'bison', 'headquarters', 'moose'
 	);
 
 	/**
@@ -82,6 +82,7 @@ class Inflector
 	 * @var  array
 	 */
 	protected static $singular_rules = array(
+		'/(virus)es$/i'          => '\1',
 		'/(matr)ices$/i'         => '\1ix',
 		'/(vert|ind)ices$/i'     => '\1ex',
 		'/^(ox)en/i'             => '\1',
