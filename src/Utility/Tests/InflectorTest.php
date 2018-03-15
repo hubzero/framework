@@ -35,7 +35,7 @@ use Hubzero\Test\Basic;
 use Hubzero\Utility\Inflector;
 
 /**
- * Str utility test
+ * Inflector utility test
  */
 class InflectorTest extends Basic
 {
@@ -122,7 +122,7 @@ class InflectorTest extends Basic
 	/**
 	 * Tests is_countable
 	 *
-	 * @covers  \Hubzero\Utility\Str::is_countable
+	 * @covers  \Hubzero\Utility\Inflector::is_countable
 	 * @return  void
 	 **/
 	public function testIsCountable()
@@ -145,7 +145,7 @@ class InflectorTest extends Basic
 	/**
 	 * Tests pluralizing words
 	 *
-	 * @covers  \Hubzero\Utility\Str::pluralize
+	 * @covers  \Hubzero\Utility\Inflector::pluralize
 	 * @return  void
 	 **/
 	public function testPluralize()
@@ -168,7 +168,7 @@ class InflectorTest extends Basic
 	/**
 	 * Tests singularizing words
 	 *
-	 * @covers  \Hubzero\Utility\Str::singularize
+	 * @covers  \Hubzero\Utility\Inflector::singularize
 	 * @return  void
 	 **/
 	public function testSingularize()
