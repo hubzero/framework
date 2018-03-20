@@ -43,6 +43,11 @@ class DetectorTest extends Basic
 	 * Tests the match() method.
 	 *
 	 * @covers  \Hubzero\Browser\Detector::match
+	 * @covers  \Hubzero\Browser\Detector::agent
+	 * @covers  \Hubzero\Browser\Detector::name
+	 * @covers  \Hubzero\Browser\Detector::version
+	 * @covers  \Hubzero\Browser\Detector::platform
+	 * @covers  \Hubzero\Browser\Detector::_setPlatform
 	 * @return  void
 	 **/
 	public function testMatch()

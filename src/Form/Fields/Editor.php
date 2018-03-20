@@ -103,7 +103,7 @@ class Editor extends Field
 	 *
 	 * @return  object  The Editor object.
 	 */
-	protected function &getEditor()
+	protected function getEditor()
 	{
 		// Only create the editor if it is not already created.
 		if (empty($this->editor))
@@ -147,8 +147,8 @@ class Editor extends Field
 				}
 			}
 
-			// Create the JEditor instance based on the given editor.
-			$this->editor = Wysiwyg::getInstance($editor ? $editor : App::get('config')->get('editor', 'none'));
+			// Create the Editor instance based on the given editor.
+			$this->editor = $editor ? Wysiwyg::getInstance($editor) : App::get('editor');
 		}
 
 		return $this->editor;
