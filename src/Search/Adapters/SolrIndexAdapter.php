@@ -228,7 +228,7 @@ class SolrIndexAdapter implements IndexInterface
 	 *
 	 * @param string $id
 	 * @access public
-	 * @return boolean 
+	 * @return mixed string if error caught
 	 */
 	public function delete($query)
 	{
@@ -236,13 +236,20 @@ class SolrIndexAdapter implements IndexInterface
 
 		if (!empty($deleteQuery))
 		{
-			$update = $this->connection->createUpdate();
-			$update->addDeleteQuery($deleteQuery);
-			$update->addCommit();
-			$response = $this->connection->update($update);
-			// @FIXME: Increase error checking 
-			// Wild assumption that the update was successful
-			return true;
+			try
+			{
+				$update = $this->connection->createUpdate();
+				$update->addDeleteQuery($deleteQuery);
+				$update->addCommit();
+				$response = $this->connection->update($update);
+				return null;
+			}
+			catch (\Solarium\Exception\HttpException $e)
+			{
+				$body = json_decode($e->getBody());
+				$message = isset($body->error->msg) ? $body->error->msg : $e->getStatusMessage();
+				return $message;
+			}
 		}
 		else
 		{
@@ -261,6 +268,7 @@ class SolrIndexAdapter implements IndexInterface
 	public function updateIndex($document, $commitWithin = 3000)
 	{
 		$this->index($document, true, $commitWithin);
+		return $this->finalize();
 	}
 
 	/**
@@ -291,13 +299,23 @@ class SolrIndexAdapter implements IndexInterface
 	/**
 	 * Automatically flushes any remaining documents in the buffer
 	 *
-	 * @return void
+	 * @return mixed string if error caught/ null if successful
 	 */
-	public function __destruct()
+	public function finalize()
 	{
-		if (isset($this->bufferAdd))
+		try
 		{
-			$this->bufferAdd->flush($this->overwrite, $this->commitWithin);
+			if (isset($this->bufferAdd))
+			{
+				$this->bufferAdd->flush($this->overwrite, $this->commitWithin);
+			}
+			return null;
+		}
+		catch (\Solarium\Exception\HttpException $e)
+		{
+			$body = json_decode($e->getBody());
+			$message = isset($body->error->msg) ? $body->error->msg : $e->getStatusMessage();
+			return $message;
 		}
 	}
 }
