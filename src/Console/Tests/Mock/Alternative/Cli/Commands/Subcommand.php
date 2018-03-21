@@ -39,6 +39,8 @@ use Hubzero\Console\Arguments;
 
 /**
  * Alternative command class
+ *
+ * @codeCoverageIgnore
  **/
 class Subcommand extends Base implements CommandInterface
 {
