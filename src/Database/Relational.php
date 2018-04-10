@@ -1324,7 +1324,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 
 		// See if we're creating or updating
 		$method = $this->isNew() ? 'create' : 'modify';
-		$result = $this->$method($this->attributes);
+		$result = $this->$method();
 
 		// If creating, result is our new id, so set that back on the model
 		if ($this->isNew())
@@ -1339,8 +1339,25 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	}
 
 	/**
+	 * Filters out fields that are not actually a table column
+	 * @param	string	$table	The name of the database table
+	 * @param	array	$data	The attributes passed in to be saved to the table
+	 * @return	array
+	 **/
+	public function getTableColumnsOnly()
+	{
+		$data = $this->attributes;
+		$tableColumns = $this->getStructure()->getTableColumns($this->table);
+		if (!empty($tableColumns))
+		{
+			$data = array_intersect_key($data, $tableColumns);
+		}
+		return $data;
+	}
+
+
+	/**
 	 * Inserts a new row into the database
-	 *
 	 * @return  bool
 	 * @since   2.0.0
 	 **/
@@ -1348,13 +1365,12 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	{
 		// Add any automatic fields
 		$this->parseAutomatics('initiate');
-
-		return $this->query->push($this->getTableName(), $this->attributes);
+		$data = $this->getTableColumnsOnly();
+		return $this->query->push($this->getTableName(), $data);
 	}
 
 	/**
 	 * Updates an existing item in the database
-	 *
 	 * @return  bool
 	 * @since   2.0.0
 	 **/
@@ -1362,13 +1378,13 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	{
 		// Add any automatic fields
 		$this->parseAutomatics('renew');
-
+		$data = $this->getTableColumnsOnly();
 		// Return the result of the query
 		return $this->query->alter(
 			$this->getTableName(),
 			$this->getPrimaryKey(),
 			$this->getPkValue(),
-			$this->attributes
+			$data
 		);
 	}
 
