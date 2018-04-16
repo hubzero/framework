@@ -32,6 +32,7 @@ namespace Hubzero\Session\Storage;
 
 use Hubzero\Session\Store;
 use Hubzero\Redis\Database as RedisDatabase;
+use Exception;
 
 /**
  * Redis Session Storage class
@@ -43,7 +44,7 @@ class Redis extends Store
 	 *
 	 * @var  string
 	 */
-	private $prefix  = 'session:';
+	private $prefix = 'session:';
 
 	/**
 	 * Redis database connection
@@ -167,7 +168,7 @@ class Redis extends Store
 	 */
 	public function gc($maxlifetime = null)
 	{
-		error_log('redis gc');
+		//'redis gc';
 	}
 
 	/**
