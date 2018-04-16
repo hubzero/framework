@@ -187,7 +187,7 @@ class Passport implements ProviderInterface
 
 			try
 			{
-				$this->request->fetch(self::PASSPORT_API_ENDPOINT . 'badges/', $data, OAUTH_HTTP_METHOD_POST, array('Content-Type'=>'application/json'));
+				$this->request->fetch(self::PASSPORT_API_ENDPOINT . 'badges/', $data, OAUTH_HTTP_METHOD_POST, array('Content-Type' => 'application/json'));
 			}
 			catch (Exception $e)
 			{
@@ -259,11 +259,11 @@ class Passport implements ProviderInterface
 			$this->request->setAuthType(OAUTH_AUTH_TYPE_AUTHORIZATION);
 			try
 			{
-				$this->request->fetch(self::PASSPORT_API_ENDPOINT . "assertions/", $assertionsData, OAUTH_HTTP_METHOD_POST, array('Content-Type'=>'application/json'));
+				$this->request->fetch(self::PASSPORT_API_ENDPOINT . "assertions/", $assertionsData, OAUTH_HTTP_METHOD_POST, array('Content-Type' => 'application/json'));
 			}
 			catch (Exception $e)
 			{
-				error_log($e->getCode());
+				throw new Exception('Badge grant request failed.');
 			}
 
 			$assertion = json_decode($this->request->getLastResponse());
@@ -340,7 +340,7 @@ class Passport implements ProviderInterface
 	{
 		if (!$this->credentialsSet())
 		{
-			throw new \Exception('You need to set the credentials first.');
+			throw new Exception('You need to set the credentials first.');
 		}
 
 		if (!is_array($emailAddresses))
@@ -356,11 +356,11 @@ class Passport implements ProviderInterface
 			$this->request->setAuthType(OAUTH_AUTH_TYPE_URI);
 			try
 			{
-				$this->request->fetch($url, null, OAUTH_HTTP_METHOD_GET, array('Content-Type'=>'application/json'));
+				$this->request->fetch($url, null, OAUTH_HTTP_METHOD_GET, array('Content-Type' => 'application/json'));
 			}
 			catch (Exception $e)
 			{
-				error_log($e->getCode());
+				throw new Exception('Assertations by email request failed.');
 			}
 
 			$response = json_decode($this->request->getLastResponse());
