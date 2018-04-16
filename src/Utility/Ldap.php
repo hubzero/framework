@@ -38,9 +38,9 @@ class Ldap
 	 *
 	 * @var  array
 	 */
-	private static $errors  = array(
+	private static $errors = array(
 		'errors'   => true,
-		'fatal'	=> array(),
+		'fatal'    => array(),
 		'warnings' => array()
 	);
 
@@ -50,12 +50,32 @@ class Ldap
 	 * @var  array
 	 */
 	private static $success = array(
-		'success'  => true,
-		'added'	=> 0,
-		'deleted'  => 0,
-		'modified' => 0,
+		'success'   => true,
+		'added'     => 0,
+		'deleted'   => 0,
+		'modified'  => 0,
 		'unchanged' => 0
 	);
+
+	/**
+	 * Get the list of errors
+	 *
+	 * @return  array
+	 */
+	public static function getErrors()
+	{
+		return self::$errors;
+	}
+
+	/**
+	 * Get the list of success
+	 *
+	 * @return  array
+	 */
+	public static function getSuccess()
+	{
+		return self::$success;
+	}
 
 	/**
 	 * Get the LDAP connection
@@ -189,7 +209,7 @@ class Ldap
 
 		if (ldap_bind($conn, $acctman, $acctmanPW) == false)
 		{
-			$err	 = ldap_errno($conn);
+			$err     = ldap_errno($conn);
 			$errstr  = ldap_error($conn);
 			$errstr2 = ldap_err2str($err);
 
@@ -258,6 +278,17 @@ class Ldap
 		if (is_numeric($dbinfo['uid']) && $dbinfo['uid'] <= 0)
 		{
 			return false;
+		}
+
+		// Make sure we have a name
+		// If one isn't set, make it the same as the username
+		if (!trim($dbinfo['cn']))
+		{
+			$dbinfo['cn'] = $dbinfo['uid'];
+
+			$query = "UPDATE `#__users` SET `name`=" . $db->quote($dbinfo['uid']) . " WHERE `id`=" . $db->quote($dbinfo['uidNumber']) . ";";
+			$db->setQuery($query);
+			$db->query();
 		}
 
 		if (!empty($dbinfo))
@@ -495,7 +526,7 @@ class Ldap
 			return false;
 		}
 
-		$query = "SELECT g.gidNumber, g.cn, g.description FROM #__xgroups AS g ";
+		$query = "SELECT g.gidNumber, g.cn, g.description FROM `#__xgroups` AS g ";
 
 		if (is_numeric($group) && ($group >= 0))
 		{
@@ -511,7 +542,7 @@ class Ldap
 
 		if (!empty($dbinfo))
 		{
-			$query = "SELECT DISTINCT(u.username) AS memberUid FROM #__xgroups_members AS gm, #__users AS u WHERE gm.gidNumber = " . $db->quote($dbinfo['gidNumber']) . " AND gm.uidNumber=u.id;";
+			$query = "SELECT DISTINCT(u.username) AS memberUid FROM `#__xgroups_members` AS gm, `#__users` AS u WHERE gm.gidNumber = " . $db->quote($dbinfo['gidNumber']) . " AND gm.uidNumber=u.id;";
 			$db->setQuery($query);
 			$dbinfo['memberUid'] = $db->loadColumn();
 		}
@@ -823,7 +854,7 @@ class Ldap
 
 			if (!empty($addin))
 			{
-				$query = "SELECT username FROM #__users WHERE id IN ($addin) OR username IN ($addin);";
+				$query = "SELECT username FROM `#__users` WHERE id IN ($addin) OR username IN ($addin);";
 				$db->setQuery($query);
 				$add = $db->loadColumn();
 			}
@@ -852,7 +883,7 @@ class Ldap
 
 			if (!empty($deletein))
 			{
-				$query = "SELECT username FROM #__users WHERE id IN ($deletein) OR username IN ($deletein);";
+				$query = "SELECT username FROM `#__users` WHERE id IN ($deletein) OR username IN ($deletein);";
 				$db->setQuery($query);
 				$delete = $db->loadColumn();
 			}
@@ -879,7 +910,7 @@ class Ldap
 
 		$db = \App::get('db');
 
-		$query = "SELECT gidNumber FROM #__xgroups;";
+		$query = "SELECT gidNumber FROM `#__xgroups`;";
 
 		$db->setQuery($query);
 
@@ -922,7 +953,7 @@ class Ldap
 
 		$db = \App::get('db');
 
-		$query = "SELECT id FROM #__users;";
+		$query = "SELECT id FROM `#__users`;";
 
 		$db->setQuery($query);
 
@@ -1023,7 +1054,7 @@ class Ldap
 
 		$db = \App::get('db');
 
-		$query = "SELECT cn FROM #__xgroups;";
+		$query = "SELECT cn FROM `#__xgroups`;";
 
 		$db->setQuery($query);
 
