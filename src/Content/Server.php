@@ -130,11 +130,14 @@ class Server extends Obj
 	 */
 	public function allowXsendFile()
 	{
-		// is mod_xsendfile loaded & we have allowed xsendfile in config
-		if (in_array('mod_xsendfile', apache_get_modules())
-			&& \Config::get('allow_xsendfile', 0) == 1)
+		if (function_exists('apache_get_modules'))
 		{
-			self::$_allowxsendfle = true;
+			// is mod_xsendfile loaded & we have allowed xsendfile in config
+			if (in_array('mod_xsendfile', apache_get_modules())
+				&& \Config::get('allow_xsendfile', 0) == 1)
+			{
+				self::$_allowxsendfle = true;
+			}
 		}
 	}
 
