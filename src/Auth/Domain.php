@@ -103,7 +103,7 @@ class Domain extends Relational
 		if (strlen($alias) > 255)
 		{
 			$alias = substr($alias . ' ', 0, 255);
-			$alias = substr($alias, 0, strrpos($alias,' '));
+			$alias = substr($alias, 0, strrpos($alias, ' '));
 		}
 
 		return preg_replace("/[^a-zA-Z0-9]/", '', strtolower($alias));
@@ -130,7 +130,7 @@ class Domain extends Relational
 		return $this->oneToMany(__NAMESPACE__ . '\\Link', 'auth_domain_id');
 	}
 
-		/**
+	/**
 	 * Read a record
 	 *
 	 * @return  boolean  True on success, False on failure

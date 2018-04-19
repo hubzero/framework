@@ -266,7 +266,7 @@ class Link extends Relational
 		return $row;
 	}
 
-		/**
+	/**
 	 * Find a record by ID
 	 *
 	 * @param   integer  $id
