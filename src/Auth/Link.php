@@ -35,7 +35,7 @@ use Hubzero\Database\Relational;
 use Date;
 
 /**
- * Authentication Link data
+ * Authentication Link
  */
 class Link extends Relational
 {
