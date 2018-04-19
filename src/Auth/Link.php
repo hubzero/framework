@@ -31,118 +31,154 @@
 
 namespace Hubzero\Auth;
 
+use Hubzero\Database\Relational;
+use Date;
+
 /**
- * Authentication Link
+ * Authentication Link data
  */
-class Link
+class Link extends Relational
 {
 	/**
-	 * Record ID
-	 *
-	 * @var  integer
-	 */
-	private $id;
-
-	/**
-	 * User ID
-	 *
-	 * @var  integer
-	 */
-	private $user_id;
-
-	/**
-	 * Domain ID
-	 *
-	 * @var  integer
-	 */
-	private $auth_domain_id;
-
-	/**
-	 * Username
+	 * The table namespace
 	 *
 	 * @var  string
 	 */
-	private $username;
+	protected $namespace = 'auth';
 
 	/**
-	 * User email
+	 * The table to which the class pertains
+	 *
+	 * This will default to #__{namespace}_{modelName} unless otherwise
+	 * overwritten by a given subclass. Definition of this property likely
+	 * indicates some derivation from standard naming conventions.
 	 *
 	 * @var  string
 	 */
-	private $email;
+	protected $table = '#__auth_link';
 
 	/**
-	 * User password
+	 * Default order by for model
 	 *
 	 * @var  string
 	 */
-	private $password;
+	public $orderBy = 'id';
 
 	/**
-	 * Parameters
+	 * Default order direction for select queries
 	 *
 	 * @var  string
 	 */
-	private $params;
+	public $orderDir = 'asc';
 
 	/**
-	 * List of updated keys
+	 * Fields and their validation criteria
 	 *
 	 * @var  array
 	 */
-	private $_updatedkeys = array();
+	protected $rules = array(
+		'auth_domain_id' => 'positive|nonzero',
+		'username'       => 'notempty'
+	);
 
 	/**
-	 * Update all fields?
+	 * Defines a belongs to one relationship between entry and user
 	 *
-	 * @var  boolean
+	 * @return  object
 	 */
-	private $_updateAll = false;
-
-	/**
-	 * Constructor
-	 *
-	 * @return  void
-	 */
-	public function __construct()
+	public function user()
 	{
+		return $this->belongsToOne('Hubzero\User\User', 'user_id');
 	}
 
 	/**
-	 * Clear any existing data
+	 * Defines a belongs to one relationship between entry and user
 	 *
-	 * @return  void
+	 * @return  object
 	 */
-	public function clear()
+	public function domain()
 	{
-		$cvars = get_class_vars(__CLASS__);
+		return $this->belongsToOne(__NAMESPACE__ . '\\Domain', 'auth_domain_id');
+	}
 
-		$this->_updatedkeys = array();
+	/**
+	 * Get associated data
+	 *
+	 * @return  object
+	 */
+	public function data()
+	{
+		return $this->oneToMany(__NAMESPACE__ . '\\Link\\Data', 'link_id');
+	}
 
-		foreach ($cvars as $key => $value)
+	/**
+	 * Read a record
+	 *
+	 * @return  boolean  True on success, False on failure
+	 */
+	public function read()
+	{
+		if ($this->get('id'))
 		{
-			if ($key{0} != '_')
-			{
-				unset($this->$key);
-
-				$this->$key = null;
-			}
+			$row = self::oneOrNew($this->get('id'));
+		}
+		elseif ($this->get('user_id'))
+		{
+			$row = self::all()
+				->whereEquals('auth_domain_id', $this->get('auth_domain_id'))
+				->whereEquals('user_id', $this->get('user_id'))
+				->row();
+		}
+		elseif ($this->get('username'))
+		{
+			$row = self::all()
+				->whereEquals('auth_domain_id', $this->get('auth_domain_id'))
+				->whereEquals('username', $this->get('username'))
+				->row();
 		}
 
-		$this->_updateAll = false;
-		$this->_updatedkeys = array();
+		if (!$row || !$row->get('id'))
+		{
+			return false;
+		}
+
+		foreach (array_keys($this->getAttributes()) as $key)
+		{
+			$this->set($key, $row->get($key));
+		}
+
+		return true;
 	}
 
 	/**
-	 * Log a debug message
+	 * Create a record
 	 *
-	 * @param   string  $msg  Message to log
-	 * @return  void
+	 * @return  boolean  True on success, False on failure
 	 */
-	private function logDebug($msg)
+	public function create()
 	{
-		$xlog = \App::get('log')->logger('debug');
-		$xlog->debug($msg);
+		return $this->save();
+	}
+
+	/**
+	 * Update a record
+	 *
+	 * @param   boolean  $all  Update all properties?
+	 * @return  boolean
+	 */
+	public function update($all = false)
+	{
+		return $this->save();
+	}
+
+	/**
+	 * Delete a record
+	 *
+	 * @return  boolean
+	 */
+	public function delete()
+	{
+		return $this->destroy();
 	}
 
 	/**
@@ -154,39 +190,17 @@ class Link
 	 */
 	public static function getInstance($auth_domain_id, $username)
 	{
-		$hzal = new self();
-		$hzal->auth_domain_id = $auth_domain_id;
-		$hzal->username = $username;
+		$row = self::all()
+			->whereEquals('auth_domain_id', $auth_domain_id)
+			->whereEquals('username', $username)
+			->row();
 
-		$hzal->read();
-
-		if (!$hzal->id)
+		if (!$row || !$row->get('id'))
 		{
 			return false;
 		}
 
-		return $hzal;
-	}
-
-	/**
-	 * Find a record by ID
-	 *
-	 * @param   integer  $id
-	 * @return  mixed    Object on success, False on failure
-	 */
-	public static function find_by_id($id)
-	{
-		$hzal = new self();
-		$hzal->id = $id;
-
-		$hzal->read();
-
-		if (empty($hzal->auth_domain_id))
-		{
-			return false;
-		}
-
-		return $hzal;
+		return $row;
 	}
 
 	/**
@@ -196,513 +210,24 @@ class Link
 	 * @param   string   $username
 	 * @return  mixed
 	 */
-	public function createInstance($auth_domain_id, $username)
+	public static function createInstance($auth_domain_id, $username)
 	{
 		if (empty($auth_domain_id) || empty($username))
 		{
 			return false;
 		}
 
-		$instance = new self();
+		$row = self::blank();
+		$row->set('auth_domain_id', $auth_domain_id);
+		$row->set('username', $username);
+		$row->save();
 
-		$instance->auth_domain_id = $auth_domain_id;
-		$instance->username = $username;
-
-		$instance->create();
-
-		if (!$instance->id)
+		if (!$row->get('id'))
 		{
 			return false;
 		}
 
-		return $instance;
-	}
-
-	/**
-	 * Create a record
-	 *
-	 * @return  boolean
-	 */
-	public function create()
-	{
-		$db = \App::get('db');
-
-		if (empty($db))
-		{
-			return false;
-		}
-
-		if (is_numeric($this->id))
-		{
-			$query = "INSERT INTO `#__auth_link` (id,user_id,auth_domain_id,username,email,password,params) VALUES ( "
-				. $db->quote($this->id) .
-				"," . $db->quote($this->user_id) .
-				"," . $db->quote($this->auth_domain_id) .
-				"," . $db->quote($this->username) .
-				"," . $db->quote($this->email) .
-				"," . $db->quote($this->password) .
-				"," . $db->quote($this->params) .
-				");";
-
-			$db->setQuery($query);
-
-			$result = $db->query();
-
-			if ($result !== false || $db->getErrorNum() == 1062)
-			{
-				return true;
-			}
-		}
-		else
-		{
-			$query = "INSERT INTO `#__auth_link` (user_id,auth_domain_id,username,email,password,params) VALUES ( "
-				. $db->quote($this->user_id) .
-				"," . $db->quote($this->auth_domain_id) .
-				"," . $db->quote($this->username) .
-				"," . $db->quote($this->email) .
-				"," . $db->quote($this->password) .
-				"," . $db->quote($this->params) .
-				");";
-
-			$db->setQuery($query);
-
-			$result = $db->query();
-
-			if ($result === false && $db->getErrorNum() == 1062)
-			{
-				$query = "SELECT id FROM `#__auth_link` WHERE " .
-					"auth_domain_id=" . $db->quote($this->auth_domain_id) . " AND " .
-					"user_id=" . $db->quote($this->user_id) . ";";
-
-				$db->setQuery($query);
-
-				$result = $db->loadResult();
-
-				if ($result == null)
-				{
-					return false;
-				}
-
-				$this->id = $result;
-				return true;
-			}
-			else if ($result !== false)
-			{
-				$this->id = $db->insertid();
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Read a record
-	 *
-	 * @return  boolean
-	 */
-	public function read()
-	{
-		$db = \App::get('db');
-
-		if (empty($db))
-		{
-			return false;
-		}
-
-		if (is_numeric($this->id))
-		{
-			$query = "SELECT id,user_id,auth_domain_id,username,email,password,params FROM `#__auth_link` WHERE id=" .
-				$db->quote($this->id) . ";";
-		}
-		else if (is_numeric($this->user_id))
-		{
-			$query = "SELECT id,user_id,auth_domain_id,username,email,password,params FROM `#__auth_link` WHERE " .
-				" user_id=" . $db->quote($this->user_id) . " AND auth_domain_id=" . $db->quote($this->auth_domain_id) . ";";
-		}
-		else if (is_string($this->username))
-		{
-			$query = "SELECT id,user_id,auth_domain_id,username,email,password,params FROM `#__auth_link` WHERE " .
-				" username=" . $db->quote($this->username) . " AND auth_domain_id=" . $db->quote($this->auth_domain_id) . ";";
-
-		}
-
-		if (empty($query))
-		{
-			return false;
-		}
-
-		$db->setQuery($query);
-
-		$result = $db->loadAssoc();
-
-		if (empty($result))
-		{
-			return false;
-		}
-
-		$this->clear();
-
-		foreach ($result as $key => $value)
-		{
-			$this->__set($key, $value);
-		}
-
-		$this->_updatedkeys = array();
-
-		return true;
-	}
-
-	/**
-	 * Update a record
-	 *
-	 * @param   boolean  $all  Update all properties?
-	 * @return  boolean
-	 */
-	public function update($all = false)
-	{
-		$db =  \App::get('db');
-
-		$query = "UPDATE `#__auth_link` SET ";
-
-		$classvars = get_class_vars(__CLASS__);
-
-		$first = true;
-
-		foreach ($classvars as $property => $value)
-		{
-			if (($property{0} == '_'))
-			{
-				continue;
-			}
-
-			if (!$all && !in_array($property, $this->_updatedkeys))
-			{
-				continue;
-			}
-
-			if (!$first)
-			{
-				$query .= ',';
-			}
-			else
-			{
-				$first = false;
-			}
-
-			$value = $this->__get($property);
-
-			if ($value === null)
-			{
-				$query .= "`$property`=NULL";
-			}
-			else
-			{
-				$query .= "`$property`=" . $db->quote($value);
-			}
-		}
-
-		$query .= " WHERE `id`=" . $db->quote($this->__get('id')) . ";";
-
-		if ($first == true)
-		{
-			$query = '';
-		}
-
-		$db->setQuery($query);
-
-		if (!empty($query))
-		{
-			$result = $db->query();
-
-			if ($result === false)
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Delete a record
-	 *
-	 * @return  boolean
-	 */
-	public function delete()
-	{
-		$db = \App::get('db');
-
-		if (empty($db))
-		{
-			return false;
-		}
-
-		if (!isset($this->id))
-		{
-			$db->setQuery("SELECT id FROM `#__auth_link` WHERE user_id=" . $db->quote($this->user_id) . " AND auth_domain_id=" . $db->quote($this->auth_domain_id) . ";");
-
-			$this->id = $db->loadResult();
-		}
-
-		if (empty($this->id))
-		{
-			return false;
-		}
-
-		$db->setQuery("DELETE FROM `#__auth_link` WHERE id= " . $db->quote($this->id) . ";");
-
-		if (!$db->query())
-		{
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Retrieve the value of a property
-	 *
-	 * @param   string  $property  Property name
-	 * @return  mixed
-	 */
-	public function __get($property = null)
-	{
-		if (!property_exists(__CLASS__, $property) || $property{0} == '_')
-		{
-			if (empty($property))
-			{
-				$property = '(null)';
-			}
-
-			$this->_error("Cannot access property " . __CLASS__ . "::$" . $property, E_USER_ERROR);
-			die();
-		}
-
-		if (isset($this->$property))
-		{
-			return $this->$property;
-		}
-
-		if (array_key_exists($property, get_object_vars($this)))
-		{
-			return null;
-		}
-
-		$this->_error("Undefined property " . __CLASS__ . "::$" . $property, E_USER_NOTICE);
-
-		return null;
-	}
-
-	/**
-	 * Set a property
-	 *
-	 * @param   string  $property  Property name
-	 * @param   mixed   $value     Value to set
-	 * @return  void
-	 */
-	public function __set($property = null, $value = null)
-	{
-		if (!property_exists(__CLASS__, $property) || $property{0} == '_')
-		{
-			if (empty($property))
-			{
-				$property = '(null)';
-			}
-
-			$this->_error("Cannot access property " . __CLASS__ . "::$" . $property, E_USER_ERROR);
-			die();
-		}
-
-		$this->$property = $value;
-
-		if (!in_array($property, $this->_updatedkeys))
-		{
-			$this->_updatedkeys[] = $property;
-		}
-	}
-
-	/**
-	 * Check if a propety is set
-	 *
-	 * @param   string   $property  Property name
-	 * @return  boolean
-	 */
-	public function __isset($property = null)
-	{
-		if (!property_exists(__CLASS__, $property) || $property{0} == '_')
-		{
-			if (empty($property))
-			{
-				$property = '(null)';
-			}
-
-			$this->_error("Cannot access property " . __CLASS__ . "::$" . $property, E_USER_ERROR);
-			die();
-		}
-
-		return isset($this->$property);
-	}
-
-	/**
-	 * Unset a property
-	 *
-	 * @param   string  $property  Property name
-	 * @return  void
-	 */
-	public function __unset($property = null)
-	{
-		if (!property_exists(__CLASS__, $property) || $property{0} == '_')
-		{
-			if (empty($property))
-			{
-				$property = '(null)';
-			}
-
-			$this->_error("Cannot access property " . __CLASS__ . "::$" . $property, E_USER_ERROR);
-			die();
-		}
-
-		$this->_updatedkeys = array_diff($this->_updatedkeys, array($property));
-
-		unset($this->$property);
-	}
-
-	/**
-	 * Display an error
-	 *
-	 * @param   string   $message  Error message
-	 * @param   integer  $level    Error level
-	 * @return  void
-	 */
-	private function _error($message, $level = E_USER_NOTICE)
-	{
-		$caller = next(debug_backtrace());
-
-		switch ($level)
-		{
-			case E_USER_NOTICE:
-				echo "Notice: ";
-				break;
-			case E_USER_ERROR:
-				echo "Fatal error: ";
-				break;
-			default:
-				echo "Unknown error: ";
-				break;
-		}
-
-		echo $message . ' in ' . $caller['file'] . ' on line ' . $caller['line'] . "\n";
-	}
-
-	/**
-	 * Return array of linked accounts associated with a given user id
-	 * Also include auth domain name for easy display of domain name
-	 *
-	 * @param   integer  $user_id  ID of user to return accounts for
-	 * @return  array    Array of auth link entries for the given user_id
-	 */
-	public static function find_by_user_id($user_id = null)
-	{
-		if (empty($user_id))
-		{
-			return false;
-		}
-
-		$db = \App::get('db');
-
-		if (empty($db))
-		{
-			return false;
-		}
-
-		$sql  = "SELECT l.*, d.authenticator as auth_domain_name FROM `#__auth_link` as l, `#__auth_domain` as d";
-		$sql .= " WHERE l.auth_domain_id = d.id AND l.user_id = " . $db->quote($user_id);
-
-		$db->setQuery($sql);
-
-		$result = $db->loadAssocList();
-
-		if (empty($result))
-		{
-			return false;
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Return array of linked accounts associated with a given email address
-	 * Also include auth domain name for easy display of domain name
-	 *
-	 * @param   string  $email  Email address to match accounts against
-	 * @return  array   Array of auth link entries for the given user_id
-	 */
-	public static function find_by_email($email = null, $exclude = array())
-	{
-		if (empty($email))
-		{
-			return false;
-		}
-
-		$db = \App::get('db');
-
-		if (empty($db))
-		{
-			return false;
-		}
-
-		$sql  = "SELECT l.*, d.authenticator as auth_domain_name FROM `#__auth_link` as l, `#__auth_domain` as d";
-		$sql .= " WHERE l.auth_domain_id = d.id AND l.email = " . $db->quote($email);
-
-		if (!empty($exclude[0]))
-		{
-			foreach ($exclude as $e)
-			{
-				$sql .= " AND l.auth_domain_id != " . $db->quote($e);
-			}
-		}
-
-		$db->setQuery($sql);
-
-		$result = $db->loadAssocList();
-
-		if (empty($result))
-		{
-			return false;
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Delete a record by User ID
-	 *
-	 * @param   integer  $uid  User ID
-	 * @return  boolean
-	 */
-	public static function delete_by_user_id($uid = null)
-	{
-		if (empty($uid))
-		{
-			return true;
-		}
-
-		$db = \App::get('db');
-
-		if (empty($db))
-		{
-			return false;
-		}
-
-		$db->setQuery("DELETE FROM `#__auth_link` WHERE `user_id`= " . $db->quote($uid) . ";");
-
-		if (!$db->query())
-		{
-			return false;
-		}
-
-		return true;
+		return $row;
 	}
 
 	/**
@@ -728,18 +253,35 @@ class Link
 			return false;
 		}
 
-		$hzal = new self();
-		$hzal->username = $username;
-		$hzal->auth_domain_id = $hzad->id;
+		$row = self::all()
+			->whereEquals('auth_domain_id', $hzad->get('id'))
+			->whereEquals('username', $username)
+			->row();
 
-		$hzal->read();
-
-		if (empty($hzal->id))
+		if (!$row || !$row->get('id'))
 		{
 			return false;
 		}
 
-		return $hzal;
+		return $row;
+	}
+
+		/**
+	 * Find a record by ID
+	 *
+	 * @param   integer  $id
+	 * @return  mixed    Object on success, False on failure
+	 */
+	public static function find_by_id($id)
+	{
+		$row = self::oneOrNew($id);
+
+		if (!$row->get('id'))
+		{
+			return false;
+		}
+
+		return $row;
 	}
 
 	/**
@@ -755,7 +297,7 @@ class Link
 	{
 		$hzad = Domain::find_or_create($type, $authenticator, $domain);
 
-		if (!is_object($hzad))
+		if (!$hzad)
 		{
 			return false;
 		}
@@ -765,18 +307,57 @@ class Link
 			return false;
 		}
 
-		$hzal = new self();
-		$hzal->username = $username;
-		$hzal->auth_domain_id = $hzad->id;
+		$row = self::all()
+			->whereEquals('auth_domain_id', $hzad->get('id'))
+			->whereEquals('username', $username)
+			->row();
 
-		$hzal->read();
+		if (!$row || !$row->get('id'))
+		{
+			$row = self::blank();
+			$row->set('auth_domain_id', $hzad->get('id'));
+			$row->set('username', $username);
+			$row->save();
+		}
 
-		if (empty($hzal->id) && !$hzal->create())
+		if (!$row->get('id'))
 		{
 			return false;
 		}
 
-		return $hzal;
+		return $row;
+	}
+
+	/**
+	 * Return array of linked accounts associated with a given user id
+	 * Also include auth domain name for easy display of domain name
+	 *
+	 * @param   integer  $user_id  ID of user to return accounts for
+	 * @return  array    Array of auth link entries for the given user_id
+	 */
+	public static function find_by_user_id($user_id = null)
+	{
+		if (empty($user_id))
+		{
+			return false;
+		}
+
+		$l = self::blank()->getTableName();
+		$d = Domain::blank()->getTableName();
+
+		$results = self::all()
+			->select($l . '.*')
+			->select($d . '.authenticator', 'auth_domain_name')
+			->join($d, $d . '.id', $l . '.auth_domain_id', 'inner')
+			->whereEquals($l . '.user_id', $user_id)
+			->rows();
+
+		if (empty($results))
+		{
+			return false;
+		}
+
+		return $results->toArray();
 	}
 
 	/**
@@ -785,31 +366,51 @@ class Link
 	 * @param   integer  $user_id  USer ID
 	 * @return  mixed
 	 */
-	public function find_trusted_emails($user_id)
+	public static function find_trusted_emails($user_id)
 	{
 		if (empty($user_id) || !is_numeric($user_id))
 		{
 			return false;
 		}
 
-		$db = \App::get('db');
+		$results = self::all()
+			->whereEquals('user_id', $user_id)
+			->rows()
+			->fieldsByKey('email');
 
-		if (empty($db))
+		if (empty($results))
 		{
 			return false;
 		}
 
-		$sql = "SELECT email FROM `#__auth_link` WHERE `user_id` = " . $db->quote($user_id) . ";";
+		return $results;
+	}
 
-		$db->setQuery($sql);
-
-		$result = $db->loadColumn();
-
-		if (empty($result))
+	/**
+	 * Delete a record by User ID
+	 *
+	 * @param   integer  $user_id  User ID
+	 * @return  boolean
+	 */
+	public static function delete_by_user_id($user_id = null)
+	{
+		if (empty($uid))
 		{
-			return false;
+			return true;
 		}
 
-		return $result;
+		$results = self::all()
+			->whereEquals('user_id', $user_id)
+			->rows();
+
+		foreach ($results as $result)
+		{
+			if (!$result->destroy())
+			{
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
