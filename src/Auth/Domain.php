@@ -263,7 +263,7 @@ class Domain extends Relational
 	{
 		$hzad = self::oneOrNew($id);
 
-		if (empty($hzad->authenticator))
+		if (!$hzad->get('authenticator'))
 		{
 			return false;
 		}
