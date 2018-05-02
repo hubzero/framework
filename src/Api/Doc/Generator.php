@@ -196,6 +196,17 @@ class Generator
 			// add all matching files to section
 			$this->sections[$component] = glob($path . DS . 'controllers' . DS . '*.php');
 		}
+
+		foreach (glob(PATH_APP . DS . 'components' . DS . 'com_*' . DS . 'api') as $path)
+		{
+			// get component
+			$pieces = explode(DS, $path);
+			array_pop($pieces);
+			$component = str_replace('com_', '', array_pop($pieces));
+
+			// add all matching files to section
+			$this->sections[$component] = glob($path . DS . 'controllers' . DS . '*.php');
+		}
 	}
 
 	/** 
@@ -212,7 +223,7 @@ class Generator
 		// loop through each component grouping
 		foreach ($sections as $component => $files)
 		{
-			// if we dont have an array for that component lets create it
+			// if we dont have an array for that component let's create it
 			if (!isset($output[$component]))
 			{
 				$output[$component] = [];
@@ -221,6 +232,10 @@ class Generator
 			// loop through each file
 			foreach ($files as $file)
 			{
+				if (!preg_match('/(.*)v[0-9]+_[0-9]+.php$/', $file))
+				{
+					continue;
+				}
 				$output[$component] = array_merge($output[$component], $this->processFile($file));
 			}
 		}
@@ -376,8 +391,8 @@ class Generator
 			$parts['namespace']  = $parts[0];
 			$parts['component']  = $parts[1];
 			$parts['client']     = $parts[2];
-			$parts['controller'] = $parts[3];
-			$b = explode('v', $parts[3]);
+			$parts['controller'] = $parts[4];
+			$b = explode('v', $parts[4]);
 			$parts['version']    = end($b);//$parts[4];
 			return $parts;
 		}
