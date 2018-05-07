@@ -413,4 +413,49 @@ class Link extends Relational
 
 		return true;
 	}
+
+	/**
+	 * Return array of linked accounts associated with a given email address
+	 * Also include auth domain name for easy display of domain name
+	 *
+	 * @param   string  $email
+	 * @return  mixed
+	 */
+	public static function find_by_email($email, $exclude = array())
+	{
+		if (empty($email))
+		{
+			return false;
+		}
+
+		$query = self::all()
+			->whereEquals('email', $email);
+
+		if (!empty($exclude[0]))
+		{
+			foreach ($exclude as $e)
+			{
+				$query->where('auth_domain_id', '!=', $e);
+			}
+		}
+
+		$rows = $query->rows();
+
+		$results = array();
+
+		foreach ($rows as $row)
+		{
+			$result = $row->toArray();
+			$result['auth_domain_name'] = $row->domain->get('authenticator');
+
+			$results[] = $result;
+		}
+
+		if (empty($results))
+		{
+			return false;
+		}
+
+		return $results;
+	}
 }
