@@ -419,6 +419,7 @@ class Link extends Relational
 	 * Also include auth domain name for easy display of domain name
 	 *
 	 * @param   string  $email
+	 * @param   array   $exclude
 	 * @return  mixed
 	 */
 	public static function find_by_email($email, $exclude = array())
