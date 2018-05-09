@@ -223,7 +223,14 @@ class Processor extends Obj
 
 		if ($this->image_type == IMAGETYPE_JPEG)
 		{
-			$this->exif_data = exif_read_data($this->source);
+			try
+			{
+				$this->exif_data = exif_read_data($this->source);
+			}
+			catch (Exception $e)
+			{
+				$this->exif_data = array();
+			}
 			if (isset($this->exif_data['Orientation']))
 			{
 				switch ($this->exif_data['Orientation'])
@@ -468,7 +475,14 @@ class Processor extends Obj
 			return false;
 		}
 
-		$this->exif_data = exif_read_data($this->source);
+		try
+		{
+			$this->exif_data = exif_read_data($this->source);
+		}
+		catch (Exception $e)
+		{
+			$this->exif_data = array();
+		}
 
 		if (isset($this->exif_data['GPSLatitude']))
 		{
