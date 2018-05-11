@@ -377,6 +377,36 @@ class Query
 	}
 
 	/**
+	 * Applies a simple where not in clause to the pending query
+	 *
+	 * @param   string  $column  The column to which the clause will apply
+	 * @param   array   $value   The values to which the column will be evaluated
+	 * @param   int     $depth   The depth level of the clause, for sub clauses
+	 * @return  $this
+	 * @since   2.0.0
+	 **/
+	public function whereNotIn($column, $values, $depth = 0)
+	{
+		$this->where($column, 'NOT IN', $values, 'and', $depth);
+		return $this;
+	}
+
+	/**
+	 * Applies a simple where not in clause to the pending query
+	 *
+	 * @param   string  $column  The column to which the clause will apply
+	 * @param   array   $value   The values to which the column will be evaluated
+	 * @param   int     $depth   The depth level of the clause, for sub clauses
+	 * @return  $this
+	 * @since   2.0.0
+	 **/
+	public function orWhereNotIn($column, $values, $depth = 0)
+	{
+		$this->where($column, 'NOT IN', $values, 'or', $depth);
+		return $this;
+	}
+
+	/**
 	 * Applies a simple where like clause to the pending query
 	 *
 	 * @param   string  $column  The column to which the clause will apply
