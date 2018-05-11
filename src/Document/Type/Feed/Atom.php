@@ -78,7 +78,7 @@ class Atom extends Renderer
 			$data->title = App::get('language')->txt('JPAGETITLE', $data->title, App::get('config')->get('sitename'));
 		}
 
-		$feed_title = htmlspecialchars($title, ENT_COMPAT, 'UTF-8');
+		$feed_title = htmlspecialchars($data->title, ENT_COMPAT, 'UTF-8');
 
 		$feed  = "<feed xmlns=\"http://www.w3.org/2005/Atom\" ";
 		if ($data->language != "")
