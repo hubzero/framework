@@ -274,25 +274,25 @@ class Ldap
 		$db->setQuery($query);
 		$dbinfo = $db->loadAssoc();
 
-		// Don't sync usernames that are negative numbers (these are auth_link temp accounts)
-		if (is_numeric($dbinfo['uid']) && $dbinfo['uid'] <= 0)
-		{
-			return false;
-		}
-
-		// Make sure we have a name
-		// If one isn't set, make it the same as the username
-		if (!trim($dbinfo['cn']))
-		{
-			$dbinfo['cn'] = $dbinfo['uid'];
-
-			$query = "UPDATE `#__users` SET `name`=" . $db->quote($dbinfo['uid']) . " WHERE `id`=" . $db->quote($dbinfo['uidNumber']) . ";";
-			$db->setQuery($query);
-			$db->query();
-		}
-
 		if (!empty($dbinfo))
 		{
+			// Don't sync usernames that are negative numbers (these are auth_link temp accounts)
+			if (is_numeric($dbinfo['uid']) && $dbinfo['uid'] <= 0)
+			{
+				return false;
+			}
+
+			// Make sure we have a name
+			// If one isn't set, make it the same as the username
+			if (!trim($dbinfo['cn']) && $dbinfo['uid'])
+			{
+				$dbinfo['cn'] = $dbinfo['uid'];
+
+				$query = "UPDATE `#__users` SET `name`=" . $db->quote($dbinfo['uid']) . " WHERE `id`=" . $db->quote($dbinfo['uidNumber']) . ";";
+				$db->setQuery($query);
+				$db->query();
+			}
+
 			$query = "SELECT host FROM `#__xprofiles_host` WHERE uidNumber = " . $db->quote($dbinfo['uidNumber']) . ";";
 			$db->setQuery($query);
 			$dbinfo['host'] = $db->loadColumn();
