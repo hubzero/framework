@@ -263,6 +263,13 @@ class StrTest extends Basic
 
 		$this->assertEquals(strlen($result), 5);
 		$this->assertEquals($result, $string);
+
+		$string = -5;
+
+		$result = Str::pad($string, 4);
+
+		$this->assertEquals(strlen($result), 5);
+		$this->assertEquals($result, 'n0005');
 	}
 
 	/**
@@ -282,5 +289,74 @@ class StrTest extends Basic
 		preg_match('/&#/', $result, $matches);
 
 		$this->assertTrue(count($matches) > 0);
+	}
+
+	/**
+	 * Tests if a given string is truncated starting from the end.
+	 *
+	 * @covers  \Hubzero\Utility\Str::tail
+	 * @return  void
+	 **/
+	public function testTail()
+	{
+		$string = 'Cras mattis consectetur purus sit amet fermentum.';
+		$options = array();
+
+		$result = Str::tail($string, 200, $options);
+
+		$this->assertEquals($result, $string);
+
+		$result = Str::tail($string, 25, $options);
+
+		$this->assertEquals($result, '...us sit amet fermentum.');
+		$this->assertEquals(strlen($result), 25);
+
+		$options['ellipsis'] = '!!!';
+		$result = Str::tail($string, 25, $options);
+
+		$this->assertEquals($result, '!!!us sit amet fermentum.');
+
+		$options['exact'] = false;
+		$result = Str::tail($string, 25, $options);
+
+		$this->assertEquals($result, '!!!sit amet fermentum.');
+	}
+
+	/**
+	 * Tests if a given string is truncated starting from the end.
+	 *
+	 * @covers  \Hubzero\Utility\Str::insert
+	 * @return  void
+	 **/
+	public function testInsert()
+	{
+		$result = Str::insert(':name is :age years old.', array('name' => 'Bob', 'age' => '65'));
+
+		$this->assertEquals($result, 'Bob is 65 years old.');
+
+		$result = Str::insert('*name is *age years old.', array('name' => 'Bob', 'age' => '65'), array('before' => '*'));
+
+		$this->assertEquals($result, 'Bob is 65 years old.');
+
+		$result = Str::insert('*name* is *age* years *old.', array('name' => 'Bob', 'age' => '65'), array('before' => '*', 'after' => '*'));
+
+		$this->assertEquals($result, 'Bob is 65 years *old.');
+	}
+
+	/**
+	 * Tests replacing &amp; with & for XHTML compliance
+	 *
+	 * @covers  \Hubzero\Utility\Str::ampReplace
+	 * @return  void
+	 **/
+	public function testAmpReplace()
+	{
+		$result = Str::ampReplace('foo=bar&one=two');
+
+		$this->assertEquals($result, 'foo=bar&amp;one=two');
+
+		$result = Str::ampReplace('Cras mattis &#f0c2; consectetur & purus &amp; sit &&amp; amet &amp;amp; fermentum.');
+
+		$this->assertEquals($result, 'Cras mattis &#f0c2; consectetur &amp; purus &amp; sit &&amp; amet &amp; fermentum.');
 	}
 }
