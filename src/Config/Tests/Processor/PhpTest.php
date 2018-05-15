@@ -31,6 +31,8 @@ namespace Hubzero\Config\Tests\Processor;
 
 use Hubzero\Test\Basic;
 use Hubzero\Config\Processor\Php;
+use Hubzero\Config\Exception\ParseException;
+use Hubzero\Config\Exception\UnsupportedFormatException;
 use stdClass;
 
 /**
@@ -69,6 +71,18 @@ return array(
 	\'app\' => array("application_env" => "development", "editor" => "ckeditor", "list_limit" => "25", "helpurl" => "English (GB) - HUBzero help", "debug" => "1", "debug_lang" => "0", "sef" => "1", "sef_rewrite" => "1", "sef_suffix" => "0", "sef_groups" => "0", "feed_limit" => "10", "feed_email" => "author"),
 	\'seo\' => array("sef" => "1", "sef_groups" => "0", "sef_rewrite" => "1", "sef_suffix" => "0", "unicodeslugs" => "0", "sitename_pagetitles" => "0"),
 );';
+
+	/**
+	 * Expected data as a string
+	 *
+	 * @var  string
+	 */
+	private $strObject = '<?php
+class Config
+{
+	var $app = array("application_env" => "development", "editor" => "ckeditor", "list_limit" => "25", "helpurl" => "English (GB) - HUBzero help", "debug" => "1", "debug_lang" => "0", "sef" => "1", "sef_rewrite" => "1", "sef_suffix" => "0", "sef_groups" => "0", "feed_limit" => "10", "feed_email" => "author");
+	var $seo = array("sef" => "1", "sef_groups" => "0", "sef_rewrite" => "1", "sef_suffix" => "0", "unicodeslugs" => "0", "sitename_pagetitles" => "0");
+}';
 
 	/**
 	 * Test setup
@@ -147,14 +161,50 @@ return array(
 	public function testParse()
 	{
 		$result = $this->processor->parse(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Files' . DIRECTORY_SEPARATOR . 'test.php');
-
 		$this->assertEquals($this->arr, $result);
+	}
+
+	/**
+	 * Test a PHP file containing a callable
+	 *
+	 * @covers  \Hubzero\Config\Processor\Php::parse
+	 * @return  void
+	 **/
+	public function testParseCallable()
+	{
+		$result = $this->processor->parse(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Files' . DIRECTORY_SEPARATOR . 'testCallable.php');
+		$this->assertEquals($this->arr, $result);
+	}
+
+	/**
+	 * Test that an exception is thrown and caught
+	 *
+	 * @covers  \Hubzero\Config\Processor\Php::parse
+	 * @return  void
+	 **/
+	public function testParseException()
+	{
+		$this->setExpectedException(ParseException::class);
+		$result = $this->processor->parse(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Files' . DIRECTORY_SEPARATOR . 'testException.php');
+	}
+
+	/**
+	 * Tests the parse() method throws an Exception for a bad PHP file.
+	 *
+	 * @covers  \Hubzero\Config\Processor\Php::parse
+	 * @return  void
+	 **/
+	public function testParseEmptyFile()
+	{
+		$this->setExpectedException(UnsupportedFormatException::class);
+		$result = $this->processor->parse(dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Files' . DIRECTORY_SEPARATOR . 'testEmpty.php');
 	}
 
 	/**
 	 * Tests the objectToString() method.
 	 *
 	 * @covers  \Hubzero\Config\Processor\Php::objectToString
+	 * @covers  \Hubzero\Config\Processor\Php::getArrayString
 	 * @return  void
 	 **/
 	public function testObjectToString()
@@ -170,6 +220,13 @@ return array(
 		));
 
 		$this->assertEquals($this->str, $result);
+
+		// Test object to string conversion
+		$result = $this->processor->objectToString($this->obj, array(
+			'format' => 'object'
+		));
+
+		$this->assertEquals($this->strObject, $result);
 	}
 
 	/**
