@@ -516,7 +516,7 @@ class Validate
 
 		if (!isset($reserved[$type]))
 		{
-			throw new InvalidArgumentException(\Lang::txt('Type must be "username" or "group". Type of "%s" provided.', $type));
+			throw new InvalidArgumentException(sprintf('Type must be "username" or "group". Type of "%s" provided.', $type));
 		}
 
 		$val = trim(strtolower($val));
@@ -696,11 +696,11 @@ class Validate
 		$className = ucwords($classPrefix) . 'Validation';
 		if (!class_exists($className))
 		{
-			throw new InvalidArgumentException(\Lang::txt('Could not find %s class, unable to complete validation.', $className), E_USER_WARNING);
+			throw new InvalidArgumentException(sprintf('Could not find %s class, unable to complete validation.', $className), E_USER_WARNING);
 		}
 		if (!method_exists($className, $method))
 		{
-			throw new InvalidArgumentException(\Lang::txt('Method %s does not exist on %s unable to complete validation.', $method, $className), E_USER_WARNING);
+			throw new InvalidArgumentException(sprintf('Method %s does not exist on %s unable to complete validation.', $method, $className), E_USER_WARNING);
 		}
 		$check = (array)$check;
 		return call_user_func_array(array($className, $method), $check);
