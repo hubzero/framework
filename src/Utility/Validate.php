@@ -33,6 +33,8 @@
 
 namespace Hubzero\Utility;
 
+use InvalidArgumentException;
+
 /**
  * Hubzero helper class for input validation
  *
@@ -514,10 +516,12 @@ class Validate
 
 		if (!isset($reserved[$type]))
 		{
-			throw new \InvalidArgumentException(\Lang::txt('Type must be "username" or "group". Type of "%s" provided.', $type));
+			throw new InvalidArgumentException(sprintf('Type must be "username" or "group". Type of "%s" provided.', $type));
 		}
 
-		if (in_array(strtolower($val), $reserved[$type]))
+		$val = trim(strtolower($val));
+
+		if (in_array($val, $reserved[$type]))
 		{
 			return true;
 		}
@@ -692,13 +696,11 @@ class Validate
 		$className = ucwords($classPrefix) . 'Validation';
 		if (!class_exists($className))
 		{
-			trigger_error(\Lang::txt('Could not find %s class, unable to complete validation.', $className), E_USER_WARNING);
-			return false;
+			throw new InvalidArgumentException(sprintf('Could not find %s class, unable to complete validation.', $className), E_USER_WARNING);
 		}
 		if (!method_exists($className, $method))
 		{
-			trigger_error(\Lang::txt('Method %s does not exist on %s unable to complete validation.', $method, $className), E_USER_WARNING);
-			return false;
+			throw new InvalidArgumentException(sprintf('Method %s does not exist on %s unable to complete validation.', $method, $className), E_USER_WARNING);
 		}
 		$check = (array)$check;
 		return call_user_func_array(array($className, $method), $check);
@@ -729,7 +731,6 @@ class Validate
 	 */
 	protected static function _defaults($params)
 	{
-		self::_reset();
 		$defaults = array(
 			'check'   => null,
 			'regex'   => null,
@@ -749,6 +750,7 @@ class Validate
 	 * Lazily populate the IP address patterns used for validations
 	 *
 	 * @return void
+	 * @codeCoverageIgnore
 	 */
 	protected static function _populateIp()
 	{
@@ -776,15 +778,5 @@ class Validate
 			$pattern = '(?:(?:25[0-5]|2[0-4][0-9]|(?:(?:1[0-9])?|[1-9]?)[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|(?:(?:1[0-9])?|[1-9]?)[0-9])';
 			self::$_pattern['IPv4'] = $pattern;
 		}
-	}
-
-	/**
-	 * Reset internal variables for another validation run.
-	 *
-	 * @return void
-	 */
-	protected static function _reset()
-	{
-		self::$errors = array();
 	}
 }
