@@ -170,6 +170,7 @@ seo:
 	 * Tests the objectToString() method.
 	 *
 	 * @covers  \Hubzero\Config\Processor\Yaml::objectToString
+	 * @covers  \Hubzero\Config\Processor\Yaml::asArray
 	 * @return  void
 	 **/
 	public function testObjectToString()
@@ -189,6 +190,7 @@ seo:
 	 * Tests the stringToObject() method.
 	 *
 	 * @covers  \Hubzero\Config\Processor\Yaml::stringToObject
+	 * @covers  \Hubzero\Config\Processor\Yaml::toObject
 	 * @return  void
 	 **/
 	public function testStringToObject()
