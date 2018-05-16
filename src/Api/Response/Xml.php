@@ -38,6 +38,11 @@ namespace Hubzero\Api\Response;
 class Xml
 {
 	/**
+	 * No error
+	 */
+	const XML_ERROR_NONE = null;
+
+	/**
 	 * Error message type for depth
 	 */
 	const XML_ERROR_DEPTH = 1;
@@ -68,7 +73,7 @@ class Xml
 	 * @param   boolean  $show_declaration  Show XML doctype declaration
 	 * @return  string   XML
 	 */
-	public function encode($mixed, $tag='root', $attributes='', $depth = 1, $show_declaration = true)
+	public static function encode($mixed, $tag='root', $attributes='', $depth = 1, $show_declaration = true)
 	{
 		$declaration = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
 
@@ -96,15 +101,15 @@ class Xml
 
 		$sp = (!empty($attributes)) ? ' ' : '';
 
-		if (in_array($element_type, array('object','a-array')))
+		if (in_array($element_type, array('object', 'a-array')))
 		{
 			$xml_element_type = 'object';
 		}
-		else if (in_array($element_type, array('double','integer')))
+		else if (in_array($element_type, array('double', 'integer')))
 		{
 			$xml_element_type = 'number';
 		}
-		else if (in_array($element_type, array('array','boolean','string')))
+		else if (in_array($element_type, array('array', 'boolean', 'string')))
 		{
 			$xml_element_type = $element_type;
 		}
@@ -209,7 +214,7 @@ class Xml
 	 * @param   integer  $id  Error number
 	 * @return  integer
 	 */
-	public function last_error($id)
+	public static function last_error($id)
 	{
 		static $last_error = 0;
 
@@ -227,7 +232,7 @@ class Xml
 	 * @param   string  $xml  XML
 	 * @return  mixed   Array or object
 	 */
-	public function decode($xml)
+	public static function decode($xml)
 	{
 		$p = xml_parser_create();
 
