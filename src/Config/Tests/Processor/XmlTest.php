@@ -181,6 +181,7 @@ class XmlTest extends Basic
 	 * Tests the objectToString() method.
 	 *
 	 * @covers  \Hubzero\Config\Processor\Xml::objectToString
+	 * @covers  \Hubzero\Config\Processor\Xml::getXmlChildren
 	 * @return  void
 	 **/
 	public function testObjectToString()
@@ -206,6 +207,7 @@ class XmlTest extends Basic
 	 * Tests the stringToObject() method.
 	 *
 	 * @covers  \Hubzero\Config\Processor\Xml::stringToObject
+	 * @covers  \Hubzero\Config\Processor\Xml::getValueFromNode
 	 * @return  void
 	 **/
 	public function testStringToObject()
