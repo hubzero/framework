@@ -33,6 +33,7 @@ namespace Hubzero\Base\Tests;
 
 use Hubzero\Test\Basic;
 use Hubzero\Utility\Validate;
+use InvalidArgumentException;
 
 /**
  * Validate utility test
@@ -272,5 +273,356 @@ class ValidateTest extends Basic
 		{
 			$this->assertEquals(Validate::orcid($value), $result);
 		}
+	}
+
+	/**
+	 * Tests if value is not Empty
+	 *
+	 * @covers  \Hubzero\Utility\Validate::notEmpty
+	 * @return  void
+	 **/
+	public function testNotEmpty()
+	{
+		$value = '';
+		$this->assertEquals(Validate::notEmpty($value), false);
+
+		$value = '  ';
+		$this->assertEquals(Validate::notEmpty($value), false);
+
+		$value = "\n";
+		$this->assertEquals(Validate::notEmpty($value), false);
+
+		$value = "\t";
+		$this->assertEquals(Validate::notEmpty($value), false);
+
+		$value = "\n0";
+		$this->assertEquals(Validate::notEmpty($value), true);
+
+		$value = '0';
+		$this->assertEquals(Validate::notEmpty($value), true);
+
+		$value = 'fsdd';
+		$this->assertEquals(Validate::notEmpty($value), true);
+
+		$value = array('check' => 'fsdd');
+		$this->assertEquals(Validate::notEmpty($value), true);
+	}
+
+	/**
+	 * Tests if value is a valid group alias
+	 *
+	 * @covers  \Hubzero\Utility\Validate::group
+	 * @return  void
+	 **/
+	public function testGroup()
+	{
+		$tests = array(
+			'testname' => true,
+			'91test' => true,
+			'91_test' => true,
+			'_91test' => false,
+			'12345' => false,
+			'Test Name' => false,
+			'TESTNAME' => false,
+			'test-name' => false
+		);
+
+		foreach ($tests as $value => $result)
+		{
+			$this->assertEquals(Validate::group($value), $result);
+		}
+
+		$tests = array(
+			'test-name' => true
+		);
+
+		foreach ($tests as $value => $result)
+		{
+			$this->assertEquals(Validate::group($value, true), $result);
+		}
+	}
+
+	/**
+	 * Tests if value is reserved
+	 *
+	 * @covers  \Hubzero\Utility\Validate::reserved
+	 * @return  void
+	 **/
+	public function testReserved()
+	{
+		$usernames = array(
+			'adm',
+			'alfred',
+			'apache',
+			'backup',
+			'bin',
+			'canna',
+			'condor',
+			'condor-util',
+			'daemon',
+			'debian-exim',
+			'exim',
+			' ftp',
+			'   games',
+			'ganglia',
+			'gnats',
+			'gopher',
+			'gridman',
+			'halt',
+			'httpd',
+			'ibrix',
+			' invigosh ',
+			'irc',
+			'LDAP',
+			'list',
+			'lp',
+			'mail  ',
+			'   mailnull',
+			'man',
+			'mysql',
+			'nagios',
+			'netdump',
+			'news',
+			'nfsnobody',
+			"\nnoaccess",
+			"nobody\t",
+			'nscd',
+			'ntp',
+			'operator',
+			'openldap',
+			'pcap',
+			'postgres',
+			'proxy',
+			'pvm',
+			"root\t",
+			'rpc',
+			'rpcuser',
+			'rpm',
+			'sag',
+			'shutdown',
+			'smmsp',
+			'sshd',
+			'statd',
+			'sync',
+			'sys',
+			'submit',
+			'uucp',
+			'vncproxy',
+			'vncproxyd',
+			'vcsa',
+			'wheel',
+			'www',
+			'www-data',
+			'xfs',
+		);
+		$groups = array(
+			'abrt',
+			'adm',
+			'apache',
+			'apps',
+			'audio',
+			'avahi',
+			'avahi-autoipd',
+			'backup',
+			'bin',
+			'boinc',
+			'cdrom',
+			'cgred',
+			'cl-builder',
+			'clamav',
+			'condor',
+			'crontab',
+			'ctapiusers',
+			'daemon',
+			"\ndbus",
+			'debian-exim',
+			'desktop_admin_r',
+			'desktop_user_r   ',
+			'dialout',
+			'dip',
+			'disk',
+			'fax',
+			'floppy',
+			' ftp',
+			'fuse',
+			'   games',
+			'gdm',
+			'gnats',
+			'gopher',
+			'gridman',
+			'haldaemon',
+			' hsqldb ',
+			'irc',
+			'itisunix',
+			'jackuser',
+			'kmem',
+			'kvm',
+			'LDAP',
+			'libuuid',
+			'list',
+			'lock',
+			'lp',
+			'mail  ',
+			'man',
+			'mem',
+			'messagebus',
+			'mysql',
+			'netdev',
+			'news',
+			'nfsnobody',
+			"nobody\t",
+			'nogroup',
+			'nscd',
+			'nslcd',
+			'ntp',
+			'openldap',
+			'operator',
+			'oprofile',
+			'plugdev',
+			'postdrop',
+			'postfix',
+			'powerdev',
+			'proxy',
+			'pulse',
+			'pulse-access',
+			'qemu',
+			'qpidd',
+			'radvd',
+			'rdma',
+			"root\t",
+			'rpc',
+			'rpcuser',
+			'rtkit',
+			'sasl',
+			'saslauth',
+			'shadow',
+			'slocate',
+			'src',
+			'ssh',
+			'sshd',
+			'ssl-cert',
+			'STAFF',
+			'stapdev',
+			'stapusr',
+			'stap-server',
+			'stapsys',
+			'stunnel4',
+			'sudo',
+			'sys',
+			'tape',
+			'tcpdump',
+			'tomcat',
+			'tty',
+			'tunnelers',
+			'usbmuxd',
+			'users',
+			'utmp',
+			'utempter',
+			'uucp',
+			'video',
+			'vcsa',
+			'voice',
+			'wbpriv',
+			'webalizer',
+			'wheel',
+			'www-data',
+			'zookeeper',
+		);
+
+		foreach ($usernames as $val)
+		{
+			$this->assertTrue(Validate::reserved('username', $val));
+		}
+
+		foreach ($groups as $val)
+		{
+			$this->assertTrue(Validate::reserved('group', $val));
+		}
+
+		$diff = array_diff($groups, $usernames);
+
+		foreach ($diff as $val)
+		{
+			$this->assertFalse(Validate::reserved('username', $val));
+		}
+
+		$diff = array_diff($usernames, $groups);
+
+		foreach ($diff as $val)
+		{
+			$this->assertFalse(Validate::reserved('group', $val));
+		}
+
+		$this->setExpectedException(InvalidArgumentException::class);
+		$result = Validate::reserved('foo', 'bar');
+	}
+
+	/**
+	 * Tests if value is a string contains only integer or letters
+	 *
+	 * @covers  \Hubzero\Utility\Validate::alphaNumeric
+	 * @return  void
+	 **/
+	public function testAlphaNumeric()
+	{
+		$tests = array(
+			'testname' => true,
+			'91test' => true,
+			'91_test' => false,
+			'AfOO981' => true,
+			'12345' => true,
+			'Test Name' => false,
+			'TESTNAME' => true,
+			'test!' => false,
+			'test-name' => false
+		);
+
+		foreach ($tests as $value => $result)
+		{
+			$this->assertEquals(Validate::alphaNumeric($value), $result);
+		}
+
+		$value = '0';
+		$this->assertTrue(Validate::alphaNumeric($value));
+
+		$value = '';
+		$this->assertFalse(Validate::alphaNumeric($value));
+
+		foreach ($tests as $value => $result)
+		{
+			$value = array('check' => $value);
+			$this->assertEquals(Validate::alphaNumeric($value), $result);
+		}
+	}
+
+	/**
+	 * Tests if value is a number is in specified range.
+	 *
+	 * @covers  \Hubzero\Utility\Validate::range
+	 * @return  void
+	 **/
+	public function testRange()
+	{
+		$value = 5;
+		$this->assertTrue(Validate::range($value));
+
+		$this->assertTrue(Validate::range($value, 1));
+
+		$this->assertTrue(Validate::range($value, 1, 10));
+
+		$this->assertTrue(Validate::range($value, 9));
+
+		$this->assertTrue(Validate::range($value, null, 4));
+
+		$this->assertFalse(Validate::range($value, 1, 4));
+
+		$value = -5;
+		$this->assertTrue(Validate::range($value, -10, -1));
+
+		$value = 'five';
+		$this->assertFalse(Validate::range($value));
+
+		$value = log(0);
+		$this->assertFalse(Validate::range($value), 0, 100000);
 	}
 }
