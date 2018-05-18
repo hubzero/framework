@@ -760,4 +760,23 @@ class ValidateTest extends Basic
 		$value = 'skl://example.com';
 		$this->assertFalse(Validate::url($value));
 	}
+
+	/**
+	 * Tests is valid ip check
+	 *
+	 * @return  void
+	 * @covers  \Hubzero\Utility\Validate::ip
+	 **/
+	public function testIp()
+	{
+		$this->assertTrue(Validate::ip('192.168.0.1'));
+
+		$this->assertFalse(Validate::ip('256.256.256.256'));
+
+		$this->assertTrue(Validate::ip('684D:1111:222:3333:4444:5555:6:77', 'ipv6'));
+
+		$this->assertFalse(Validate::ip('192.168.0.1', 'ipv6'));
+
+		$this->assertFalse(Validate::ip('684D:1111:222:3333:4444:5555:6:77', 'ipv4'));
+	}
 }

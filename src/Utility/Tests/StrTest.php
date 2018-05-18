@@ -359,4 +359,67 @@ class StrTest extends Basic
 
 		$this->assertEquals($result, 'Cras mattis &#f0c2; consectetur &amp; purus &amp; sit &&amp; amet &amp; fermentum.');
 	}
+
+	/**
+	 * Tests truncating a block of text
+	 *
+	 * @covers  \Hubzero\Utility\Str::truncate
+	 * @return  void
+	 **/
+	public function testTruncate()
+	{
+		$str = 'Cras mattis consectetur purus sit amet fermentum.';
+
+		$result = Str::truncate($str, 30);
+
+		$this->assertEquals($result, 'Cras mattis consectetur...');
+
+		$result = Str::truncate($str, 30, array('ellipsis' => '!!!'));
+
+		$this->assertEquals($result, 'Cras mattis consectetur!!!');
+
+		$result = Str::truncate($str, 30, array('exact' => true));
+
+		$this->assertEquals($result, 'Cras mattis consectetur pur...');
+		$this->assertEquals(strlen($result), 30);
+
+		$str = '<p>Cras <strong>mattis</strong> consectetur purus sit amet fermentum.</p>';
+
+		$result = Str::truncate($str, 30, array('html' => true));
+
+		$this->assertEquals($result, '<p>Cras <strong>mattis</strong> consectetur…</p>');
+
+		$result = Str::truncate($str, 30, array('html' => true, 'exact' => true));
+
+		$this->assertEquals($result, '<p>Cras <strong>mattis</strong> consectetur purus…</p>');
+	}
+
+	/**
+	 * Tests extracting an excerpt from text
+	 *
+	 * @covers  \Hubzero\Utility\Str::excerpt
+	 * @return  void
+	 **/
+	public function testExcerpt()
+	{
+		$str = 'Cras mattis consectetur purus sit amet fermentum.';
+
+		$result = Str::excerpt($str, 'sit', 3);
+
+		$this->assertEquals($result, '...us sit am...');
+
+		$result = Str::excerpt($str, 'fermentum.', 3);
+
+		$this->assertEquals($result, '...et fermentum.');
+
+		$result = Str::excerpt($str, 'purus sit', 2, '!!!');
+
+		$this->assertEquals($result, '!!!r purus sit a!!!');
+
+		$str = 'Cras mattis consectetur purus sit amet fermentum.';
+
+		$result = Str::excerpt($str, '', 10);
+
+		$this->assertEquals($result, 'Cras mattis...');
+	}
 }

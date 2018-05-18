@@ -52,6 +52,18 @@ class IpTest extends Basic
 		$ip = new \Hubzero\Utility\Ip('256.256.256.256');
 
 		$this->assertFalse($ip->isValid(), 'Invalid IPv4 validated as true');
+
+		$ip = new \Hubzero\Utility\Ip('684D:1111:222:3333:4444:5555:6:77');
+
+		$this->assertTrue($ip->isValid('ipv6'), 'Basic IPv6 address did not validate');
+
+		$ip = new \Hubzero\Utility\Ip('192.168.0.1');
+
+		$this->assertFalse($ip->isValid('ipv6'), 'Basic IPv4 address validated as IPv6');
+
+		$ip = new \Hubzero\Utility\Ip('684D:1111:222:3333:4444:5555:6:77');
+
+		$this->assertFalse($ip->isValid('ipv4'), 'Basic IPv6 address validated as IPv4');
 	}
 
 	/**
