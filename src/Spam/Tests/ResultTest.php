@@ -40,6 +40,7 @@ class ResultTest extends Basic
 	/**
 	 * Tests isSpam() returns correct value
 	 *
+	 * @covers  \Hubzero\Spam\Result::__construct
 	 * @covers  \Hubzero\Spam\Result::isSpam
 	 * @return  void
 	 */
@@ -57,6 +58,7 @@ class ResultTest extends Basic
 	/**
 	 * Tests passed() returns correct value depending on if spam or not
 	 *
+	 * @covers  \Hubzero\Spam\Result::__construct
 	 * @covers  \Hubzero\Spam\Result::passed
 	 * @return  void
 	 */
@@ -74,6 +76,7 @@ class ResultTest extends Basic
 	/**
 	 * Tests failed() returns correct value depending on if spam or not
 	 *
+	 * @covers  \Hubzero\Spam\Result::__construct
 	 * @covers  \Hubzero\Spam\Result::failed
 	 * @return  void
 	 */
@@ -91,6 +94,7 @@ class ResultTest extends Basic
 	/**
 	 * Tests getMessages() returns the list of messages passed in the constructor
 	 *
+	 * @covers  \Hubzero\Spam\Result::__construct
 	 * @covers  \Hubzero\Spam\Result::getMessages
 	 * @return  void
 	 */

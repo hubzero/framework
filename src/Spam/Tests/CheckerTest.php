@@ -32,6 +32,7 @@ namespace Hubzero\Spam\Tests;
 use Hubzero\Test\Basic;
 use Hubzero\Spam\Checker;
 use Hubzero\Spam\Tests\Mock\Detector;
+use Hubzero\Spam\Tests\Mock\DetectorException;
 use Hubzero\Spam\StringProcessor\NoneStringProcessor;
 use Hubzero\Spam\StringProcessor\NativeStringProcessor;
 
@@ -43,6 +44,7 @@ class CheckerTest extends Basic
 	/**
 	 * Tests for setting and getting a StringProcessor
 	 *
+	 * @covers  \Hubzero\Spam\Checker::__construct
 	 * @covers  \Hubzero\Spam\Checker::setStringProcessor
 	 * @covers  \Hubzero\Spam\Checker::getStringProcessor
 	 * @return  void
@@ -80,6 +82,7 @@ class CheckerTest extends Basic
 	 * Test to get a registered detector
 	 *
 	 * @covers  \Hubzero\Spam\Checker::getDetector
+	 * @covers  \Hubzero\Spam\Checker::classSimpleName
 	 * @return  void
 	 **/
 	public function testGetDetector()
@@ -135,6 +138,8 @@ class CheckerTest extends Basic
 	 * Test the check() method
 	 *
 	 * @covers  \Hubzero\Spam\Checker::check
+	 * @covers  \Hubzero\Spam\Checker::prepareData
+	 * @covers  \Hubzero\Spam\Checker::mark
 	 * @return  void
 	 **/
 	public function testCheck()
@@ -155,5 +160,13 @@ class CheckerTest extends Basic
 		$messages = $result->getMessages();
 		$this->assertTrue(is_array($messages));
 		$this->assertTrue(in_array('Text contained the word "spam".', $messages));
+
+		$service->registerDetector(new DetectorException());
+
+		$result = $service->check('Maecenas sed diam eget risus varius spam blandit sit amet non magna.');
+
+		$error = $service->getError();
+
+		$this->assertEquals($error, 'I always throw an exception.');
 	}
 }
