@@ -471,12 +471,12 @@ class Registry implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \
 
 			if ($recursive && ((is_array($v) && Arr::isAssociative($v)) || is_object($v)))
 			{
-				if (!isset($parent->$k))
+				if (!isset($parent->$k) || !is_object($parent->$k))
 				{
 					$parent->$k = new stdClass;
 				}
 
-				$this->bind($parent->$k, $v);
+				$this->bind($parent->$k, $v, $recursive, $allowNull);
 				continue;
 			}
 
