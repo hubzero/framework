@@ -31,6 +31,7 @@ namespace Hubzero\Config\Tests;
 
 use Hubzero\Test\Basic;
 use Hubzero\Config\Registry;
+use Hubzero\Config\Processor;
 use stdClass;
 
 /**
@@ -65,8 +66,10 @@ class RegistryTest extends Basic
 
 		$data['foo'] = 'lorem';
 
+		$this->assertEquals($data->get('', 'lorem'), 'lorem');
 		$this->assertEquals($data->get('foo'), 'lorem');
 		$this->assertEquals($data['foo'], 'lorem');
+		$this->assertEquals($data->get('fake.path', 'lorem'), 'lorem');
 
 		$data['lorem.ipsum'] = 'ipsum';
 
@@ -131,6 +134,23 @@ class RegistryTest extends Basic
 
 		$this->assertFalse($data->has('foo'));
 		$this->assertFalse($data->has('bar'));
+	}
+
+	/**
+	 * Tests the offsetUnset() method
+	 *
+	 * @covers  \Hubzero\Config\Registry::offsetUnset
+	 * @return  void
+	 **/
+	public function testOffsetUnset()
+	{
+		$data = new Registry();
+
+		$data->set('foo', 'bar');
+
+		unset($data['foo']);
+
+		$this->assertFalse($data->has('foo'));
 	}
 
 	/**
@@ -226,5 +246,162 @@ class RegistryTest extends Basic
 		$this->assertTrue(isset($arr['bar']));
 		$this->assertTrue(isset($arr['lorem.ipsum']));
 		$this->assertEquals($arr['lorem.ipsum'], 'sham');
+	}
+
+	/**
+	 * Tests the jsonSerialize() method
+	 *
+	 * @covers  \Hubzero\Config\Registry::jsonSerialize
+	 * @return  void
+	 **/
+	public function testJsonSerialize()
+	{
+		$data = new Registry();
+
+		$data->set('foo', 'bar');
+		$data->set('bar', 'foo');
+		$data->set('lorem', new stdClass);
+		$data->set('lorem.ipsum', 'sham');
+
+		$result = $data->jsonSerialize();
+
+		$this->assertInstanceOf('stdClass', $result);
+
+		$result = json_encode($data);
+
+		$this->assertEquals($result, '{"foo":"bar","bar":"foo","lorem":{"ipsum":"sham"}}');
+	}
+
+	/**
+	 * Tests the getIterator() method
+	 *
+	 * @covers  \Hubzero\Config\Registry::getIterator
+	 * @return  void
+	 **/
+	public function testGetIterator()
+	{
+		$data = new Registry();
+
+		$data->set('foo', 'bar');
+		$data->set('bar', 'foo');
+
+		$result = $data->getIterator();
+
+		$this->assertInstanceOf('ArrayIterator', $result);
+	}
+
+	/**
+	 * Tests the processors() method
+	 *
+	 * @covers  \Hubzero\Config\Registry::processors
+	 * @return  void
+	 **/
+	public function testProcessors()
+	{
+		$data = new Registry();
+
+		$results = $data->processors();
+
+		$this->assertTrue(is_array($results));
+		$this->assertTrue(count($results) > 0);
+
+		foreach ($results as $result)
+		{
+			$this->assertInstanceOf(Processor::class, $result);
+		}
+	}
+
+	/**
+	 * Tests the processor() method
+	 *
+	 * @covers  \Hubzero\Config\Registry::processor
+	 * @return  void
+	 **/
+	public function testProcessor()
+	{
+		$data = new Registry();
+
+		foreach (array('ini', 'yaml', 'json', 'php', 'xml') as $type)
+		{
+			$result = $data->processor($type);
+
+			$this->assertInstanceOf(Processor::class, $result);
+
+			$supported = $result->getSupportedExtensions();
+
+			$this->assertTrue(in_array($type, $supported));
+
+			$this->assertInstanceOf('\\Hubzero\\Config\\Processor\\' . ucfirst($type), $result);
+		}
+	}
+
+	/**
+	 * Tests the extract() method
+	 *
+	 * @covers  \Hubzero\Config\Registry::extract
+	 * @return  void
+	 **/
+	public function testExtract()
+	{
+		$data = new Registry();
+
+		$data->set('foo', 'bar');
+		$data->set('bar', 'foo');
+		$data->set('lorem', new stdClass);
+		$data->set('lorem.ipsum', 'sham');
+
+		$extracted = $data->extract('lorem');
+
+		$this->assertInstanceOf(Registry::class, $extracted);
+
+		$this->assertTrue(isset($extracted['ipsum']));
+		$this->assertEquals($extracted['ipsum'], 'sham');
+
+		$extracted = $data->extract('dolor');
+
+		$this->assertEquals($extracted, null);
+	}
+
+	/**
+	 * Tests the merge() method
+	 *
+	 * @covers  \Hubzero\Config\Registry::merge
+	 * @covers  \Hubzero\Config\Registry::bind
+	 * @return  void
+	 **/
+	public function testMerge()
+	{
+		$data = new Registry();
+
+		$data->set('foo', 'bar');
+		$data->set('bar', 'foo');
+		$data->set('lorem', new stdClass);
+		$data->set('lorem.ipsum', 'sham');
+
+		$data2 = new Registry();
+		$data2->set('bar', 'newfoo');
+		$data2->set('lorem', 'dolor');
+
+		$fake = null;
+		$result = $data->merge($fake);
+
+		$this->assertFalse($result);
+
+		$result = $data->merge($data2);
+
+		$this->assertTrue($result);
+		$this->assertEquals($data->get('bar'), 'newfoo');
+		$this->assertEquals($data->get('lorem'), 'dolor');
+
+		$data3 = array(
+			'lorem' => array('ipsum' => 'mit'),
+			'cullen' => 'didae'
+		);
+
+		$result = $data->merge($data3, true);
+
+		$this->assertTrue($result);
+		$this->assertEquals($data->get('lorem.ipsum'), 'mit');
+		$this->assertTrue($data->has('cullen'));
 	}
 }
