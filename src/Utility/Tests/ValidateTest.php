@@ -196,6 +196,33 @@ class ValidateTest extends Basic
 	}
 
 	/**
+	 * Tests if value is a non positive integer
+	 *
+	 * @covers  \Hubzero\Utility\Validate::nonPositiveInteger
+	 * @return  void
+	 **/
+	public function testNonPositiveInteger()
+	{
+		$tests = array(
+			0 => true,
+			"42" => false,
+			'+51' => false,
+			-16 => true,
+			'-1337' => true,
+			"not numeric" => false,
+			9.1 => false,
+			null => false
+		);
+
+		foreach ($tests as $value => $result)
+		{
+			$this->assertEquals(Validate::nonPositiveInteger($value), $result);
+		}
+
+		$this->assertFalse(Validate::nonPositiveInteger(array()));
+	}
+
+	/**
 	 * Tests if value is a non-negative integer
 	 *
 	 * @covers  \Hubzero\Utility\Validate::nonNegativeInteger
@@ -339,6 +366,34 @@ class ValidateTest extends Basic
 		foreach ($tests as $value => $result)
 		{
 			$this->assertEquals(Validate::group($value, true), $result);
+		}
+	}
+
+	/**
+	 * Tests if value is a valid username
+	 *
+	 * @covers  \Hubzero\Utility\Validate::username
+	 * @return  void
+	 **/
+	public function testUsername()
+	{
+		$tests = array(
+			'testname' => true,
+			'91test' => true,
+			'91_test' => true,
+			'_91test' => false,
+			'12345' => false,
+			126575 => false,
+			0 => false,
+			'Test Name' => false,
+			'test.name ' => false,
+			'TESTNAME' => false,
+			'test-name' => false
+		);
+
+		foreach ($tests as $value => $result)
+		{
+			$this->assertEquals(Validate::username($value), $result);
 		}
 	}
 
@@ -624,5 +679,85 @@ class ValidateTest extends Basic
 
 		$value = log(0);
 		$this->assertFalse(Validate::range($value), 0, 100000);
+	}
+
+	/**
+	 * Tests if value is blank
+	 *
+	 * @covers  \Hubzero\Utility\Validate::blank
+	 * @return  void
+	 **/
+	public function testBlank()
+	{
+		$value = "\n ";
+		$this->assertTrue(Validate::blank($value));
+
+		$value = '  ';
+		$this->assertTrue(Validate::blank($value));
+
+		$value = '';
+		$this->assertTrue(Validate::blank($value));
+
+		$value = ' 2 ';
+		$this->assertFalse(Validate::blank($value));
+
+		$value = null;
+		$this->assertTrue(Validate::blank($value));
+
+		$value = '0';
+		$this->assertFalse(Validate::blank($value));
+
+		$value = 0;
+		$this->assertFalse(Validate::blank($value));
+	}
+
+	/**
+	 * Tests if value is a valid URL
+	 *
+	 * @covers  \Hubzero\Utility\Validate::url
+	 * @return  void
+	 **/
+	public function testUrl()
+	{
+		$value = 'https://example.com';
+		$this->assertTrue(Validate::url($value));
+
+		$value = 'http://www.example.com';
+		$this->assertTrue(Validate::url($value));
+
+		$value = 'www.example.com';
+		$this->assertTrue(Validate::url($value));
+
+		$value = 'http://example.com.uk';
+		$this->assertTrue(Validate::url($value));
+
+		$value = 'http://example.com.uk/foo/bar';
+		$this->assertTrue(Validate::url($value));
+
+		$value = 'http://example.com#foo';
+		$this->assertTrue(Validate::url($value));
+
+		$value = 'http://example.com/foo.php';
+		$this->assertTrue(Validate::url($value));
+
+		$value = 'http://example.com?foo=bar&lorem=ipsum#!dolor';
+		$this->assertTrue(Validate::url($value));
+
+		$value = 'http://example.com:80/foo/bar?foo=bar#content';
+		$this->assertTrue(Validate::url($value));
+
+		$value = 'ftp://example.com';
+		$this->assertTrue(Validate::url($value));
+
+		//$value = 'https://login:pass@secure.example.com:443/test/query.php?kingkong=toto#doc3';
+		//$this->assertTrue(Validate::url($value));
+		$value = 'https:/example.com';
+		$this->assertFalse(Validate::url($value));
+
+		$value = 'http://user@:80';
+		$this->assertFalse(Validate::url($value));
+
+		$value = 'skl://example.com';
+		$this->assertFalse(Validate::url($value));
 	}
 }
