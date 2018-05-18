@@ -77,7 +77,7 @@ class RegistryTest extends Basic
 	/**
 	 * Tests the has() method
 	 *
-	 * @covers  \Hubzero\Config\Registry::had
+	 * @covers  \Hubzero\Config\Registry::has
 	 * @covers  \Hubzero\Config\Registry::offsetExists
 	 * @return  void
 	 **/
