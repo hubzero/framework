@@ -78,6 +78,9 @@ sef_suffix=0
 sef_groups=0
 feed_limit=10
 feed_email="author"
+gzip=true
+unicodeslugs=false
+version=2.2
 
 [seo]
 sef=1
@@ -109,6 +112,9 @@ sitename_pagetitles=0';
 		$data->app->sef_groups = 0;
 		$data->app->feed_limit = 10;
 		$data->app->feed_email = "author";
+		$data->app->gzip = true;
+		$data->app->unicodeslugs = false;
+		$data->app->version = 2.2;
 
 		$data->seo = new stdClass();
 		$data->seo->sef = 1;
@@ -179,6 +185,7 @@ sitename_pagetitles=0';
 	 * Tests the objectToString() method.
 	 *
 	 * @covers  \Hubzero\Config\Processor\Ini::objectToString
+	 * @covers  \Hubzero\Config\Processor\Ini::getValueAsINI
 	 * @return  void
 	 **/
 	public function testObjectToString()
@@ -216,5 +223,33 @@ sitename_pagetitles=0';
 		$result = $this->processor->stringToObject($this->str, array('processSections' => true));
 
 		$this->assertEquals($this->obj, $result);
+
+		// Test that a string gets converted as expected
+		$result = $this->processor->stringToObject($this->str, array('processSections' => false));
+
+		$data = new stdClass();
+		$data->application_env = "development";
+		$data->editor = "ckeditor";
+		$data->list_limit = 25;
+		$data->helpurl = "English (GB) - HUBzero help";
+		$data->debug = 1;
+		$data->debug_lang = 0;
+		$data->sef = 1;
+		$data->sef_rewrite = 1;
+		$data->sef_suffix = 0;
+		$data->sef_groups = 0;
+		$data->feed_limit = 10;
+		$data->feed_email = "author";
+		$data->gzip = true;
+		$data->unicodeslugs = false;
+		$data->version = 2.2;
+		$data->sef = 1;
+		$data->sef_groups = 0;
+		$data->sef_rewrite = 1;
+		$data->sef_suffix = 0;
+		$data->unicodeslugs = 0;
+		$data->sitename_pagetitles = 0;
+
+		$this->assertEquals($data, $result);
 	}
 }
