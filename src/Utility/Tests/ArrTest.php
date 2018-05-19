@@ -33,6 +33,7 @@ namespace Hubzero\Base\Tests;
 
 use Hubzero\Test\Basic;
 use Hubzero\Utility\Arr;
+use stdClass;
 
 /**
  * Arr utility test
@@ -64,7 +65,7 @@ class ArrTest extends Basic
 			$this->assertTrue(is_int($val), 'Value returned was not an integer');
 		}
 
-		$data = new \stdClass;
+		$data = new stdClass;
 		$data->one = '1';
 		$data->two = false;
 		$data->three = 55;
@@ -82,7 +83,7 @@ class ArrTest extends Basic
 			'foo'
 		);
 
-		$data = new \stdClass;
+		$data = new stdClass;
 		$data->one = '1';
 		$data->two = false;
 		$data->three = 55;
@@ -117,7 +118,7 @@ class ArrTest extends Basic
 			)
 		);
 
-		$data2 = new \stdClass;
+		$data2 = new stdClass;
 		$data2->foo = 'one';
 		$data2->bar = 'two';
 		$data2->lor = array(
@@ -174,14 +175,14 @@ class ArrTest extends Basic
 			)
 		);
 
-		$data2 = new \stdClass;
+		$data2 = new stdClass;
 		$data2->foo = 'one';
 		$data2->bar = 'two';
 		$data2->lor = array(
 			'ipsum',
 			'lorem'
 		);
-		$data2->ipsum = new \stdClass;
+		$data2->ipsum = new stdClass;
 		$data2->ipsum->dolor = 'mit';
 		$data2->ipsum->carac = 'kol';
 
@@ -249,10 +250,150 @@ class ArrTest extends Basic
 
 		$this->assertFalse(Arr::isAssociative($data), 'Value is not an associative array');
 
-		$data = new \stdClass;
+		$data = new stdClass;
 		$data->one = 'foo';
 		$data->two = 'bar';
 
 		$this->assertFalse(Arr::isAssociative($data), 'Value is not an associative array');
+	}
+
+	/**
+	 * Tests mapping an array to a string
+	 *
+	 * @covers  \Hubzero\Utility\Arr::toString
+	 * @return  void
+	 **/
+	public function testToString()
+	{
+		$data = array(
+			'one' => '1',
+			'two' => '322',
+			'three' => 55,
+			'four' => array(
+				'a' => 'foo',
+				'b' => 'bar'
+			)
+		);
+
+		$result = Arr::toString($data, '=', '&');
+
+		$this->assertTrue(is_string($result), 'Value is not a string');
+		$this->assertEquals($result, 'one="1"&two="322"&three="55"&a="foo"&b="bar"');
+
+		$result = Arr::toString($data, '=', '&', true);
+		$this->assertEquals($result, 'one="1"&two="322"&three="55"&four&a="foo"&b="bar"');
+	}
+
+	/**
+	 * Tests returning a value from a named array
+	 *
+	 * @covers  \Hubzero\Utility\Arr::getValue
+	 * @return  void
+	 **/
+	public function testGetValue()
+	{
+		$data = array(
+			'one' => '1',
+			'two' => '322',
+			'three' => 55,
+			'four' => array(
+				'a' => 'foo',
+				'b' => 'bar'
+			),
+			'six' => '!! good123',
+			'seven' => '5.5'
+		);
+
+		$result = Arr::getValue($data, 'one');
+
+		$this->assertEquals($result, '1');
+
+		$result = Arr::getValue($data, 'one', null, 'integer');
+
+		$this->assertTrue(is_int($result), 'Value is not an integer');
+		$this->assertEquals($result, 1);
+
+		$result = Arr::getValue($data, 'three', null, 'string');
+
+		$this->assertTrue(is_string($result), 'Value is not a string');
+		$this->assertEquals($result, '55');
+
+		$result = Arr::getValue($data, 'two', null, 'array');
+
+		$this->assertTrue(is_array($result), 'Value is not an array');
+		$this->assertEquals($result, array('322'));
+
+		$result = Arr::getValue($data, 'four', null, 'array');
+
+		$this->assertTrue(is_array($result), 'Value is not an array');
+		$this->assertEquals($result, array(
+			'a' => 'foo',
+			'b' => 'bar'
+		));
+
+		$result = Arr::getValue($data, 'five');
+
+		$this->assertTrue(is_null($result), 'Value is not null');
+
+		$result = Arr::getValue($data, 'five', 'glorp');
+
+		$this->assertEquals($result, 'glorp');
+
+		$result = Arr::getValue($data, 'one', null, 'bool');
+
+		$this->assertTrue($result);
+
+		$result = Arr::getValue($data, 'six', null, 'word');
+
+		$this->assertEquals($result, 'good123');
+
+		$result = Arr::getValue($data, 'seven', null, 'float');
+
+		$this->assertTrue(is_float($result), 'Value is not a float');
+		$this->assertEquals($result, 5.5);
+	}
+
+	/**
+	 * Tests extracting a column from an array
+	 *
+	 * @covers  \Hubzero\Utility\Arr::getColumn
+	 * @return  void
+	 **/
+	public function testGetColumn()
+	{
+		$arrs = array(
+			array(
+				'id' => 1,
+				'name' => 'Joe',
+				'age' => 27
+			),
+			array(
+				'id' => 2,
+				'name' => 'Susan',
+				'age' => 24
+			),
+		);
+
+		$item = new stdClass;
+		$item->id = 3;
+		$item->name = 'Frank';
+		$item->age = 56;
+
+		$arrs[] = $item;
+
+		$item = new stdClass;
+		$item->id = 4;
+		$item->name = 'Helen';
+		$item->age = 32;
+
+		$arrs[] = $item;
+
+		$result = Arr::getColumn($arrs, 'id');
+
+		$this->assertEquals($result, array(1, 2, 3, 4));
+
+		$result = Arr::getColumn($arrs, 'name');
+
+		$this->assertEquals($result, array('Joe', 'Susan', 'Frank', 'Helen'));
 	}
 }
