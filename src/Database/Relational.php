@@ -449,6 +449,18 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	}
 
 	/**
+	 * Sets attributes (i.e. fields) on the model
+	 *
+	 * @param   array|string  $key    The key to set, or array of key/value pairs
+	 * @param   mixed         $value  The value to set if key is string
+	 * @return  $this
+	 */
+	public function __set($key, $value)
+	{
+		return $this->set($key, $value);
+	}
+
+	/**
 	 * Intercepts calls to copy the object so we can make a true clone of the attached query
 	 *
 	 * PHP, when cloning, does a shallow copy, hence the need for this intercept.
