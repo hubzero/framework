@@ -394,7 +394,7 @@ class Link extends Relational
 	 */
 	public static function delete_by_user_id($user_id = null)
 	{
-		if (empty($uid))
+		if (empty($user_id))
 		{
 			return true;
 		}
