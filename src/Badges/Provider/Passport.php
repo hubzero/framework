@@ -46,13 +46,6 @@ class Passport implements ProviderInterface
 	const PASSPORT_API_ENDPOINT = 'https://api.openpassport.org/1.0.0/';
 
 	/**
-	 * API badges URL
-	 *
-	 * @var  string
-	 */
-	const PASSPORT_BADGES_URL   = 'https://www.openpassport.org/MyBadges';
-
-	/**
 	 * API claim URL
 	 *
 	 * @var  string
@@ -89,7 +82,7 @@ class Passport implements ProviderInterface
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param   string  $request_type  Request type
 	 * @return  void
 	 */
@@ -100,7 +93,7 @@ class Passport implements ProviderInterface
 
 	/**
 	 * Set credentials
-	 * 
+	 *
 	 * @param   object  $passportCredentials
 	 * @return  void
 	 */
@@ -108,60 +101,24 @@ class Passport implements ProviderInterface
 	{
 		$this->credentials = $passportCredentials;
 
-		// Setup request, based on type
-		if ($this->request_type == 'oauth')
-		{
-			$this->request = new \OAuth($this->credentials->consumer_key, $this->credentials->consumer_secret, OAUTH_SIG_METHOD_HMACSHA1, OAUTH_AUTH_TYPE_FORM);
+		$this->request = new \OAuth($this->credentials->client_id, $this->credentials->client_secret, OAUTH_SIG_METHOD_HMACSHA1, OAUTH_AUTH_TYPE_FORM);
 
-			/*$params['x_auth_username'] = $this->credentials->username;
-			$params['x_auth_password'] = $this->credentials->password;
-			$params['x_auth_mode']     = 'client_auth';
+		$params['username'] = $this->credentials->username;
+		$params['password'] = $this->credentials->password;
+		$params['client_id'] = $this->credentials->client_id;
+		$params['client_secret'] = $this->credentials->client_secret;
+		$params['grant_type'] = 'password';
+		$userAgent = $_SERVER['HTTP_USER_AGENT'];
 
-			$this->request->fetch(self::PASSPORT_API_ENDPOINT . "access_token", $params,  OAUTH_HTTP_METHOD_POST);
+		$this->request->fetch('https://www.openpassport.org/oauth/token', $params, OAUTH_HTTP_METHOD_POST, array('user-agent' => $userAgent));
 
-			// Get token and secret and set them for future requests
-			parse_str($this->request->getLastResponse(), $access);
-			$this->request->setToken($access['oauth_token'], $access['oauth_token_secret']);*/
-		}
-		else if ($this->request_type == 'curl')
-		{
-			// Use curl as fallback/alternative to oauth
-			$this->request = curl_init();
-			curl_setopt($this->request, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-			curl_setopt($this->request, CURLOPT_USERPWD, $this->credentials->consumer_key . ":" . $this->credentials->consumer_secret);
-			curl_setopt($this->request, CURLOPT_TIMEOUT, 30);
-			curl_setopt($this->request, CURLOPT_POST, 1);
-		}
-		else
-		{
-			throw new Exception('Unsupported request type');
-		}
-	}
-
-	/**
-	 * Close connection
-	 *
-	 * @return  void
-	 */
-	public function destroy()
-	{
-		if ($this->request_type == 'oauth' && is_a($this->request, 'oauth'))
-		{
-			// Do nothing?
-		}
-		else if ($this->request_type == 'curl' && get_resource_type($this->request) == 'curl')
-		{
-			curl_close($this->request);
-		}
-		else
-		{
-			throw new Exception('Unsupported request type');
-		}
+		$access = json_decode($this->request->getLastResponse());
+		$this->credentials->access_token = $access->access_token;
 	}
 
 	/**
 	 * Create a new badge
-	 * 
+	 *
 	 * @param   array    $data  badge info. Must have the following:
 	 *                          $data['Name']          = 'Badge name';
 	 *                          $data['Description']   = 'Badge description';
@@ -178,37 +135,27 @@ class Passport implements ProviderInterface
 		}
 
 		$data['IssuerId'] = $this->credentials->issuerId;
-
 		$data = json_encode($data);
+		$accessToken = $this->credentials->access_token;
+		$userAgent = $_SERVER['HTTP_USER_AGENT'];
 
-		if ($this->request_type == 'oauth' && is_a($this->request, 'oauth'))
-		{
-			$this->request->setAuthType(OAUTH_AUTH_TYPE_AUTHORIZATION);
+		$headers = [
+			'Cache-Control: no-cache',
+			'Content-Type: application/json',
+			"Authorization: Bearer $accessToken",
+			"user-agent: $userAgent"
+		];
 
-			try
-			{
-				$this->request->fetch(self::PASSPORT_API_ENDPOINT . 'badges/', $data, OAUTH_HTTP_METHOD_POST, array('Content-Type' => 'application/json'));
-			}
-			catch (Exception $e)
-			{
-				throw new Exception('Badge creation request failed.');
-			}
+		$request = curl_init();
+		curl_setopt($request, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($request, CURLOPT_URL, 'https://www.openpassport.org/1.0.0/badges');
+		curl_setopt($request, CURLOPT_POSTFIELDS, $data);
+		curl_setopt($request, CURLOPT_POST, 1);
+		curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($request, CURLOPT_VERBOSE, true);
 
-			$badge = json_decode($this->request->getLastResponse());
-		}
-		else if ($this->request_type == 'curl' && get_resource_type($this->request) == 'curl')
-		{
-			curl_setopt($this->request, CURLOPT_URL, self::PASSPORT_API_ENDPOINT . 'badges/');
-			curl_setopt($this->request, CURLOPT_POSTFIELDS, $data);
-			curl_setopt($this->request, CURLOPT_RETURNTRANSFER, true);
-
-			$response = curl_exec($this->request);
-			$badge    = json_decode($response);
-		}
-		else
-		{
-			throw new Exception('Unsupported request type');
-		}
+		$response = curl_exec($request);
+		$badge = json_decode($response);
 
 		if (empty($badge->Id) || !$badge->Id)
 		{
@@ -220,7 +167,7 @@ class Passport implements ProviderInterface
 
 	/**
 	 * Grant badges to users
-	 * 
+	 *
 	 * @param   object  $badge  Badge info: ID, Evidence URL
 	 * @param   mixed   $users  String (for single user) or array (for multiple users) of user email addresses
 	 * @return  void
@@ -293,7 +240,7 @@ class Passport implements ProviderInterface
 
 	/**
 	 * Check if credentials are set
-	 * 
+	 *
 	 * @return  bool
 	 */
 	private function credentialsSet()
@@ -308,7 +255,7 @@ class Passport implements ProviderInterface
 
 	/**
 	 * Return a URL
-	 * 
+	 *
 	 * @param   string  $type
 	 * @return  bool
 	 */
@@ -316,23 +263,23 @@ class Passport implements ProviderInterface
 	{
 		switch ($type)
 		{
-			case 'Denied':
-				return self::PASSPORT_DENIED_URL;
+		case 'Denied':
+			return self::PASSPORT_DENIED_URL;
 			break;
 
-			case 'Badges':
-				return self::PASSPORT_BADGES_URL;
+		case 'Badges':
+			return self::PASSPORT_BADGES_URL;
 			break;
 
-			default:
-				return self::PASSPORT_CLAIM_URL;
+		default:
+			return self::PASSPORT_CLAIM_URL;
 			break;
 		}
 	}
 
 	/**
 	 * Get assertions by email address
-	 * 
+	 *
 	 * @param   mixed  $emailAddresses  String (for single user) or array (for multiple users) of user email addresses
 	 * @return  array
 	 */
