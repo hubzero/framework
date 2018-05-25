@@ -87,14 +87,21 @@ class Asset extends Nested
 	{
 		$this->addRule('parent_id', function($data)
 		{
-			if (!isset($data['parent_id']) || $data['parent_id'] == 0)
+			/*if (!isset($data['parent_id']) || $data['parent_id'] == 0)
 			{
 				return 'Entries must have a parent ID.';
+			}*/
+
+			if (isset($data['parent_id']) && $data['parent_id'])
+			{
+				$parent = self::oneOrNew($data['parent_id']);
+
+				return $parent->get('id') ? false : 'The set parent does not exist.';
 			}
-
-			$parent = self::oneOrNew($data['parent_id']);
-
-			return $parent->get('id') ? false : 'The set parent does not exist.';
+			else
+			{
+				return false;
+			}
 		});
 	}
 
@@ -106,7 +113,13 @@ class Asset extends Nested
 	 */
 	public function automaticParentId($data)
 	{
-		if (!isset($data['parent_id']) || $data['parent_id'] == 0)
+		if (!isset($data['parent_id']))
+		{
+			$data['parent_id'] = 0;
+		}
+
+		if ((!isset($data['id']) || !$data['id'])
+		 && ($data['parent_id'] == 0))
 		{
 			$data['parent_id'] = self::getRootId();
 		}
@@ -154,7 +167,7 @@ class Asset extends Nested
 			if (!$result->get('id'))
 			{
 				$result = self::all()
-					->whereEquals('alias', 'root')
+					->whereEquals('alias', 'root.1')
 					->row();
 			}
 		}
