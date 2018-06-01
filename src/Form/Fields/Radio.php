@@ -65,7 +65,6 @@ class Radio extends Field
 
 		// Get the field options.
 		$options = $this->getOptions();
-
 		$found = false;
 
 		$html[] = '<ul>';
@@ -83,11 +82,21 @@ class Radio extends Field
 				$found = true;
 			}
 
+			// Add data attributes
+			$dataAttributes = '';
+			foreach ($option as $field => $value)
+			{
+				$dataField = strtolower(substr($field, 0, 4));
+				if ($dataField == 'data')
+				{
+					$dataAttributes .= ' ' . $field . '="' . $value . '"';
+				}
+			}
 			// Initialize some JavaScript option attributes.
 			$onclick = !empty($option->onclick) ? ' onclick="' . $option->onclick . '"' : '';
 
 			$html[] = '<li>';
-			$html[] = '<input type="radio" id="' . $this->id . $i . '" name="' . $this->name . '" value="' . htmlspecialchars($option->value, ENT_COMPAT, 'UTF-8') . '"' . $checked . $class . $onclick . $disabled . '/>';
+			$html[] = '<input type="radio" id="' . $this->id . $i . '" name="' . $this->name . '" value="' . htmlspecialchars($option->value, ENT_COMPAT, 'UTF-8') . '"' . $checked . $class . $onclick . $disabled . $dataAttributes . '/>';
 			$html[] = '<label for="' . $this->id . $i . '"' . $class . '>' . App::get('language')->alt($option->text, preg_replace('/[^a-zA-Z0-9_\-]/', '_', $this->fieldname)) . '</label>';
 			$html[] = '</li>';
 		}
@@ -139,6 +148,14 @@ class Radio extends Field
 				(string) $option['value'], trim((string) $label), 'value', 'text',
 				((string) $option['disabled'] == 'true')
 			);
+			foreach ($option->attributes() as $index => $value)
+			{
+				$dataCheck = strtolower(substr($index, 0, 4));
+				if ($dataCheck == 'data')
+				{
+					$tmp->$index = (string) $value;
+				}
+			}
 
 			// Set some option attributes.
 			$tmp->class = (string) $option['class'];

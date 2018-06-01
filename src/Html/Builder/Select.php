@@ -530,6 +530,19 @@ class Select
 			$extra = '';
 			$label = '';
 			$id    = '';
+			$dataAttributes = '';
+			if (method_exists($element, 'getProperties'))
+			{
+				$elementProperties = $element->getProperties();
+				foreach ($elementProperties as $property => $value)
+				{
+					$dataField = strtolower(substr($property, 0, 4));
+					if ($dataField == 'data')
+					{
+						$dataAttributes .= ' ' . $property . '="' . $element->get($property) . '"';
+					}
+				}
+			}
 			if (is_array($element))
 			{
 				$key  = $options['option.key'] === null ? $elementKey : $element[$options['option.key']];
@@ -626,8 +639,7 @@ class Select
 					$attr = trim($attr);
 				}
 
-				$extra = ($id ? ' id="' . $id . '"' : '') . ($label ? ' label="' . $label . '"' : '') . ($attr ? ' ' . $attr : '') . $extra;
-
+				$extra = ($id ? ' id="' . $id . '"' : '') . ($label ? ' label="' . $label . '"' : '') . ($attr ? ' ' . $attr : '') . $dataAttributes . $extra;
 				if (is_array($options['list.select']))
 				{
 					foreach ($options['list.select'] as $val)

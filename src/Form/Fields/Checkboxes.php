@@ -87,6 +87,17 @@ class Checkboxes extends Field
 			$class = !empty($option->class) ? ' class="' . $option->class . '"' : '';
 			$disabled = !empty($option->disable) ? ' disabled="disabled"' : '';
 
+			// Add data attributes
+			$dataAttributes = '';
+			foreach ($option as $field => $value)
+			{
+				$dataField = strtolower(substr($field, 0, 4));
+				if ($dataField == 'data')
+				{
+					$dataAttributes .= ' ' . $field . '="' . $value . '"';
+				}
+			}
+
 			if ($checked)
 			{
 				foreach ($values as $k => $v)
@@ -103,7 +114,8 @@ class Checkboxes extends Field
 			$onclick = !empty($option->onclick) ? ' onclick="' . $option->onclick . '"' : '';
 
 			$html[] = '<li>';
-			$html[] = '<input type="checkbox" id="' . $this->id . $i . '" name="' . $this->name . '"' . ' value="' . htmlspecialchars($option->value, ENT_COMPAT, 'UTF-8') . '"' . $checked . $class . $onclick . $disabled . '/>';
+			$html[] = '<input type="checkbox" id="' . $this->id . $i . '" name="' . $this->name . '"' .
+				' value="' . htmlspecialchars($option->value, ENT_COMPAT, 'UTF-8') . '"' . $checked . $class . $onclick . $disabled . $dataAttributes . '/>';
 
 			$html[] = '<label for="' . $this->id . $i . '"' . $class . '>' . App::get('language')->txt($option->text) . '</label>';
 			$html[] = '</li>';
@@ -158,6 +170,16 @@ class Checkboxes extends Field
 			$tmp = Dropdown::option((string) $option['value'], trim((string) $label), 'value', 'text',
 				((string) $option['disabled'] == 'true')
 			);
+
+			// Add data attributes
+			foreach ($option->attributes() as $index => $value)
+			{
+				$dataCheck = strtolower(substr($index, 0, 4));
+				if ($dataCheck == 'data')
+				{
+					$tmp->$index = (string) $value;
+				}
+			}
 
 			// Set some option attributes.
 			$tmp->class = (string) $option['class'];

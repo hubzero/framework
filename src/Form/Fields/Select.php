@@ -136,6 +136,14 @@ class Select extends Field
 				App::get('language')->alt(trim((string) $label), preg_replace('/[^a-zA-Z0-9_\-]/', '_', $this->fieldname)), 'value', 'text',
 				((string) $option['disabled'] == 'true')
 			);
+			foreach ($option->attributes() as $index => $value)
+			{
+				$dataCheck = strtolower(substr($index, 0, 4));
+				if ($dataCheck == 'data')
+				{
+					$tmp->$index = (string) $value;
+				}
+			}
 
 			// Set some option attributes.
 			$tmp->class = (string) $option['class'];
