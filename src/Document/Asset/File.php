@@ -337,10 +337,20 @@ class File extends Obj
 					// App
 					$paths[] = $basea . $path2 . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . $this->file();
 					$paths[] = $basea . $path2 . ($this->directory ? $this->directory . DS : '') . $this->file();
+					if ($this->name == $this->extension)
+					{
+						$paths[] = $basea . $path2 . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . substr($this->name, 4) . '.' . $this->type;
+						$paths[] = $basea . $path2 . ($this->directory ? $this->directory . DS : '') . substr($this->name, 4) . '.' . $this->type;
+					}
 
 					// Core
 					$paths[] = $basec . $path2 . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . $this->file();
 					$paths[] = $basec . $path2 . ($this->directory ? $this->directory . DS : '') . $this->file();
+					if ($this->name == $this->extension)
+					{
+						$paths[] = $basec . $path2 . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . substr($this->name, 4) . '.' . $this->type;
+						$paths[] = $basec . $path2 . ($this->directory ? $this->directory . DS : '') . substr($this->name, 4) . '.' . $this->type;
+					}
 				}
 
 				// Run through each path until we find one that works
