@@ -149,6 +149,10 @@ class Loader
 	 */
 	public function canonical($option)
 	{
+		if (is_array($option))
+		{
+			$option = implode('', $option);
+		}
 		$option = preg_replace('/[^A-Z0-9_\.-]/i', '', $option);
 		if (substr($option, 0, strlen('com_')) != 'com_')
 		{
