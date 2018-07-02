@@ -67,6 +67,8 @@ class Atom extends Renderer
 
 		$url = App::get('request')->root();
 
+		$tz = new \DateTimeZone(App::get('config')->get('offset'));
+
 		$syndicationURL = App::get('router')->url('&format=feed&type=atom');
 
 		if (App::get('config')->get('sitename_pagetitles', 0) == 1)
