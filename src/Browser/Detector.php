@@ -497,7 +497,10 @@ class Detector
 				{
 					$this->browser  = strtolower($regex['name']);
 					$this->platform = ($regex['platform'] ? $regex['platform'] : $this->platform);
-					$this->mobile   = $regex['mobile'];
+					if (!$this->mobile)
+					{
+						$this->mobile   = $regex['mobile'];
+					}
 
 					if (isset($regex['version']))
 					{
@@ -540,7 +543,7 @@ class Detector
 		// use this order since some navigator user agents will put 'macintosh' in the navigator user agent string
 		// which would make the nt test register true
 		$a_mobile = array(
-			'ios', 'android', 'blackberry os', 'windows', 'symbian os', 'web os'
+			'ios', 'android', 'blackberry os', 'symbian os', 'web os' //, 'windows'
 		);
 
 		$a_mac = array(
@@ -926,6 +929,7 @@ class Detector
 	 */
 	public function isBrowser($browser)
 	{
+		$browser = strtolower($browser);
 		return ($this->browser === $browser);
 	}
 
