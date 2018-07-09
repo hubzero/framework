@@ -934,6 +934,11 @@ class User extends \Hubzero\Database\Relational
 		return $result;
 	}
 
+	/**
+	 * Parse a users name and set the name parts on the instance
+	 * 
+	 * @return void
+	 */
 	private function parseName()
 	{
 		$name = $this->get('name');
