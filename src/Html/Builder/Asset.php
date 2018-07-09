@@ -360,4 +360,44 @@ class Asset
 			}
 		}
 	}
+
+	/**
+	 * Load an icon's SVG representation
+	 *
+	 * @param   string  $method
+	 * @param   array   $parameters
+	 * @return  string
+	 */
+	public static function icon($symbol, $ariahidden = true)
+	{
+		$paths = array();
+		if (App::has('template'))
+		{
+			$paths[] = App::get('template')->path . '/html/icons/' . $symbol . '.svg';
+		}
+		$paths[] = PATH_CORE . '/assets/icons/' . $symbol . '.svg';
+
+		$content = '';
+
+		foreach ($paths as $path)
+		{
+			if (file_exists($path))
+			{
+				$atts = array(
+					'class="icn icn-' . $symbol . '"'
+				);
+
+				if ($ariahidden)
+				{
+					$atts[] = 'aria-hidden="true" focusable="false"';
+				}
+
+				$content = '<span ' . implode(' ', $atts) . '>' . file_get_contents($path) . '</span>';
+
+				break;
+			}
+		}
+
+		return $content;
+	}
 }
