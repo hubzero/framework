@@ -422,6 +422,12 @@ class User extends \Hubzero\Database\Relational
 			$key = 'id';
 		}
 
+		// If the givenName, middleName, or surname isn't set, try to determine it from the name
+		if (($key == 'givenName' || $key == 'middleName' || $key == 'surname') && parent::get($key, null) == null)
+		{
+			$this->parseName();
+		}
+
 		// Legacy code expects get('id') to always
 		// return an integer, even if user is logged out
 		if ($key == 'id' && is_null($default))
@@ -926,5 +932,66 @@ class User extends \Hubzero\Database\Relational
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Parse a users name and set the name parts on the instance
+	 * 
+	 * @return void
+	 */
+	private function parseName()
+	{
+		$name = $this->get('name');
+		if ($name)
+		{
+			$firstname  = "";
+			$middlename = "";
+			$lastname   = "";
+
+			$words = array_map('trim', explode(' ', $this->get('name')));
+			$count = count($words);
+
+			if ($count == 1)
+			{
+				$firstname = $words[0];
+			}
+			else if ($count == 2)
+			{
+				$firstname = $words[0];
+				$lastname  = $words[1];
+			}
+			else if ($count == 3)
+			{
+				$firstname  = $words[0];
+				$middlename = $words[1];
+				$lastname   = $words[2];
+			}
+			else
+			{
+				$firstname  = $words[0];
+				$lastname   = $words[$count-1];
+				$middlename = $words[1];
+
+				for ($i = 2; $i < $count-1; $i++)
+				{
+					$middlename .= ' ' . $words[$i];
+				}
+			}
+
+			$firstname = trim($firstname);
+			{
+				$this->set('givenName', $firstname);
+			}
+			$middlename = trim($middlename);
+			if ($middlename)
+			{
+				$this->set('middleName', $middlename);
+			}
+			$lastname = trim($lastname);
+			if ($lastname)
+			{
+				$this->set('surname', $lastname);
+			}
+		}
 	}
 }
