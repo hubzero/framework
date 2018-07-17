@@ -147,11 +147,13 @@ class CheckerTest extends Basic
 		$service = new Checker();
 		$service->registerDetector(new Detector());
 
+		// This should NOT be caught as spam
 		$result = $service->check('Maecenas sed diam eget risus varius blandit sit amet non magna.');
 
 		$this->assertInstanceOf('Hubzero\Spam\Result', $result);
 		$this->assertFalse($result->isSpam());
 
+		// This should be caught as spam
 		$result = $service->check('Maecenas sed diam eget risus varius spam blandit sit amet non magna.');
 
 		$this->assertInstanceOf('Hubzero\Spam\Result', $result);
@@ -161,6 +163,15 @@ class CheckerTest extends Basic
 		$this->assertTrue(is_array($messages));
 		$this->assertTrue(in_array('Text contained the word "spam".', $messages));
 
+		// Make sure string processors do their job
+		$service->setStringProcessor(new NativeStringProcessor());
+
+		$result = $service->check("Maecenas sed diam eget risus varius sp\nam blandit sit amet non magna.");
+
+		$this->assertInstanceOf('Hubzero\Spam\Result', $result);
+		$this->assertTrue($result->isSpam());
+
+		// Make sure exceptions are caught and passed as error messages
 		$service->registerDetector(new DetectorException());
 
 		$result = $service->check('Maecenas sed diam eget risus varius spam blandit sit amet non magna.');
