@@ -526,7 +526,23 @@ class Arr
 	}
 
 	/**
-	 * Function to randomly append pirate phrases to 
+	 * Filters keys from given array based on whitelist
+	 *
+	 * @param    array   $unfiltered   Array to filter
+	 * @param    array   $whitelist    List of allowed keys
+	 * @return   array
+	 */
+	public static function filterKeys($unfiltered, $whitelist)
+	{
+		$filtered = array_filter($unfiltered, function($key) use ($whitelist) {
+			return in_array($key, $whitelist);
+		}, ARRAY_FILTER_USE_KEY);
+
+		return $filtered;
+	}
+
+	/**
+	 * Function to randomly append pirate phrases to
 	 * strings in an array.
 	 *
 	 * @codeCoverageIgnore
