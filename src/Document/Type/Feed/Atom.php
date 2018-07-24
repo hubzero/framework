@@ -65,7 +65,9 @@ class Atom extends Renderer
 		$now  = new Date('now');
 		$data = $this->doc;
 
-		$uri = App::get('request')->root();
+		$url = App::get('request')->root();
+
+		$tz = new \DateTimeZone(App::get('config')->get('offset'));
 
 		$syndicationURL = App::get('router')->url('&format=feed&type=atom');
 
@@ -173,8 +175,7 @@ class Atom extends Renderer
 			}
 			if ($data->items[$i]->enclosure != null)
 			{
-				$feed .= "		<link rel=\"enclosure\" href=\"" . $data->items[$i]->enclosure->url . "\" type=\""
-					. $data->items[$i]->enclosure->type . "\"  length=\"" . $data->items[$i]->enclosure->length . "\" />\n";
+				$feed .= "		<link rel=\"enclosure\" href=\"" . $data->items[$i]->enclosure->url . "\" type=\"" . $data->items[$i]->enclosure->type . "\"  length=\"" . $data->items[$i]->enclosure->length . "\" />\n";
 			}
 			$feed .= "	</entry>\n";
 		}

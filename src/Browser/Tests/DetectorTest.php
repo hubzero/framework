@@ -42,6 +42,7 @@ class DetectorTest extends Basic
 	/**
 	 * Tests the match() method.
 	 *
+	 * @covers  \Hubzero\Browser\Detector::__construct
 	 * @covers  \Hubzero\Browser\Detector::match
 	 * @covers  \Hubzero\Browser\Detector::agent
 	 * @covers  \Hubzero\Browser\Detector::name
@@ -62,6 +63,50 @@ class DetectorTest extends Basic
 			$this->assertEquals(strtolower($userAgentString->browser), $browser->name());
 			$this->assertEquals($userAgentString->browserVersion, $browser->version());
 			$this->assertEquals($userAgentString->os, $browser->platform());
+		}
+	}
+
+	/**
+	 * Tests the isBrowser() method.
+	 *
+	 * @covers  \Hubzero\Browser\Detector::isBrowser
+	 * @return  void
+	 **/
+	public function testIsBrowser()
+	{
+		$browser = new Detector('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.132 Safari/537.36 OPR/21.0.1432.67');
+
+		$this->assertTrue($browser->isBrowser('Opera'));
+		$this->assertFalse($browser->isBrowser('Chrome'));
+
+		$browser = new Detector('Mozilla/5.0 (iPhone; CPU iPhone OS 8_1_2 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) CriOS/43.0.2357.51 Mobile/12B440 Safari/600.1.4');
+
+		$this->assertTrue($browser->isBrowser('Chrome'));
+		$this->assertFalse($browser->isBrowser('Safari'));
+	}
+
+	/**
+	 * Tests the isMobile() method.
+	 *
+	 * @covers  \Hubzero\Browser\Detector::isMobile
+	 * @return  void
+	 **/
+	public function testIsMobile()
+	{
+		$uas = self::map();
+
+		foreach ($uas as $userAgentString)
+		{
+			$browser = new Detector($userAgentString->string);
+
+			if ($userAgentString->device == 'iPhone' || $userAgentString->device == 'iPad' || $userAgentString->device == 'phone')
+			{
+				$this->assertTrue($browser->isMobile());
+			}
+			else
+			{
+				$this->assertFalse($browser->isMobile());
+			}
 		}
 	}
 

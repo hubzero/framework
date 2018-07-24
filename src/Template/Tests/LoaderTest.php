@@ -136,6 +136,70 @@ class LoaderTest extends Database
 	}
 
 	/**
+	 * Test the setStyle() and getStyle() methods.
+	 *
+	 * @covers  \Hubzero\Template\Loader::setStyle
+	 * @covers  \Hubzero\Template\Loader::getStyle
+	 * @return  void
+	 */
+	public function testSetGetStyle()
+	{
+		$this->loader->setStyle(1);
+
+		$this->assertEquals($this->loader->getStyle(), 1);
+
+		$this->loader->setStyle('0012');
+
+		$this->assertEquals($this->loader->getStyle(), 12);
+	}
+
+	/**
+	 * Test the setLang() and getLang() methods.
+	 *
+	 * @covers  \Hubzero\Template\Loader::setLang
+	 * @covers  \Hubzero\Template\Loader::getLang
+	 * @return  void
+	 */
+	public function testSetGetLang()
+	{
+		$this->loader->setLang('de-DE');
+
+		$this->assertEquals($this->loader->getLang(), 'de-DE');
+
+		$this->loader->setLang('en-US');
+
+		$this->assertEquals($this->loader->getLang(), 'en-US');
+	}
+
+	/**
+	 * Test the the constructor is properly setting all optional values
+	 *
+	 * @covers  \Hubzero\Template\Loader::__construct
+	 * @return  void
+	 */
+	public function testConstructor()
+	{
+		\Hubzero\Database\Relational::setDefaultConnection($this->getMockDriver());
+
+		$app = new Application();
+		$app['client'] = new \Hubzero\Base\Client\Site();
+		$app['db']     = $this->getMockDriver();
+		$app['config'] = \App::get('config');
+
+		$loader = new Loader($app, [
+			'path_app'  => __DIR__ . '/fixtures/app/templates',
+			'path_core' => __DIR__ . '/fixtures/core/templates',
+			'style'     => 5,
+			'lang'      => 'en-US'
+		]);
+
+		$this->assertEquals($loader->getPath('core'), __DIR__ . '/fixtures/core/templates');
+		$this->assertEquals($loader->getPath('app'), __DIR__ . '/fixtures/app/templates');
+		$this->assertEquals($loader->getStyle(), 5);
+		$this->assertEquals($loader->getLang(), 'en-US');
+	}
+
+	/**
 	 * Test that the system template is built and returned properly
 	 *
 	 * @covers  \Hubzero\Template\Loader::getTemplate

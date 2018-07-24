@@ -303,7 +303,7 @@ abstract class Driver
 	public function quoteName($name, $as = null)
 	{
 		$parts = (strpos($name, '.') !== false) ? explode('.', $name) : (array)$name;
-		$bits  = '';
+		$bits  = array();
 
 		foreach ($parts as $part)
 		{

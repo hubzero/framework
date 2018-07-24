@@ -725,10 +725,10 @@ class Loader
 		$unprefixed = substr($module, 4);
 
 		$paths = array(
-			PATH_APP . DS . 'modules' . DS . $prefixed . DS . $prefixed . '.php',
 			PATH_APP . DS . 'modules' . DS . $unprefixed . DS . $unprefixed . '.php',
-			PATH_CORE . DS . 'modules' . DS . $prefixed . DS . $prefixed . '.php',
-			PATH_CORE . DS . 'modules' . DS . $unprefixed . DS . $unprefixed . '.php'
+			PATH_APP . DS . 'modules' . DS . $prefixed . DS . $prefixed . '.php',
+			PATH_CORE . DS . 'modules' . DS . $unprefixed . DS . $unprefixed . '.php',
+			PATH_CORE . DS . 'modules' . DS . $prefixed . DS . $prefixed . '.php'
 		);
 
 		foreach ($paths as $path)

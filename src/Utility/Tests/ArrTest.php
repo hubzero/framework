@@ -396,4 +396,36 @@ class ArrTest extends Basic
 
 		$this->assertEquals($result, array('Joe', 'Susan', 'Frank', 'Helen'));
 	}
+
+	/**
+	 * Tests that #filterKeys filters correctly
+	 *
+	 * @covers  \Hubzero\Utility\Arr::filterKeys
+	 * @return  void
+	 **/
+	public function testFilterKeysFilters()
+	{
+		$unfiltered = ['a' => 0, 'b' => 1, 'c' => 2];
+		$whitelist = ['b'];
+
+		$filtered = Arr::filterKeys($unfiltered, $whitelist);
+
+		$this->assertEquals(array_keys($filtered), $whitelist);
+	}
+
+	/**
+	 * Tests that #filterKeys does not change argument array
+	 *
+	 * @covers  \Hubzero\Utility\Arr::filterKeys
+	 * @return  void
+	 **/
+	public function testFilterKeysNonDestructive()
+	{
+		$original = ['a' => 0, 'b' => 1, 'c' => 2];
+		$copy = $original;
+
+		Arr::filterKeys($original, []);
+
+		$this->assertEquals($original, $copy);
+	}
 }

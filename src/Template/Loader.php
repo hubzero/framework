@@ -283,7 +283,17 @@ class Loader
 				foreach ($templates as $i => $template)
 				{
 					$template->params = new Registry($template->params);
-					$template->path   = $this->determinePath($template->protected) . DIRECTORY_SEPARATOR . $template->template;
+					$base = $this->determinePath($template->protected);
+					$unprefixed = substr($template->template, 4);
+					if (file_exists($base . DIRECTORY_SEPARATOR . $unprefixed . DIRECTORY_SEPARATOR . 'index.php'))
+					{
+						$template->path = $base . DIRECTORY_SEPARATOR . $unprefixed;
+						$template->template = $unprefixed;
+					}
+					else
+					{
+						$template->path   = $this->determinePath($template->protected) . DIRECTORY_SEPARATOR . $template->template;
+					}
 
 					$templates[$i] = $template;
 
