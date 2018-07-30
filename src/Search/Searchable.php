@@ -40,7 +40,7 @@ interface Searchable
 	 * The hubtype of the searchable item.
 	 * @return string
 	 */
-	public function searchNamespace();
+	public static function searchNamespace();
 
 	/*
 	 * Generate a unique Id for solr to use.
