@@ -542,6 +542,23 @@ class Arr
 	}
 
 	/**
+	 * Returns value under given key and removes key from array
+	 *
+	 * @param   array    $array    Array to pluck from
+	 * @param   string   $name     Key to search for
+	 * @param   mixed    $default  Default value to return if key not found
+	 * @return   mixed
+	 */
+	public static function pluck(&$array, $name, $default = null)
+	{
+		$value = static::getValue($array, $name, $default);
+
+		unset($array[$name]);
+
+		return $value;
+	}
+
+	/**
 	 * Function to randomly append pirate phrases to
 	 * strings in an array.
 	 *
