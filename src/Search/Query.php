@@ -186,9 +186,9 @@ class Query
 	 * @access public
 	 * @return void
 	 */
-	public function addFilter($name, $query = array())
+	public function addFilter($name, $query = array(), $tag = 'root_type')
 	{
-		$this->adapter->addFilter($name, $query);
+		$this->adapter->addFilter($name, $query, $tag);
 		return $this;
 	}
 
