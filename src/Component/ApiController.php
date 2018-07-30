@@ -535,7 +535,7 @@ class ApiController implements ControllerInterface
 			}
 		}
 
-		$filters['sort'] = Request::getVar('sort', $query->orderBy);
+		$filters['sort'] = Request::getString('sort', $query->orderBy);
 		$filters['sort_Dir'] = Request::getWord('sort_Dir', $query->orderDir);
 
 		if (!isset($properties[$filters['sort']]))
@@ -581,7 +581,7 @@ class ApiController implements ControllerInterface
 		}
 
 		// Are searching for anything?
-		if ($search = (string)Request::getVar('search'))
+		if ($search = (string)Request::getString('search'))
 		{
 			foreach ($searches as $i => $property)
 			{
@@ -672,7 +672,7 @@ class ApiController implements ControllerInterface
 			}
 			/*else if ($type == 'date')
 			{
-				$fields[$property] = Request::getVar($property, with(new Date('now'))->toSql(), 'post');
+				$fields[$property] = Request::getString($property, with(new Date('now'))->toSql(), 'post');
 			}*/
 			else
 			{

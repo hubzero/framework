@@ -649,7 +649,7 @@ class Loader
 				$ret = $cache->get(
 					array($cacheparams->class, $cacheparams->method),
 					$cacheparams->methodparams,
-					$module->id . $view_levels . \Request::getVar('Itemid', null, 'default', 'INT'),
+					$module->id . $view_levels . \Request::getInt('Itemid', 0),
 					$wrkarounds,
 					$wrkaroundoptions
 				);
