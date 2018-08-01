@@ -433,13 +433,13 @@ class Application extends Container
 		$this->boot();
 
 		// Initialise
-		if (!$this->runningInConsole())
+		if (!$this->runningInConsole() && $this->has('dispatcher'))
 		{
 			$this['dispatcher']->trigger('system.onAfterInitialise');
 
-			if ($this->app->has('profiler') && $this->app->get('profiler'))
+			if ($this->has('profiler') && $this->get('profiler'))
 			{
-				$this->app['profiler']->mark('afterInitialise');
+				$this['profiler']->mark('afterInitialise');
 			}
 		}
 
