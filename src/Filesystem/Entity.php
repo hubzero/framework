@@ -345,6 +345,11 @@ class Entity extends Obj
 	{
 		if (isset($this->filename))
 		{
+			// If it is a dotfile the filename is '' and the extension will be the rest of the filename
+			if ($this->filename == '' && isset($this->extension))
+			{
+				return '.' . $this->extension;
+			}
 			return $this->filename;
 		}
 
