@@ -74,7 +74,7 @@ class Api implements RendererInterface
 	 * @param   object  $exception
 	 * @return  void
 	 */
-	public function render(Exception $error)
+	public function render($error)
 	{
 		$status = $error->getCode() ? $error->getCode() : 500;
 		$status = ($status < 100 || $status >= 600) ? 500 : $status;
