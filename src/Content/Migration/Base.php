@@ -493,7 +493,7 @@ class Base
 					// Use the MySQL driver for this
 					$database = \JDatabase::getInstance(
 						array(
-							'driver'   => 'mysql',
+							'driver'   => \Config::get('dbtype', 'pdo'),
 							'host'     => \Config::get('host'),
 							'user'     => \Config::get('user'),
 							'password' => \Config::get('password'),
@@ -1036,7 +1036,7 @@ class Base
 				// Use the MySQL driver for this
 				$database = \JDatabase::getInstance(
 					array(
-						'driver'   => 'mysql',
+						'driver'   => \Config::get('dbtype', 'pdo'),
 						'host'     => \Config::get('host'),
 						'user'     => \Config::get('user'),
 						'password' => \Config::get('password'),
