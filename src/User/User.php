@@ -425,7 +425,7 @@ class User extends \Hubzero\Database\Relational
 		// If the givenName, middleName, or surname isn't set, try to determine it from the name
 		if (($key == 'givenName' || $key == 'middleName' || $key == 'surname') && parent::get($key, null) == null)
 		{
-			$this->parseName($key);
+			return $this->parseName($key);
 		}
 
 		// Legacy code expects get('id') to always
