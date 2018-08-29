@@ -425,7 +425,7 @@ class User extends \Hubzero\Database\Relational
 		// If the givenName, middleName, or surname isn't set, try to determine it from the name
 		if (($key == 'givenName' || $key == 'middleName' || $key == 'surname') && parent::get($key, null) == null)
 		{
-			$this->parseName();
+			return $this->parseName($key);
 		}
 
 		// Legacy code expects get('id') to always
@@ -939,7 +939,7 @@ class User extends \Hubzero\Database\Relational
 	 * 
 	 * @return void
 	 */
-	private function parseName()
+	private function parseName($key=null)
 	{
 		$name = $this->get('name');
 		if ($name)
@@ -977,20 +977,19 @@ class User extends \Hubzero\Database\Relational
 					$middlename .= ' ' . $words[$i];
 				}
 			}
-
-			$firstname = trim($firstname);
+			switch ($key)
 			{
-				$this->set('givenName', $firstname);
-			}
-			$middlename = trim($middlename);
-			if ($middlename)
-			{
-				$this->set('middleName', $middlename);
-			}
-			$lastname = trim($lastname);
-			if ($lastname)
-			{
-				$this->set('surname', $lastname);
+				case 'givenName':
+					return trim($firstname);
+					break;
+				case 'middleName':
+					return trim($middlename);
+					break;
+				case 'surname':
+					return trim($lastname);
+					break;
+				default:
+					return '';
 			}
 		}
 	}
