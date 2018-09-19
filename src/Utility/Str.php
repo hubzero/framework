@@ -324,85 +324,76 @@ class Str
 			'exact'    => false,
 			'html'     => false
 		);
-		if (isset($options['ending']))
-		{
-			$default['ellipsis'] = $options['ending'];
-		}
-		elseif (!empty($options['html'])) // && Configure::read('App.encoding') === 'UTF-8')
+
+		if (!empty($options['html']) && strtolower(mb_internal_encoding()) === 'utf-8')
 		{
 			$default['ellipsis'] = "\xe2\x80\xa6";
 		}
-		$options = array_merge($default, $options);
-		extract($options);
+		$options += $default;
+		$prefix = '';
+		$suffix = $options['ellipsis'];
 
-		if (!function_exists('mb_strlen'))
+		if ($options['html'])
 		{
-			class_exists('Multibyte');
-		}
+			$ellipsisLength = mb_strlen(strip_tags($options['ellipsis']));
+			$truncateLength = 0;
+			$totalLength = 0;
+			$openTags = array();
+			$truncate = '';
+			$htmlNoCount = array('style', 'script');
 
-		if ($html)
-		{
-			if (mb_strlen($text) <= $length)
+			preg_match_all('/(<\/?([\w+]+)[^>]*>)?([^<>]*)/', $text, $tags, PREG_SET_ORDER);
+
+			foreach ($tags as $tag)
+			{
+				$contentLength = 0;
+				if (!in_array($tag[2], $htmlNoCount, true))
+				{
+					$contentLength = mb_strlen($tag[3]);
+				}
+				if ($truncate === '')
+				{
+					if (!preg_match('/img|br|input|hr|area|base|basefont|col|frame|isindex|link|meta|param/i', $tag[2]))
+					{
+						if (preg_match('/<[\w]+[^>]*>/', $tag[0]))
+						{
+							array_unshift($openTags, $tag[2]);
+						}
+						elseif (preg_match('/<\/([\w]+)[^>]*>/', $tag[0], $closeTag))
+						{
+							$pos = array_search($closeTag[1], $openTags);
+							if ($pos !== false)
+							{
+								array_splice($openTags, $pos, 1);
+							}
+						}
+					}
+					$prefix .= $tag[1];
+					if ($totalLength + $contentLength + $ellipsisLength > $length)
+					{
+						$truncate = $tag[3];
+						$truncateLength = $length - $totalLength;
+					}
+					else
+					{
+						$prefix .= $tag[3];
+					}
+				}
+				$totalLength += $contentLength;
+				if ($totalLength > $length)
+				{
+					break;
+				}
+			}
+			if ($totalLength <= $length)
 			{
 				return $text;
 			}
-			$totalLength = mb_strlen(strip_tags($ellipsis));
-			$openTags = array();
-			$truncate = '';
-
-			preg_match_all('/(<\/?([\w+]+)[^>]*>)?([^<>]*)/', $text, $tags, PREG_SET_ORDER);
-			foreach ($tags as $tag)
+			$text = $truncate;
+			$length = $truncateLength;
+			foreach ($openTags as $tag)
 			{
-				if (!preg_match('/img|br|input|hr|area|base|basefont|col|frame|isindex|link|meta|param/s', $tag[2]))
-				{
-					if (preg_match('/<[\w]+[^>]*>/s', $tag[0]))
-					{
-						array_unshift($openTags, $tag[2]);
-					}
-					elseif (preg_match('/<\/([\w]+)[^>]*>/s', $tag[0], $closeTag))
-					{
-						$pos = array_search($closeTag[1], $openTags);
-						if ($pos !== false)
-						{
-							array_splice($openTags, $pos, 1);
-						}
-					}
-				}
-				$truncate .= $tag[1];
-
-				$contentLength = mb_strlen(preg_replace('/&[0-9a-z]{2,8};|&#[0-9]{1,7};|&#x[0-9a-f]{1,6};/i', ' ', $tag[3]));
-				if ($contentLength + $totalLength > $length)
-				{
-					$left = $length - $totalLength;
-					$entitiesLength = 0;
-					if (preg_match_all('/&[0-9a-z]{2,8};|&#[0-9]{1,7};|&#x[0-9a-f]{1,6};/i', $tag[3], $entities, PREG_OFFSET_CAPTURE))
-					{
-						foreach ($entities[0] as $entity)
-						{
-							if ($entity[1] + 1 - $entitiesLength <= $left)
-							{
-								$left--;
-								$entitiesLength += mb_strlen($entity[0]);
-							}
-							else
-							{
-								break;
-							}
-						}
-					}
-
-					$truncate .= mb_substr($tag[3], 0, $left + $entitiesLength);
-					break;
-				}
-				else
-				{
-					$truncate .= $tag[3];
-					$totalLength += $contentLength;
-				}
-				if ($totalLength >= $length)
-				{
-					break;
-				}
+				$suffix .= '</' . $tag . '>';
 			}
 		}
 		else
@@ -411,58 +402,38 @@ class Str
 			{
 				return $text;
 			}
-			$truncate = mb_substr($text, 0, $length - mb_strlen($ellipsis));
+			$ellipsisLength = mb_strlen($options['ellipsis']);
 		}
-		if (!$exact)
+
+		$result = mb_substr($text, 0, $length - $ellipsisLength);
+
+		if (!$options['exact'])
 		{
-			$spacepos = mb_strrpos($truncate, ' ');
-			if ($html)
+			if (mb_substr($text, $length - $ellipsisLength, 1) !== ' ')
 			{
-				$truncateCheck = mb_substr($truncate, 0, $spacepos);
-				$lastOpenTag   = mb_strrpos($truncateCheck, '<');
-				$lastCloseTag  = mb_strrpos($truncateCheck, '>');
-				if ($lastOpenTag > $lastCloseTag)
+				//$result = self::_removeLastWord($result);
+				$spacepos = mb_strrpos($result, ' ');
+
+				if ($spacepos !== false)
 				{
-					preg_match_all('/<[\w]+[^>]*>/s', $truncate, $lastTagMatches);
-					$lastTag  = array_pop($lastTagMatches[0]);
-					$spacepos = mb_strrpos($truncate, $lastTag) + mb_strlen($lastTag);
-				}
-				$bits = mb_substr($truncate, $spacepos);
-				preg_match_all('/<\/([a-z]+)>/', $bits, $droppedTags, PREG_SET_ORDER);
-				if (!empty($droppedTags))
-				{
-					if (!empty($openTags))
+					$lastWord = mb_strrpos($result, $spacepos);
+					// Some languages are written without word separation.
+					// We recognize a string as a word if it doesn't contain any full-width characters.
+					if (mb_strwidth($lastWord) === mb_strlen($lastWord))
 					{
-						foreach ($droppedTags as $closingTag)
-						{
-							if (!in_array($closingTag[1], $openTags))
-							{
-								array_unshift($openTags, $closingTag[1]);
-							}
-						}
-					}
-					else
-					{
-						foreach ($droppedTags as $closingTag)
-						{
-							$openTags[] = $closingTag[1];
-						}
+						$result = mb_substr($result, 0, $spacepos);
 					}
 				}
 			}
-			$truncate = mb_substr($truncate, 0, $spacepos);
-		}
-		$truncate .= $ellipsis;
 
-		if ($html)
-		{
-			foreach ($openTags as $tag)
+			// If result is empty, then we don't need to count ellipsis in the cut.
+			if (!strlen($result))
 			{
-				$truncate .= '</' . $tag . '>';
+				$result = mb_substr($text, 0, $length);
 			}
 		}
 
-		return $truncate;
+		return $prefix . $result . $suffix;
 	}
 
 	/**
