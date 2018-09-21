@@ -180,11 +180,11 @@ class Message extends \Swift_Message
 
 		if ($result)
 		{
-			\Log::info('Mail sent to %s', json_encode($this->getTo()));
+			\Log::info(sprintf('Mail sent to %s', json_encode($this->getTo())));
 		}
 		else
 		{
-			\Log::error('Failed to mail %s', json_encode($this->getTo()));
+			\Log::error(sprintf('Failed to mail %s', json_encode($this->getTo())));
 		}
 
 		return $result;
