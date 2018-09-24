@@ -62,8 +62,8 @@ class LoaderTest extends Database
 		$app['config'] = \App::get('config');
 
 		$this->loader = new Loader($app, [
-			'path_app'  => __DIR__ . '/fixtures/app/templates',
-			'path_core' => __DIR__ . '/fixtures/core/templates'
+			'path_app'  => __DIR__ . '/Mock/app',
+			'path_core' => __DIR__ . '/Mock/core'
 		]);
 	}
 
@@ -75,8 +75,8 @@ class LoaderTest extends Database
 	 */
 	public function testGetPath()
 	{
-		$this->assertEquals($this->loader->getPath('core'), __DIR__ . '/fixtures/core/templates');
-		$this->assertEquals($this->loader->getPath('app'), __DIR__ . '/fixtures/app/templates');
+		$this->assertEquals($this->loader->getPath('core'), __DIR__ . '/Mock/core');
+		$this->assertEquals($this->loader->getPath('app'), __DIR__ . '/Mock/app');
 
 		$this->assertNotEquals($this->loader->getPath('core'), $this->loader->getPath('app'));
 	}
@@ -102,18 +102,6 @@ class LoaderTest extends Database
 
 		$this->loader->setPath('core', $core);
 		$this->loader->setPath('app', $app);
-	}
-
-	/**
-	 * Test the determinePath() method.
-	 *
-	 * @covers  \Hubzero\Template\Loader::determinePath
-	 * @return  void
-	 */
-	public function testDeterminePath()
-	{
-		$this->assertEquals($this->loader->determinePath(1), $this->loader->getPath('core'));
-		$this->assertEquals($this->loader->determinePath(0), $this->loader->getPath('app'));
 	}
 
 	/**
@@ -187,14 +175,14 @@ class LoaderTest extends Database
 		$app['config'] = \App::get('config');
 
 		$loader = new Loader($app, [
-			'path_app'  => __DIR__ . '/fixtures/app/templates',
-			'path_core' => __DIR__ . '/fixtures/core/templates',
+			'path_app'  => __DIR__ . '/Mock/app',
+			'path_core' => __DIR__ . '/Mock/core',
 			'style'     => 5,
 			'lang'      => 'en-US'
 		]);
 
-		$this->assertEquals($loader->getPath('core'), __DIR__ . '/fixtures/core/templates');
-		$this->assertEquals($loader->getPath('app'), __DIR__ . '/fixtures/app/templates');
+		$this->assertEquals($loader->getPath('core'), __DIR__ . '/Mock/core');
+		$this->assertEquals($loader->getPath('app'), __DIR__ . '/Mock/app');
 		$this->assertEquals($loader->getStyle(), 5);
 		$this->assertEquals($loader->getLang(), 'en-US');
 	}
@@ -205,7 +193,7 @@ class LoaderTest extends Database
 	 * @covers  \Hubzero\Template\Loader::getTemplate
 	 * @return  void
 	 */
-	/*public function testGetTemplate()
+	public function testGetTemplate()
 	{
 		$template = $this->loader->getTemplate(0);
 
@@ -235,7 +223,7 @@ class LoaderTest extends Database
 		$this->assertEquals($template->id, 4);
 		$this->assertEquals($template->home, 0);
 		$this->assertInstanceOf('Hubzero\Config\Registry', $template->params);
-		$this->assertEquals($template->path, $this->loader->getPath('core') . DIRECTORY_SEPARATOR . $template->template);
+		$this->assertEquals($template->path, $this->loader->getPath('app') . DIRECTORY_SEPARATOR . $template->template);
 
 		$template = $this->loader->getTemplate(1, 2);
 
@@ -245,6 +233,26 @@ class LoaderTest extends Database
 		$this->assertEquals($template->id, 2);
 		$this->assertEquals($template->home, 0);
 		$this->assertInstanceOf('Hubzero\Config\Registry', $template->params);
+		$this->assertEquals($template->path, $this->loader->getPath('app') . DIRECTORY_SEPARATOR . $template->template);
+
+		$template = $this->loader->getTemplate(1, 7);
+
+		$this->assertTrue(is_object($template));
+		$this->assertEquals($template->template, 'system');
+		$this->assertEquals($template->protected, 1);
+		$this->assertEquals($template->id, 0);
+		$this->assertEquals($template->home, 0);
+		$this->assertInstanceOf('Hubzero\Config\Registry', $template->params);
 		$this->assertEquals($template->path, $this->loader->getPath('core') . DIRECTORY_SEPARATOR . $template->template);
-	}*/
+
+		$template = $this->loader->getTemplate(0, 8);
+
+		$this->assertTrue(is_object($template));
+		$this->assertEquals($template->template, 'system');
+		$this->assertEquals($template->protected, 1);
+		$this->assertEquals($template->id, 0);
+		$this->assertEquals($template->home, 0);
+		$this->assertInstanceOf('Hubzero\Config\Registry', $template->params);
+		$this->assertEquals($template->path, $this->loader->getPath('core') . DIRECTORY_SEPARATOR . $template->template);
+	}
 }
