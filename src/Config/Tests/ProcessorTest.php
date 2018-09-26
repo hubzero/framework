@@ -58,7 +58,7 @@ class ProcessorTest extends Basic
 	/**
 	 * Tests the instance() method
 	 *
-	 * @covers  \Hubzero\Config\Registry::instance
+	 * @covers  \Hubzero\Config\Processor::instance
 	 * @return  void
 	 **/
 	public function testInstance()
