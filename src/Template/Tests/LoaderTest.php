@@ -255,4 +255,46 @@ class LoaderTest extends Database
 		$this->assertInstanceOf('Hubzero\Config\Registry', $template->params);
 		$this->assertEquals($template->path, $this->loader->getPath('core') . DIRECTORY_SEPARATOR . $template->template);
 	}
+
+	/**
+	 * Test that the system template is built and returned properly
+	 *
+	 * @covers  \Hubzero\Template\Loader::load
+	 * @return  void
+	 */
+	public function testLoad()
+	{
+		// Load tmeplate by current client (site)
+		$template = $this->loader->load();
+
+		$this->assertTrue(is_object($template));
+		$this->assertEquals($template->template, 'sitefoo');
+		$this->assertEquals($template->protected, 1);
+		$this->assertEquals($template->id, 3);
+		$this->assertEquals($template->home, 1);
+		$this->assertInstanceOf('Hubzero\Config\Registry', $template->params);
+		$this->assertEquals($template->path, $this->loader->getPath('core') . DIRECTORY_SEPARATOR . $template->template);
+
+		// Load site tmeplate by client ID
+		$template = $this->loader->load(0);
+
+		$this->assertTrue(is_object($template));
+		$this->assertEquals($template->template, 'sitefoo');
+		$this->assertEquals($template->protected, 1);
+		$this->assertEquals($template->id, 3);
+		$this->assertEquals($template->home, 1);
+		$this->assertInstanceOf('Hubzero\Config\Registry', $template->params);
+		$this->assertEquals($template->path, $this->loader->getPath('core') . DIRECTORY_SEPARATOR . $template->template);
+
+		// Load admin template by client name
+		$template = $this->loader->load('administrator');
+
+		$this->assertTrue(is_object($template));
+		$this->assertEquals($template->template, 'adminfoo');
+		$this->assertEquals($template->protected, 1);
+		$this->assertEquals($template->id, 1);
+		$this->assertEquals($template->home, 1);
+		$this->assertInstanceOf('Hubzero\Config\Registry', $template->params);
+		$this->assertEquals($template->path, $this->loader->getPath('core') . DIRECTORY_SEPARATOR . $template->template);
+	}
 }
