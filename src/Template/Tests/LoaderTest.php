@@ -296,5 +296,9 @@ class LoaderTest extends Database
 		$this->assertEquals($template->home, 1);
 		$this->assertInstanceOf('Hubzero\Config\Registry', $template->params);
 		$this->assertEquals($template->path, $this->loader->getPath('core') . DIRECTORY_SEPARATOR . $template->template);
+
+		$this->setExpectedException('InvalidArgumentException');
+
+		$template = $this->loader->load('foo');
 	}
 }
