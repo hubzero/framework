@@ -387,7 +387,7 @@ class StrTest extends Basic
 
 		$result = Str::truncate($str, 30, array('html' => true));
 
-		$this->assertEquals($result, '<p>Cras <strong>mattis</strong> consectetur…</p>');
+		$this->assertEquals($result, '<p>Cras <strong>mattis</strong> consectetur purus…</p>');
 
 		$result = Str::truncate($str, 30, array('html' => true, 'exact' => true));
 
