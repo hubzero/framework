@@ -495,4 +495,42 @@ class ArrTest extends Basic
 
 		$this->assertEquals($default, $pluckValue);
 	}
+
+	/**
+	 * Tests multidimensional array unique
+	 *
+	 * @covers  \Hubzero\Utility\Arr::arrayUnique
+	 * @return  void
+	 **/
+	public function testArrayUnique()
+	{
+		$arrs = array(
+			array(
+				'id' => 1,
+				'name' => 'Joe',
+				'age' => 27
+			),
+			array(
+				'id' => 2,
+				'name' => 'Susan',
+				'age' => 24
+			),
+			array(
+				'id' => 1,
+				'name' => 'Joe',
+				'age' => 27
+			),
+		);
+
+		$foo = 'bar';
+
+		$result = Arr::arrayUnique($foo);
+
+		$this->assertEquals($result, $foo);
+
+		$result = Arr::arrayUnique($arrs);
+
+		$this->assertNotEquals($result, $arrs);
+		$this->assertCount(2, $result);
+	}
 }
