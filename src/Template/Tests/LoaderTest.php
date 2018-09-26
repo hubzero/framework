@@ -299,6 +299,6 @@ class LoaderTest extends Database
 
 		$this->setExpectedException('InvalidArgumentException');
 
-		$template = $this->loader->load('foo');
+		$template = $this->loader->load('foobar');
 	}
 }
