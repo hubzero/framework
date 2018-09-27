@@ -535,7 +535,7 @@ class Validate
 	 * @param   string   $password  Password to validate
 	 * @return  boolean  True if valid, false if invalid
 	 */
-	public function password($password)
+	public static function password($password)
 	{
 		if (preg_match("#^[_\`\~\!\@\#\$\%\^\&\*\(\)\=\+\{\}\:\;\"\'\<\>\,\.\?\/0-9a-zA-Z-]+$#i", $password))
 		{
