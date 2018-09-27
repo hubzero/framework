@@ -854,24 +854,6 @@ class Detector
 	}
 
 	/**
-	 * Returns the server protocol in use on the current server.
-	 *
-	 * @return  string  The HTTP server protocol version.
-	 */
-	public function protocol()
-	{
-		if (isset($_SERVER['SERVER_PROTOCOL']))
-		{
-			if (($pos = strrpos($_SERVER['SERVER_PROTOCOL'], '/')))
-			{
-				return substr($_SERVER['SERVER_PROTOCOL'], $pos + 1);
-			}
-		}
-
-		return null;
-	}
-
-	/**
 	 * Determines if a browser can display a given MIME type.
 	 *
 	 * Note that  image/jpeg and image/pjpeg *appear* to be the same
@@ -963,15 +945,5 @@ class Detector
 	public function isMobile()
 	{
 		return $this->mobile;
-	}
-
-	/**
-	 * Determine if we are using a secure (SSL) connection.
-	 *
-	 * @return  boolean  True if using SSL, false if not.
-	 */
-	public function isSecure()
-	{
-		return ((isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on')) || getenv('SSL_PROTOCOL_VERSION'));
 	}
 }
