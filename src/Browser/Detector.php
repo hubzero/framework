@@ -102,6 +102,9 @@ class Detector
 		'Slurp',
 		'Yahoo',
 		/* The rest alphabetically. */
+		'360Spider',
+		'alexa',
+		'applebot',
 		'Arachnoidea',
 		'ArchitextSpider',
 		'Ask Jeeves',
@@ -142,6 +145,7 @@ class Detector
 		'ViolaBot',
 		'webbandit',
 		'www.almaden.ibm.com/cs/crawler',
+		'yandex',
 		'ZyBorg'
 	);
 

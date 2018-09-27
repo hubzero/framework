@@ -111,6 +111,41 @@ class DetectorTest extends Basic
 	}
 
 	/**
+	 * Tests the isRobot() method.
+	 *
+	 * @covers  \Hubzero\Browser\Detector::isRobot
+	 * @return  void
+	 **/
+	public function testIsRobot()
+	{
+		$uas = array(
+			'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0); 360Spider' => true,
+			'Mozilla/5.0 (compatible; alexa site audit/1.0; http://www.alexa.com/help/webmasters; )' => true,
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10 _1) AppleWebKit/600.2.5 (KHTML, like Gecko) Version/8.0.2 Safari/600.2.5 (Applebot/0.1; +http://www.apple.com/go/applebot)' => true,
+			'Mozilla/2.0 (compatible; Ask Jeeves/Teoma)' => true,
+			'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html) Safari/537.36' => true,
+			'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.89 Vivaldi/1.0.83.38 Safari/537.36' => false,
+			'Mozilla/5.0 (AmigaOS; U; AmigaOS 1.3; en-US; rv:1.8.1.21) Gecko/20090303 SeaMonkey/1.1.15' => false,
+			'Mozilla/5 (X11; Linux x86_64) AppleWebKit/537.4 (KHTML like Gecko) Arch Linux Firefox/23.0 Xfce' => false,
+			'Mozilla/5.0 (X11; CrOS x86_64 4731.101.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.67 Safari/537.36' => false
+		);
+
+		foreach ($uas as $userAgentString => $isRobot)
+		{
+			$browser = new Detector($userAgentString);
+
+			if ($isRobot)
+			{
+				$this->assertTrue($browser->isRobot());
+			}
+			else
+			{
+				$this->assertFalse($browser->isRobot());
+			}
+		}
+	}
+
+	/**
 	 * Map test data
 	 *
 	 * @return  array
