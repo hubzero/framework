@@ -776,17 +776,6 @@ class Detector
 	}
 
 	/**
-	 * Sets the current browser.
-	 *
-	 * @param   string  $browser  The browser to set as current.
-	 * @return  void
-	 */
-	public function setBrowser($browser)
-	{
-		$this->browser = $browser;
-	}
-
-	/**
 	 * Retrieve the current browser.
 	 *
 	 * @return  string  The current browser.
