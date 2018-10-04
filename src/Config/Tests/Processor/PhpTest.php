@@ -68,6 +68,8 @@ class PhpTest extends Basic
 	 */
 	private $str = '<?php
 return array(
+	\'foo\' => \'1\',
+	\'bar\' => \'\',
 	\'app\' => array("application_env" => "development", "editor" => "ckeditor", "list_limit" => "25", "helpurl" => "English (GB) - HUBzero help", "debug" => "1", "debug_lang" => "0", "sef" => "1", "sef_rewrite" => "1", "sef_suffix" => "0", "sef_groups" => "0", "feed_limit" => "10", "feed_email" => "author"),
 	\'seo\' => array("sef" => "1", "sef_groups" => "0", "sef_rewrite" => "1", "sef_suffix" => "0", "unicodeslugs" => "0", "sitename_pagetitles" => "0"),
 );';
@@ -80,6 +82,8 @@ return array(
 	private $strObject = '<?php
 class Config
 {
+	var $foo = \'1\';
+	var $bar = \'\';
 	var $app = array("application_env" => "development", "editor" => "ckeditor", "list_limit" => "25", "helpurl" => "English (GB) - HUBzero help", "debug" => "1", "debug_lang" => "0", "sef" => "1", "sef_rewrite" => "1", "sef_suffix" => "0", "sef_groups" => "0", "feed_limit" => "10", "feed_email" => "author");
 	var $seo = array("sef" => "1", "sef_groups" => "0", "sef_rewrite" => "1", "sef_suffix" => "0", "unicodeslugs" => "0", "sitename_pagetitles" => "0");
 }';
@@ -92,6 +96,9 @@ class Config
 	protected function setUp()
 	{
 		$data = new stdClass();
+
+		$data->foo = 1;
+		$data->bar = null;
 
 		$data->app = new stdClass();
 		$data->app->application_env = "development";
@@ -117,6 +124,8 @@ class Config
 
 		$this->obj = $data;
 		$this->arr = array(
+			//'foo' => '1',
+			//'bar' => '',
 			'app' => (array)$data->app,
 			'seo' => (array)$data->seo
 		);

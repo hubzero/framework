@@ -69,14 +69,6 @@ abstract class Processor
 
 			if (!class_exists($class))
 			{
-				/*$path = __DIR__ . DIRECTORY_SEPARATOR . 'Processor' . DIRECTORY_SEPARATOR . $type . '.php';
-
-				if (!is_file($path))
-				{
-					throw new InvalidArgumentException('JLIB_REGISTRY_EXCEPTION_LOAD_FORMAT_CLASS', 500);
-				}
-
-				include_once $path;*/
 				foreach (self::all() as $inst)
 				{
 					if (in_array($type, $inst->getSupportedExtensions()))
@@ -106,7 +98,7 @@ abstract class Processor
 	{
 		foreach (glob(__DIR__ . DIRECTORY_SEPARATOR . 'Processor' . DIRECTORY_SEPARATOR . '*.php') as $path)
 		{
-			$type = basename($path, '.php');
+			$type = strtolower(basename($path, '.php'));
 
 			if (!isset(self::$instances[$type]))
 			{
