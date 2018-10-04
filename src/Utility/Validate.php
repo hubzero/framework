@@ -45,7 +45,7 @@ class Validate
 	/**
 	 * Some complex patterns needed in multiple places
 	 *
-	 * @var array
+	 * @var  array
 	 */
 	protected static $_pattern = array(
 		'hostname' => '(?:[_a-z0-9][-_a-z0-9]*\.)*(?:[a-z0-9][-a-z0-9]{0,62})\.(?:(?:[a-z]{2}\.)?[a-z]{2,})'
@@ -59,8 +59,8 @@ class Validate
 	 * $check can be passed as an array:
 	 * array('check' => 'valueToCheck');
 	 *
-	 * @param  string|array $check Value to check
-	 * @return boolean Success
+	 * @param   string|array  $check  Value to check
+	 * @return  boolean  Success
 	 */
 	public static function notEmpty($check)
 	{
@@ -84,8 +84,8 @@ class Validate
 	 * $check can be passed as an array:
 	 * array('check' => 'valueToCheck');
 	 *
-	 * @param  string|array $check Value to check
-	 * @return boolean Success
+	 * @param   string|array  $check  Value to check
+	 * @return  boolean  Success
 	 */
 	public static function alphaNumeric($check)
 	{
@@ -106,10 +106,10 @@ class Validate
 	 * Spaces are included in the character count.
 	 * Returns true is string matches value min, max, or between min and max,
 	 *
-	 * @param string $check Value to check for length
-	 * @param integer $min Minimum value in range (inclusive)
-	 * @param integer $max Maximum value in range (inclusive)
-	 * @return boolean Success
+	 * @param   string   $check  Value to check for length
+	 * @param   integer  $min    Minimum value in range (inclusive)
+	 * @param   integer  $max    Maximum value in range (inclusive)
+	 * @return  boolean  Success
 	 */
 	public static function between($check, $min, $max)
 	{
@@ -124,8 +124,8 @@ class Validate
 	 * $check can be passed as an array:
 	 * array('check' => 'valueToCheck');
 	 *
-	 * @param string|array $check Value to check
-	 * @return boolean Success
+	 * @param   string|array  $check  Value to check
+	 * @return  boolean  Success
 	 */
 	public static function blank($check)
 	{
@@ -139,8 +139,8 @@ class Validate
 	/**
 	 * Boolean validation, determines if value passed is a boolean integer or true/false.
 	 *
-	 * @param string $check a valid boolean
-	 * @return boolean Success
+	 * @param   mixed    $check  A valid boolean
+	 * @return  boolean  Success
 	 */
 	public static function boolean($check)
 	{
@@ -153,10 +153,10 @@ class Validate
 	 * if $lower and $upper are not set, will return true if
 	 * $check is a legal finite on this platform
 	 *
-	 * @param string $check Value to check
-	 * @param integer $lower Lower limit
-	 * @param integer $upper Upper limit
-	 * @return boolean Success
+	 * @param   string   $check  Value to check
+	 * @param   integer  $lower  Lower limit
+	 * @param   integer  $upper  Upper limit
+	 * @return  boolean  Success
 	 */
 	public static function range($check, $lower = null, $upper = null)
 	{
@@ -174,8 +174,8 @@ class Validate
 	/**
 	 * Checks if a value is numeric.
 	 *
-	 * @param string $check Value to check
-	 * @return boolean Success
+	 * @param   mixed    $check  Value to check
+	 * @return  boolean  Success
 	 */
 	public static function numeric($check)
 	{
@@ -185,8 +185,8 @@ class Validate
 	/**
 	 * Is value an integer?
 	 *
-	 * @param      unknown $x Value to check
-	 * @return     boolean True if valid, false if invalid
+	 * @param   mixed    $x  Value to check
+	 * @return  boolean  True if valid, false if invalid
 	 */
 	public static function integer($x)
 	{
@@ -196,8 +196,8 @@ class Validate
 	/**
 	 * Is value a positive integer?
 	 *
-	 * @param      integer $x Value to check
-	 * @return     boolean True if valid, false if invalid
+	 * @param   mixed    $x  Value to check
+	 * @return  boolean  True if valid, false if invalid
 	 */
 	public static function positiveInteger($x)
 	{
@@ -207,8 +207,8 @@ class Validate
 	/**
 	 * Is value a non-negative integer?
 	 *
-	 * @param      integer $x Value to check
-	 * @return     boolean True if valid, false if invalid
+	 * @param   mixed    $x  Value to check
+	 * @return  boolean  True if valid, false if invalid
 	 */
 	public static function nonNegativeInteger($x)
 	{
@@ -218,8 +218,8 @@ class Validate
 	/**
 	 * Is value a non-positive integer?
 	 *
-	 * @param      integer $x Value to check
-	 * @return     boolean True if valid, false if invalid
+	 * @param   mixed    $x  Value to check
+	 * @return  boolean  True if valid, false if invalid
 	 */
 	public static function nonPositiveInteger($x)
 	{
@@ -229,8 +229,8 @@ class Validate
 	/**
 	 * Is value a negative integer?
 	 *
-	 * @param      integer $x Value to check
-	 * @return     boolean True if valid, false if invalid
+	 * @param   integer  $x  Value to check
+	 * @return  boolean  True if valid, false if invalid
 	 */
 	public static function negativeInteger($x)
 	{
@@ -240,8 +240,8 @@ class Validate
 	/**
 	 * Validate ORCID
 	 *
-	 * @param      string $orcid ORCID to validate
-	 * @return     boolean True if valid, false if invalid
+	 * @param   string   $orcid  ORCID to validate
+	 * @return  boolean  True if valid, false if invalid
 	 */
 	public static function orcid($orcid)
 	{
@@ -259,8 +259,8 @@ class Validate
 	 * - Check if username is just an integer
 	 * - Check if the username is reserved
 	 *
-	 * @param  string $x Username to check
-	 * @return boolean True if valid, false if invalid
+	 * @param   string   $x  Username to check
+	 * @return  boolean  True if valid, false if invalid
 	 */
 	public static function username($x)
 	{
@@ -292,9 +292,9 @@ class Validate
 	 * - Check if $cn is just an integer
 	 * - Check if $cn is reserved
 	 *
-	 * @param  string  $cn          Group to check
-	 * @param  boolean $allowDashes Allow dashes in cn
-	 * @return boolean True if valid, false if invalid
+	 * @param   string   $cn           Group to check
+	 * @param   boolean  $allowDashes  Allow dashes in cn
+	 * @return  boolean  True if valid, false if invalid
 	 */
 	public static function group($cn, $allowDashes = false)
 	{
@@ -324,10 +324,10 @@ class Validate
 	 *
 	 * Type [username, group] must be specified.
 	 *
-	 * @param  string  $type List to check against
-	 * @param  string  $val  Value to check
-	 * @return boolean True if reserved, False if not
-	 * @throws InvalidArgumentException
+	 * @param   string   $type  List to check against
+	 * @param   string   $val   Value to check
+	 * @return  boolean  True if reserved, False if not
+	 * @throws  InvalidArgumentException
 	 */
 	public static function reserved($type, $val)
 	{
@@ -532,10 +532,10 @@ class Validate
 	/**
 	 * Validate password
 	 *
-	 * @param      string $password Password to validate
-	 * @return     boolean True if valid, false if invalid
+	 * @param   string   $password  Password to validate
+	 * @return  boolean  True if valid, false if invalid
 	 */
-	public function password($password)
+	public static function password($password)
 	{
 		if (preg_match("#^[_\`\~\!\@\#\$\%\^\&\*\(\)\=\+\{\}\:\;\"\'\<\>\,\.\?\/0-9a-zA-Z-]+$#i", $password))
 		{
@@ -550,10 +550,10 @@ class Validate
 	 * Only uses getmxrr() checking for deep validation if PHP 5.3.0+ is used, or
 	 * any PHP version on a non-windows distribution
 	 *
-	 * @param  string  $check Value to check
-	 * @param  boolean $deep  Perform a deeper validation (if true), by also checking availability of host
-	 * @param  string  $regex Regex to use (if none it will use built in regex)
-	 * @return boolean Success
+	 * @param   string   $check  Value to check
+	 * @param   boolean  $deep   Perform a deeper validation (if true), by also checking availability of host
+	 * @param   string   $regex  Regex to use (if none it will use built in regex)
+	 * @return  boolean  Success
 	 */
 	public static function email($check, $deep = false, $regex = null)
 	{
@@ -612,9 +612,9 @@ class Validate
 	 * - an optional query string (get parameters)
 	 * - an optional fragment (anchor tag)
 	 *
-	 * @param  string  $check  Value to check
-	 * @param  boolean $strict Require URL to be prefixed by a valid scheme (one of http(s)/ftp(s)/file/news/gopher)
-	 * @return boolean Success
+	 * @param   string   $check   Value to check
+	 * @param   boolean  $strict  Require URL to be prefixed by a valid scheme (one of http(s)/ftp(s)/file/news/gopher)
+	 * @return  boolean  Success
 	 */
 	public static function url($check, $strict = false)
 	{
@@ -709,9 +709,10 @@ class Validate
 	/**
 	 * Runs a regular expression match.
 	 *
-	 * @param string $check Value to check against the $regex expression
-	 * @param string $regex Regular expression
-	 * @return boolean Success of match
+	 * @param   string   $check  Value to check against the $regex expression
+	 * @param   string   $regex  Regular expression
+	 * @return  boolean  Success of match
+	 * @codeCoverageIgnore
 	 */
 	protected static function _check($check, $regex)
 	{
@@ -726,8 +727,9 @@ class Validate
 	 * Get the values to use when value sent to validation method is
 	 * an array.
 	 *
-	 * @param  array $params Parameters sent to validation method
-	 * @return void
+	 * @param   array  $params  Parameters sent to validation method
+	 * @return  void
+	 * @codeCoverageIgnore
 	 */
 	protected static function _defaults($params)
 	{
@@ -749,7 +751,7 @@ class Validate
 	/**
 	 * Lazily populate the IP address patterns used for validations
 	 *
-	 * @return void
+	 * @return  void
 	 * @codeCoverageIgnore
 	 */
 	protected static function _populateIp()
