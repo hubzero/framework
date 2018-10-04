@@ -93,6 +93,8 @@ class ClientManagerTest extends Basic
 
 		$this->assertTrue(is_object($client));
 		$this->assertEquals($client->name, 'adminstuff');
+
+		ClientManager::modify(1, 'name', 'administrator');
 	}
 
 	/**

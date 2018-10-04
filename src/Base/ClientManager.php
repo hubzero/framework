@@ -62,6 +62,8 @@ class ClientManager
 		{
 			self::$_clients = array();
 
+			include_once __DIR__ . DIRECTORY_SEPARATOR . 'Client' . DIRECTORY_SEPARATOR . 'ClientInterface.php';
+
 			$dirIterator = new \DirectoryIterator(__DIR__ . DIRECTORY_SEPARATOR . 'Client');
 			foreach ($dirIterator as $file)
 			{
@@ -77,9 +79,15 @@ class ClientManager
 				}
 
 				$cls = __NAMESPACE__ . '\\Client\\' . ucfirst(strtolower($client));
+
 				if (!class_exists($cls))
 				{
-					throw new \InvalidArgumentException(sprintf('Invalid client type of "%s".', $client));
+					include_once $file->getPathname();
+
+					if (!class_exists($cls))
+					{
+						throw new \InvalidArgumentException(sprintf('Invalid client type of "%s".', $client));
+					}
 				}
 
 				$obj = new $cls;

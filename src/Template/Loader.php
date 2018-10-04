@@ -194,6 +194,11 @@ class Loader
 			$client = $this->app['client'];
 		}
 
+		if (!$client)
+		{
+			throw new \InvalidArgumentException(sprintf('Invalid client type of "%s".', $client_id));
+		}
+
 		return $this->getTemplate((int)$client->id, $this->style);
 	}
 
