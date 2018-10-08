@@ -44,14 +44,14 @@ class Reader implements Iterator
 	 *
 	 * @var  string
 	 */
-	private $file;
+	private $file = '';
 
 	/**
 	 * Number of rows
 	 *
 	 * @var  integer
 	 */
-	private $rows;
+	private $rows = 0;
 
 	/**
 	 * Number of columns
@@ -61,7 +61,7 @@ class Reader implements Iterator
 	 *
 	 * @var  string
 	 */
-	private $cols;
+	private $cols = 0;
 
 	/**
 	 * Current row position
@@ -69,7 +69,7 @@ class Reader implements Iterator
 	 *
 	 * @var  array
 	 */
-	private $sheet;
+	private $sheet = array();
 
 	/**
 	 * Current row position
@@ -77,14 +77,14 @@ class Reader implements Iterator
 	 *
 	 * @var  array
 	 */
-	private $position;
+	private $position = 0;
 
 	/**
 	 * Container for column headers
 	 *
 	 * @var  array
 	 */
-	private $headers;
+	private $headers = array();
 
 	/**
 	 * Constructor
@@ -95,19 +95,23 @@ class Reader implements Iterator
 	 */
 	public function __construct($file, $key='')
 	{
-		$this->position = 1;
+		$this->position = 0;
 		$this->file     = $file;
 
 		try
 		{
-			$inputFileType = \PHPExcel_IOFactory::identify($file);
-			$objReader = \PHPExcel_IOFactory::createReader($inputFileType);
-			$objPHPExcel = $objReader->load($file);
+			$reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($file);
+			$reader->setReadDataOnly(true);
+			$spreadsheet = $reader->load($file);
 
-			$this->sheet = $objPHPExcel->getSheet(0);
+			$sheet = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
-			$this->rows = $this->sheet->getHighestRow();
-			$this->cols = $this->sheet->getHighestColumn();
+			$this->headers = array_shift($sheet);
+
+			$this->sheet = $sheet;
+
+			$this->rows = count($this->sheet);
+			$this->cols = count($this->headers);
 		}
 		catch (\Exception $e)
 		{
@@ -134,13 +138,7 @@ class Reader implements Iterator
 	{
 		if (!$this->headers)
 		{
-			$this->headers = array();
-
-			// Excel documents have alphanumeric columns
-			for ($col = 'A'; $col <= $this->cols; $col++)
-			{
-				$this->headers[$col] = $this->sheet->getCell($col . '1')->getValue();
-			}
+			$this->headers = $this->sheet[1];
 		}
 
 		return $this->headers;
@@ -153,21 +151,16 @@ class Reader implements Iterator
 	 */
 	public function current()
 	{
-		// We don't want to count the headings row
-		if ($this->position == 1)
-		{
-			return null;
-		}
-
 		$headers = $this->headers();
 
 		$result = new stdClass;
 
+		$currentRow = $this->sheet[$this->position];
+
 		// Excel documents have alphanumeric columns
-		for ($col = 'A'; $col <= $this->cols; $col++)
+		foreach ($headers as $col => $column)
 		{
-			$column = $headers[$col];
-			$result->$column = $this->sheet->getCell($col . $this->position)->getValue();
+			$result->$column = (isset($currentRow[$col]) ? $currentRow[$col] : '');
 		}
 
 		return $result;
@@ -200,7 +193,7 @@ class Reader implements Iterator
 	 */
 	public function rewind()
 	{
-		$this->position = 1;
+		$this->position = 0;
 	}
 
 	/**
@@ -210,6 +203,6 @@ class Reader implements Iterator
 	 */
 	public function valid()
 	{
-		return ($this->position <= $this->rows);
+		return ($this->position < $this->rows);
 	}
 }
