@@ -70,9 +70,9 @@ class Toolbar extends Facade
 
 		$html = '<div class="pagetitle ' . htmlspecialchars(implode(' ', $icons)) . '"><h2>' . $title . '</h2></div>';
 
-		App::set('ComponentTitle', $html);
+		\App::set('ComponentTitle', $html);
 
-		App::get('document')->setTitle(App::get('config')->get('sitename') . ' - ' . App::get('language')->txt('JADMINISTRATION') . ' - ' . $title);
+		\App::get('document')->setTitle(\App::get('config')->get('sitename') . ' - ' . \App::get('language')->txt('JADMINISTRATION') . ' - ' . $title);
 	}
 
 	/**
@@ -124,7 +124,7 @@ class Toolbar extends Facade
 	 */
 	public static function preview($url = '', $updateEditors = false)
 	{
-		static::getRoot()->appendButton('Popup', 'preview', 'Preview', $url.'&task=preview');
+		static::getRoot()->appendButton('Popup', 'preview', 'Preview', $url . '&task=preview');
 	}
 
 	/**
@@ -443,6 +443,6 @@ class Toolbar extends Facade
 		$top  = 0;
 		$left = 0;
 
-		static::getRoot()->appendButton('Popup', 'options', $alt, 'index.php?option=com_config&view=component&component=' . $component . '&path=' . $path . '&tmpl=component', $width, $height, $top, $left, $onClose);
+		static::getRoot()->appendButton('Popup', 'options', $alt, \Route::url('index.php?option=com_config&view=component&component=' . $component . '&path=' . $path . '&tmpl=component'), $width, $height, $top, $left, $onClose);
 	}
 }
