@@ -557,7 +557,7 @@ class Base
 				SET lft=" . $this->baseDb->quote((int) $leftId) . ",
 				rgt=" . $this->baseDb->quote((int) $rightId) . ",
 				level=" . $this->baseDb->quote((int) $level) . ",
-				path=" . $this->baseDb->quote((int) $path) . "
+				path=" . $this->baseDb->quote($path) . "
 				WHERE id=" . (int) $parentId;
 		$this->baseDb->setQuery($query);
 
