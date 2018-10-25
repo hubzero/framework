@@ -165,7 +165,7 @@ class Base
 			{
 				try
 				{
-					$instance = \JDatabase::getInstance($options);
+					$instance = Driver::getInstance($options);
 				}
 				catch (\PDOException $e)
 				{
@@ -192,10 +192,10 @@ class Base
 	 **/
 	private function getRootCredentials()
 	{
-		$secrets   = DS . 'etc'  . DS . 'hubzero.secrets';
-		$conf_file = DS . 'root' . DS . '.my.cnf';
-		$hub_maint = DS . 'etc'  . DS . 'mysql' . DS . 'hubmaint.cnf';
-		$deb_maint = DS . 'etc'  . DS . 'mysql' . DS . 'debian.cnf';
+		$secrets   = DIRECTORY_SEPARATOR . 'etc'  . DIRECTORY_SEPARATOR . 'hubzero.secrets';
+		$conf_file = DIRECTORY_SEPARATOR . 'root' . DIRECTORY_SEPARATOR . '.my.cnf';
+		$hub_maint = DIRECTORY_SEPARATOR . 'etc'  . DIRECTORY_SEPARATOR . 'mysql' . DIRECTORY_SEPARATOR . 'hubmaint.cnf';
+		$deb_maint = DIRECTORY_SEPARATOR . 'etc'  . DIRECTORY_SEPARATOR . 'mysql' . DIRECTORY_SEPARATOR . 'debian.cnf';
 
 		if (is_file($secrets) && is_readable($secrets))
 		{
@@ -323,7 +323,7 @@ class Base
 		{
 			if (substr($element, 0, 4) == 'plg_')
 			{
-				$ext = explode("_", $element);
+				$ext = explode('_', $element);
 				$query = "SELECT `params` FROM `#__plugins` WHERE `folder` = " . $this->baseDb->quote($ext[1]) . " AND `element` = " . $this->baseDb->quote($ext[2]);
 			}
 			else
@@ -334,11 +334,11 @@ class Base
 			$this->baseDb->setQuery($query);
 			$params = $this->baseDb->loadResult();
 		}
-		else
+		elseif ($this->baseDb->tableExists('#__extensions'))
 		{
 			if (substr($element, 0, 4) == 'plg_')
 			{
-				$ext = explode("_", $element);
+				$ext = explode('_', $element);
 				$query = "SELECT `params` FROM `#__extensions` WHERE `folder` = " . $this->baseDb->quote($ext[1]) . " AND `element` = " . $this->baseDb->quote($ext[2]);
 			}
 			else
@@ -409,8 +409,10 @@ class Base
 			$query .= " VALUES ('{$name}', 'option={$option}', 0, 0, 'option={$option}', '{$name}', '{$option}', {$ordering}, '', 0, ".$this->baseDb->quote($params).", {$enabled})";
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			return true;
 		}
-		else
+		elseif ($this->baseDb->tableExists('#__extensions'))
 		{
 			if (is_null($option))
 			{
@@ -441,36 +443,38 @@ class Base
 				$component_id = $this->baseDb->insertId();
 			}
 
-			// Secondly, add asset entry if not yet created
-			$query = "SELECT `id` FROM `#__assets` WHERE `name` = " . $this->baseDb->quote($option);
-			$this->baseDb->setQuery($query);
-			if (!$this->baseDb->loadResult())
+			if ($this->baseDb->tableExists('#__assets'))
 			{
-				// Build default ruleset
-				$defaulRules = array(
-					"core.admin"      => array(
-						"7" => 1
+				// Secondly, add asset entry if not yet created
+				$query = "SELECT `id` FROM `#__assets` WHERE `name` = " . $this->baseDb->quote($option);
+				$this->baseDb->setQuery($query);
+				if (!$this->baseDb->loadResult())
+				{
+					// Build default ruleset
+					$defaulRules = array(
+						"core.admin"      => array(
+							"7" => 1
 						),
-					"core.manage"     => array(
-						"6" => 1
+						"core.manage"     => array(
+							"6" => 1
 						),
-					"core.create"     => array(),
-					"core.delete"     => array(),
-					"core.edit"       => array(),
-					"core.edit.state" => array()
+						"core.create"     => array(),
+						"core.delete"     => array(),
+						"core.edit"       => array(),
+						"core.edit.state" => array()
 					);
 
-				// Register the component container just under root in the assets table
-				$asset = \JTable::getInstance('Asset');
-				$asset->name = $option;
-				$asset->parent_id = 1;
-				$asset->rules = json_encode($defaulRules);
-				$asset->title = $option;
-				$asset->setLocation(1, 'last-child');
-				$asset->store();
+					// Register the component container just under root in the assets table
+					$asset = \Hubzero\Access\Asset::blank();
+					$asset->set('name', $option);
+					$asset->set('parent_id', 1);
+					$asset->set('rules', json_encode($defaulRules));
+					$asset->set('title', $option);
+					$asset->saveAsChildOf(1);
+				}
 			}
 
-			if ($createMenuItem)
+			if ($createMenuItem && $this->baseDb->tableExists('#__menu'))
 			{
 				// Check for an admin menu entry...if it's not there, create it
 				$query = "SELECT `id` FROM `#__menu` WHERE `menutype` = 'main' AND `title` = " . $this->baseDb->quote($option);
@@ -487,25 +491,84 @@ class Base
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
 
-				// If we have the nested set class available, use it to rebuild lft/rgt
-				if (class_exists('JTableNested') && method_exists('JTableNested', 'rebuild'))
-				{
-					// Use the MySQL driver for this
-					$database = \JDatabase::getInstance(
-						array(
-							'driver'   => \Config::get('dbtype', 'pdo'),
-							'host'     => \Config::get('host'),
-							'user'     => \Config::get('user'),
-							'password' => \Config::get('password'),
-							'database' => \Config::get('db')
-						)
-					);
+				// Rebuild lft/rgt
+				$this->rebuildMenu();
+			}
 
-					$table = new \JTableMenu($database);
-					$table->rebuild();
-				}
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Method to recursively rebuild the whole nested set tree.
+	 *
+	 * @param   integer  $parentId  The root of the tree to rebuild.
+	 * @param   integer  $leftId    The left id to start with in building the tree.
+	 * @param   integer  $level     The level to assign to the current nodes.
+	 * @param   string   $path      The path to the current nodes.
+	 * @return  integer  1 + value of root rgt on success, false on failure
+	 */
+	private function rebuildMenu($parentId = null, $leftId = 0, $level = 0, $path = '')
+	{
+		// If no parent is provided, try to find it.
+		if ($parentId === null)
+		{
+			// Get the root item.
+			$this->baseDb->setQuery("SELECT id FROM `#__menu` WHERE parent_id = 0");
+			$parentId = $this->baseDb->loadResult();
+			if ($parentId === false)
+			{
+				return false;
 			}
 		}
+
+		// Build the structure of the recursive query.
+		$rebuild = "SELECT id, alias FROM `#__menu` WHERE parent_id = %d ORDER BY parent_id ASC, ordering ASC, lft ASC";
+
+		// Make a shortcut to database object.
+
+		// Assemble the query to find all children of this node.
+		$this->baseDb->setQuery(sprintf($rebuild, (int) $parentId));
+		$children = $this->baseDb->loadObjectList();
+
+		// The right value of this node is the left value + 1
+		$rightId = $leftId + 1;
+
+		// execute this function recursively over all children
+		foreach ($children as $node)
+		{
+			// $rightId is the current right value, which is incremented on recursion return.
+			// Increment the level for the children.
+			// Add this item's alias to the path (but avoid a leading /)
+			$rightId = $this->rebuildMenu($node->id, $rightId, $level + 1, $path . (empty($path) ? '' : '/') . $node->alias);
+
+			// If there is an update failure, return false to break out of the recursion.
+			if ($rightId === false)
+			{
+				return false;
+			}
+		}
+
+		// We've got the left value, and now that we've processed
+		// the children of this node we also know the right value.
+		$query = "UPDATE `#__menu`
+				SET lft=" . $this->baseDb->quote((int) $leftId) . ",
+				rgt=" . $this->baseDb->quote((int) $rightId) . ",
+				level=" . $this->baseDb->quote((int) $level) . ",
+				path=" . $this->baseDb->quote($path) . "
+				WHERE id=" . (int) $parentId;
+		$this->baseDb->setQuery($query);
+
+		// If there is an update failure, return false to break out of the recursion.
+		if (!$this->baseDb->execute())
+		{
+			return false;
+		}
+
+		// Return the right value of this node + 1.
+		return $rightId + 1;
 	}
 
 	/**
@@ -554,7 +617,7 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 		}
-		else
+		elseif ($this->baseDb->tableExists('#__extensions'))
 		{
 			$folder  = strtolower($folder);
 			$element = strtolower($element);
@@ -582,7 +645,11 @@ class Base
 			$query .= " VALUES ('{$name}', 'plugin', '{$element}', '{$folder}', 0, {$enabled}, 1, 0, '', ".$this->baseDb->quote($params).", '', '', 0, '0000-00-00 00:00:00', {$ordering}, 0)";
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			return true;
 		}
+
+		return false;
 	}
 
 	/**
@@ -649,6 +716,8 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 		}
+
+		return true;
 	}
 
 	/**
@@ -657,7 +726,7 @@ class Base
 	 * @param   string  $folder   Plugin folder
 	 * @param   string  $element  Plugin element
 	 * @param   array   $params   Plugin params (if already known)
-	 * @return  void
+	 * @return  bool
 	 **/
 	public function savePluginParams($folder, $element, $params)
 	{
@@ -695,8 +764,10 @@ class Base
 			$query = "UPDATE `#__plugins` SET `params` = " . $this->baseDb->quote($params) . " WHERE `id` = " . $this->baseDb->quote($id);
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			return true;
 		}
-		else
+		else if ($this->baseDb->tableExists('#__extensions'))
 		{
 			$folder  = strtolower($folder);
 			$element = strtolower($element);
@@ -724,7 +795,11 @@ class Base
 			$query = "UPDATE `#__extensions` SET `params` = " . $this->baseDb->quote($params) . " WHERE `extension_id` = " . $this->baseDb->quote($id);
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			return true;
 		}
+
+		return false;
 	}
 
 	/**
@@ -809,7 +884,11 @@ class Base
 			$query .= " VALUES ('{$name}', 'module', '{$element}', '', {$client}, {$enabled}, 1, 0, '', ".$this->baseDb->quote($params).", '', '', 0, '0000-00-00 00:00:00', {$ordering}, 0)";
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			return true;
 		}
+
+		return false;
 	}
 
 	/**
@@ -922,20 +1001,27 @@ class Base
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
 
-				// If we're setting this template to be default, disable others first
-				if ($home)
+				if ($this->baseDb->tableExists('#__template_styles'))
 				{
-					$query = "UPDATE `#__template_styles` SET `home` = 0 WHERE `client_id` = '{$client}'";
+					// If we're setting this template to be default, disable others first
+					if ($home)
+					{
+						$query = "UPDATE `#__template_styles` SET `home` = 0 WHERE `client_id` = '{$client}'";
+						$this->baseDb->setQuery($query);
+						$this->baseDb->query();
+					}
+
+					$query  = "INSERT INTO `#__template_styles` (`template`, `client_id`, `home`, `title`, `params`)";
+					$query .= " VALUES ('{$element}', '{$client}', '{$home}', '{$name}', " . ((isset($styles)) ? $this->baseDb->quote(json_encode($styles)) : "'{}'") . ")";
 					$this->baseDb->setQuery($query);
 					$this->baseDb->query();
 				}
-
-				$query  = "INSERT INTO `#__template_styles` (`template`, `client_id`, `home`, `title`, `params`)";
-				$query .= " VALUES ('{$element}', '{$client}', '{$home}', '{$name}', " . ((isset($styles)) ? $this->baseDb->quote(json_encode($styles)) : "'{}'") . ")";
-				$this->baseDb->setQuery($query);
-				$this->baseDb->query();
 			}
+
+			return true;
 		}
+
+		return false;
 	}
 
 	/**
@@ -964,34 +1050,32 @@ class Base
 	{
 		if ($this->baseDb->tableExists('#__assets'))
 		{
-			$asset = \JTable::getInstance('Asset');
-			if (!$asset->loadByName($element))
+			$asset = \Hubzero\Access\Asset::oneByName($element);
+			if (!$asset || !$asset->get('id'))
 			{
 				return false;
 			}
 
 			// Loop through and map textual groups to ids (if applicable)
+			foreach ($rules as $idx => $rule)
 			{
-				foreach ($rules as $idx => $rule)
+				foreach ($rule as $group => $value)
 				{
-					foreach ($rule as $group => $value)
+					if (!is_numeric($group))
 					{
-						if (!is_numeric($group))
+						$query = "SELECT `id` FROM `#__usergroups` WHERE `title` = " . $this->baseDb->quote($group);
+						$this->baseDb->setQuery($query);
+						if ($id = $this->baseDb->loadResult())
 						{
-							$query = "SELECT `id` FROM `#__usergroups` WHERE `title` = " . $this->baseDb->quote($group);
-							$this->baseDb->setQuery($query);
-							if ($id = $this->baseDb->loadResult())
-							{
-								unset($rules[$idx][$group]);
-								$rules[$idx][$id] = $value;
-							}
+							unset($rules[$idx][$group]);
+							$rules[$idx][$id] = $value;
 						}
 					}
 				}
 			}
 
-			$asset->rules = json_encode($rules);
-			$asset->store();
+			$asset->set('rules', json_encode($rules));
+			$asset->save();
 		}
 	}
 
@@ -1009,8 +1093,10 @@ class Base
 			$query = "DELETE FROM `#__components` WHERE `name` = " . $this->baseDb->quote($name);
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			return true;
 		}
-		else
+		elseif ($this->baseDb->tableExists('#__extensions'))
 		{
 			$name = 'com_' . strtolower($name);
 			// Delete component entry
@@ -1019,35 +1105,27 @@ class Base
 			$this->baseDb->query();
 
 			// Remove the component container in the assets table
-			$asset = \JTable::getInstance('Asset');
-			if ($asset->loadByName($name))
+			$asset = \Hubzero\Access\Asset::oneByName($element);
+			if ($asset && $asset->get('id'))
 			{
-				$asset->delete();
+				$asset->destroy();
 			}
 
-			// Check for an admin menu entry...if it's not there, create it
-			$query = "DELETE FROM `#__menu` WHERE `menutype` = 'main' AND `title` = " . $this->baseDb->quote($name);
-			$this->baseDb->setQuery($query);
-			$this->baseDb->query();
-
-			// If we have the nested set class available, use it to rebuild lft/rgt
-			if (class_exists('JTableNested') && method_exists('JTableNested', 'rebuild'))
+			if ($this->baseDb->tableExists('#__menu'))
 			{
-				// Use the MySQL driver for this
-				$database = \JDatabase::getInstance(
-					array(
-						'driver'   => \Config::get('dbtype', 'pdo'),
-						'host'     => \Config::get('host'),
-						'user'     => \Config::get('user'),
-						'password' => \Config::get('password'),
-						'database' => \Config::get('db')
-					)
-				);
+				// Check for an admin menu entry...if it's not there, create it
+				$query = "DELETE FROM `#__menu` WHERE `menutype` = 'main' AND `title` = " . $this->baseDb->quote($name);
+				$this->baseDb->setQuery($query);
+				$this->baseDb->query();
 
-				$table = new \JTableMenu($database);
-				$table->rebuild();
+				// Rebuild lft/rgt
+				$this->rebuildMenu();
 			}
+
+			return true;
 		}
+
+		return false;
 	}
 
 	/**
@@ -1064,14 +1142,20 @@ class Base
 			$query = "DELETE FROM `#__plugins` WHERE `folder` = " . $this->baseDb->quote($folder) . ((!is_null($element)) ? " AND `element` = '{$element}'" : "");
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			return true;
 		}
-		else
+		elseif ($this->baseDb->tableExists('#__extensions'))
 		{
 			// Delete plugin(s) entry
 			$query = "DELETE FROM `#__extensions` WHERE `folder` = " . $this->baseDb->quote($folder) . ((!is_null($element)) ? " AND `element` = '{$element}'" : "");
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			return true;
 		}
+
+		return false;
 	}
 
 	/**
@@ -1106,6 +1190,8 @@ class Base
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
 			}
+
+			return true;
 		}
 		else
 		{
@@ -1124,7 +1210,11 @@ class Base
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
 			}
+
+			return true;
 		}
+
+		return false;
 	}
 
 	/**
@@ -1142,25 +1232,32 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 
-			$query = "DELETE FROM `#__template_styles` WHERE `template` = '{$element}' AND `client_id` = '{$client}'";
-			$this->baseDb->setQuery($query);
-			$this->baseDb->query();
-
-			// Now make sure we have an enabled template (don't really care which one it is)
-			$query = "SELECT `id` FROM `#__template_styles` WHERE `home` = 1 AND `client_id` = '{$client}'";
-			$this->baseDb->setQuery($query);
-			if (!$this->baseDb->loadResult())
+			if ($this->baseDb->tableExists('#__template_styles'))
 			{
-				$query = "SELECT `id` FROM `#__template_styles` WHERE `client_id` = '{$client}' ORDER BY `id` DESC LIMIT 1";
+				$query = "DELETE FROM `#__template_styles` WHERE `template` = '{$element}' AND `client_id` = '{$client}'";
 				$this->baseDb->setQuery($query);
-				if ($id = $this->baseDb->loadResult())
+				$this->baseDb->query();
+
+				// Now make sure we have an enabled template (don't really care which one it is)
+				$query = "SELECT `id` FROM `#__template_styles` WHERE `home` = 1 AND `client_id` = '{$client}'";
+				$this->baseDb->setQuery($query);
+				if (!$this->baseDb->loadResult())
 				{
-					$query = "UPDATE `#__template_styles` SET `home` = 1 WHERE `id` = '{$id}'";
+					$query = "SELECT `id` FROM `#__template_styles` WHERE `client_id` = '{$client}' ORDER BY `id` DESC LIMIT 1";
 					$this->baseDb->setQuery($query);
-					$this->baseDb->query();
+					if ($id = $this->baseDb->loadResult())
+					{
+						$query = "UPDATE `#__template_styles` SET `home` = 1 WHERE `id` = '{$id}'";
+						$this->baseDb->setQuery($query);
+						$this->baseDb->query();
+					}
 				}
 			}
+
+			return true;
 		}
+
+		return false;
 	}
 
 	/**
@@ -1203,7 +1300,7 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 		}
-		else
+		elseif ($this->baseDb->tableExists('#__extensions'))
 		{
 			$query = "UPDATE `#__extensions` SET `enabled` = '{$enabled}' WHERE `folder` = '{$folder}' AND `element` = '{$element}'";
 			$this->baseDb->setQuery($query);
@@ -1248,7 +1345,7 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 		}
-		else
+		elseif ($this->baseDb->tableExists('#__extensions'))
 		{
 			$query = "UPDATE `#__extensions` SET `enabled` = '{$enabled}' WHERE `element` = '{$element}'";
 			$this->baseDb->setQuery($query);
@@ -1292,7 +1389,10 @@ class Base
 			$query = "UPDATE `#__extensions` SET `enabled` = '{$enabled}' WHERE `element` = '{$element}'";
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+		}
 
+		if ($this->baseDb->tableExists('#__modules'))
+		{
 			$query = "UPDATE `#__modules` SET `published` = '{$enabled}' WHERE `module` = '{$element}'";
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
