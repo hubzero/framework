@@ -65,7 +65,7 @@ class Notification implements RendererInterface
 	 * @param   object  $error  The exception for which to render the error page.
 	 * @return  void
 	 */
-	public function render(Exception $error)
+	public function render($error)
 	{
 		$this->notifier->message($error->getMessage(), ($error->getCode() == 500 ? 'error' : 'warning'));
 	}

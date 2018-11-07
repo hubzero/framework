@@ -178,7 +178,14 @@ class Message extends \Swift_Message
 		$mailer = \Swift_Mailer::newInstance($transport);
 		$result = $mailer->send($this, $this->_failures);
 
-		\Log::info(\Lang::txt('Mail sent to %s', json_encode($this->getTo())));
+		if ($result)
+		{
+			\Log::info(sprintf('Mail sent to %s', json_encode($this->getTo())));
+		}
+		else
+		{
+			\Log::error(sprintf('Failed to mail %s', json_encode($this->getTo())));
+		}
 
 		return $result;
 	}

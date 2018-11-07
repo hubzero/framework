@@ -44,5 +44,5 @@ interface RendererInterface
 	 *
 	 * @param  object  $error
 	 */
-	public function render(Exception $error);
+	public function render($error);
 }

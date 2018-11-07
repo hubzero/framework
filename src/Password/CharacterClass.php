@@ -67,7 +67,7 @@ class CharacterClass
 	 * @param   string  $char
 	 * @return  object
 	 */
-	public static function match($char = null)
+	public static function match($char = '')
 	{
 		$result = array();
 
@@ -81,7 +81,7 @@ class CharacterClass
 			return $result;
 		}
 
-		if (count($char) == 0)
+		if (empty($char))
 		{
 			$char = chr(0);
 		}

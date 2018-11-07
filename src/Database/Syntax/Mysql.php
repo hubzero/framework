@@ -721,11 +721,19 @@ class Mysql
 
 		foreach ($this->order as $order)
 		{
-			$string  = $this->connection->quoteName($order['column']);
-			$string .= ' ' . strtoupper($order['dir']);
+			if (is_object($order['column']))
+			{
+				$string = $order['column']->build($this);
+			}
+			else
+			{
+				$string = $this->connection->quoteName($order['column']);
+			}
 
+			$string .= ' ' . strtoupper($order['dir']);
 			$orders[] = $string;
 		}
+
 		return 'ORDER BY ' . implode(',', $orders);
 	}
 

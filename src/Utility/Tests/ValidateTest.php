@@ -351,7 +351,8 @@ class ValidateTest extends Basic
 			'12345' => false,
 			'Test Name' => false,
 			'TESTNAME' => false,
-			'test-name' => false
+			'test-name' => false,
+			'bin' => false
 		);
 
 		foreach ($tests as $value => $result)
@@ -388,7 +389,8 @@ class ValidateTest extends Basic
 			'Test Name' => false,
 			'test.name ' => false,
 			'TESTNAME' => false,
-			'test-name' => false
+			'test-name' => false,
+			'bin' => false
 		);
 
 		foreach ($tests as $value => $result)
@@ -709,6 +711,9 @@ class ValidateTest extends Basic
 
 		$value = 0;
 		$this->assertFalse(Validate::blank($value));
+
+		$value = array('check' => '0');
+		$this->assertFalse(Validate::blank($value));
 	}
 
 	/**
@@ -778,5 +783,26 @@ class ValidateTest extends Basic
 		$this->assertFalse(Validate::ip('192.168.0.1', 'ipv6'));
 
 		$this->assertFalse(Validate::ip('684D:1111:222:3333:4444:5555:6:77', 'ipv4'));
+	}
+
+	/**
+	 * Tests is valid password check
+	 *
+	 * @return  void
+	 * @covers  \Hubzero\Utility\Validate::password
+	 **/
+	public function testPassword()
+	{
+		$this->assertTrue(Validate::password('password'));
+
+		$this->assertTrue(Validate::password('PASS'));
+
+		$this->assertTrue(Validate::password('256.256.256.256'));
+
+		$this->assertTrue(Validate::password('{lorem-ipsum}'));
+
+		$this->assertFalse(Validate::password('\lorem-ipsum'));
+
+		$this->assertFalse(Validate::password('lorem ipsum dolor'));
 	}
 }

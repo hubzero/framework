@@ -66,7 +66,7 @@ class Plain implements RendererInterface
 	 * @param   object  $exception
 	 * @return  void
 	 */
-	public function render(Exception $error)
+	public function render($error)
 	{
 		if (!headers_sent())
 		{

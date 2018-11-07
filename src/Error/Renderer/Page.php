@@ -84,7 +84,7 @@ class Page implements RendererInterface
 	 * @param   object  $error  The exception for which to render the error page.
 	 * @return  void
 	 */
-	public function render(Exception $error)
+	public function render($error)
 	{
 		try
 		{

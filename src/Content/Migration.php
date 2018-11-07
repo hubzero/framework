@@ -242,7 +242,7 @@ class Migration
 	 **/
 	public function getDBO()
 	{
-		$db = App::get('db');
+		$db = \App::get('db');
 
 		// Test the connection
 		if (!$db->connected())

@@ -428,4 +428,109 @@ class ArrTest extends Basic
 
 		$this->assertEquals($original, $copy);
 	}
+
+	/**
+	 * Tests that #pluck unsets the given key
+	 *
+	 * @covers  \Hubzero\Utility\Arr::pluck
+	 * @return  void
+	 **/
+	public function testPluckRemovesKey()
+	{
+		$array = ['a' => 0, 'b' => 1, 'c' => 2];
+		$key = 'c';
+
+		Arr::pluck($array, $key);
+
+		$this->assertFalse(array_key_exists($key, $array));
+	}
+
+	/**
+	 * Tests that #pluck returns value under the given key
+	 *
+	 * @covers  \Hubzero\Utility\Arr::pluck
+	 * @return  void
+	 **/
+	public function testPluckReturnsValue()
+	{
+		$array = ['a' => 0, 'b' => 1, 'c' => 2];
+		$key = 'c';
+		$value = $array[$key];
+
+		$pluckValue = Arr::pluck($array, $key);
+
+		$this->assertEquals($value, $pluckValue);
+	}
+
+	/**
+	 * Tests that #pluck returns default when key is missing
+	 *
+	 * @covers  \Hubzero\Utility\Arr::pluck
+	 * @return  void
+	 **/
+	public function testPluckReturnsDefaultIfKeyMissing()
+	{
+		$array = ['a' => 0, 'b' => 1, 'c' => 2];
+		$default = 'test';
+		$key = 'd';
+
+		$pluckValue = Arr::pluck($array, $key, $default);
+
+		$this->assertEquals($default, $pluckValue);
+	}
+
+	/**
+	 * Tests that #pluck returns default when value is null
+	 *
+	 * @covers  \Hubzero\Utility\Arr::pluck
+	 * @return  void
+	 **/
+	public function testPluckReturnsDefaultIfValueNull()
+	{
+		$array = ['a' => 0, 'b' => 1, 'c' => null];
+		$default = 'test';
+		$key = 'c';
+
+		$pluckValue = Arr::pluck($array, $key, $default);
+
+		$this->assertEquals($default, $pluckValue);
+	}
+
+	/**
+	 * Tests multidimensional array unique
+	 *
+	 * @covers  \Hubzero\Utility\Arr::arrayUnique
+	 * @return  void
+	 **/
+	public function testArrayUnique()
+	{
+		$arrs = array(
+			array(
+				'id' => 1,
+				'name' => 'Joe',
+				'age' => 27
+			),
+			array(
+				'id' => 2,
+				'name' => 'Susan',
+				'age' => 24
+			),
+			array(
+				'id' => 1,
+				'name' => 'Joe',
+				'age' => 27
+			),
+		);
+
+		$foo = 'bar';
+
+		$result = Arr::arrayUnique($foo);
+
+		$this->assertEquals($result, $foo);
+
+		$result = Arr::arrayUnique($arrs);
+
+		$this->assertNotEquals($result, $arrs);
+		$this->assertCount(2, $result);
+	}
 }

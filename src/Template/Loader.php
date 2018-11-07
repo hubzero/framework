@@ -132,17 +132,6 @@ class Loader
 	}
 
 	/**
-	 * Determine path based on protected status
-	 *
-	 * @param   integer  $protected
-	 * @return  string
-	 */
-	public function determinePath($protected = 0)
-	{
-		return (int) $protected ? $this->getPath('core') : $this->getPath('app');
-	}
-
-	/**
 	 * Set style
 	 *
 	 * @param   integer  $style
@@ -205,6 +194,11 @@ class Loader
 			$client = $this->app['client'];
 		}
 
+		if (!$client)
+		{
+			throw new \InvalidArgumentException(sprintf('Invalid client type of "%s".', $client_id));
+		}
+
 		return $this->getTemplate((int)$client->id, $this->style);
 	}
 
@@ -225,7 +219,7 @@ class Loader
 			$template->template  = 'system';
 			$template->params    = new Registry();
 			$template->protected = 1;
-			$template->path      =  $this->determinePath($template->protected) . DIRECTORY_SEPARATOR . $template->template;
+			$template->path      =  $this->getPath('core') . DIRECTORY_SEPARATOR . $template->template;
 		}
 
 		return $template;
@@ -242,7 +236,7 @@ class Loader
 	{
 		if (!$this->app->has('cache.store') || !($cache = $this->app['cache.store']))
 		{
-			$cache = new \Hubzero\Cache\Storage\None();
+			$cache = new \Hubzero\Cache\Storage\None(array('hash' => $this->app->hash('template.loader')));
 		}
 
 		$templates = $cache->get('com_templates.templates' . $client_id . $this->lang);
@@ -283,16 +277,19 @@ class Loader
 				foreach ($templates as $i => $template)
 				{
 					$template->params = new Registry($template->params);
-					$base = $this->determinePath($template->protected);
-					$unprefixed = substr($template->template, 4);
-					if (file_exists($base . DIRECTORY_SEPARATOR . $unprefixed . DIRECTORY_SEPARATOR . 'index.php'))
+
+					if (substr($template->template, 0, 4) == 'tpl_')
 					{
-						$template->path = $base . DIRECTORY_SEPARATOR . $unprefixed;
-						$template->template = $unprefixed;
+						$template->template = substr($template->template, 4);
+					}
+
+					if (is_dir($this->getPath('app') . DIRECTORY_SEPARATOR . $template->template))
+					{
+						$template->path = $this->getPath('app') . DIRECTORY_SEPARATOR . $template->template;
 					}
 					else
 					{
-						$template->path   = $this->determinePath($template->protected) . DIRECTORY_SEPARATOR . $template->template;
+						$template->path = $this->getPath('core') . DIRECTORY_SEPARATOR . $template->template;
 					}
 
 					$templates[$i] = $template;

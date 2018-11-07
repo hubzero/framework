@@ -76,6 +76,13 @@ class Import extends Relational
 	public $orderDir = 'asc';
 
 	/**
+	 * Current run object
+	 *
+	 * @var  object
+	 */
+	protected $_currentRun = null;
+
+	/**
 	 * Fields and their validation criteria
 	 *
 	 * @var  array
@@ -123,10 +130,15 @@ class Import extends Relational
 	 */
 	public function currentRun()
 	{
-		return $this->runs()
-			->whereEquals('import_id', $this->get('id'))
-			->ordered()
-			->row();
+		if (!$this->_currentRun)
+		{
+			$this->_currentRun = $this->runs()
+				->whereEquals('import_id', $this->get('id'))
+				->ordered()
+				->row();
+		}
+
+		return $this->_currentRun;
 	}
 
 	/**

@@ -466,8 +466,8 @@ class Arr
 				$locale = self::$sortLocale[$i];
 			}
 
-			$va = $a->$key[$i];
-			$vb = $b->$key[$i];
+			$va = $a->{$key[$i]};
+			$vb = $b->{$key[$i]};
 
 			if ((is_bool($va) or is_numeric($va)) and (is_bool($vb) or is_numeric($vb)))
 			{
@@ -539,6 +539,23 @@ class Arr
 		}, ARRAY_FILTER_USE_KEY);
 
 		return $filtered;
+	}
+
+	/**
+	 * Returns value under given key and removes key from array
+	 *
+	 * @param   array    $array    Array to pluck from
+	 * @param   string   $name     Key to search for
+	 * @param   mixed    $default  Default value to return if key not found
+	 * @return   mixed
+	 */
+	public static function pluck(&$array, $name, $default = null)
+	{
+		$value = static::getValue($array, $name, $default);
+
+		unset($array[$name]);
+
+		return $value;
 	}
 
 	/**

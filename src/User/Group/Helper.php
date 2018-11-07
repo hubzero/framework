@@ -393,7 +393,7 @@ class Helper
 		$db = App::get('db');
 
 		// make sure we have a group object
-		if (!$group = Group::getInstance(\Request::getVar('cn', $cname)))
+		if (!$group = Group::getInstance(\Request::getString('cn', $cname)))
 		{
 			return $db;
 		}
