@@ -88,7 +88,11 @@ class SearchMigration extends Base implements CommandInterface
 		{
 			$components = $components->whereEquals('state', 0);
 		}
-
+		$url = $this->arguments->getOpt('url');
+		if (empty($url))
+		{
+			$this->output->error('Error: no URL provided.');
+		}
 		foreach ($components as $compObj)
 		{
 			$offset = 0;
@@ -97,7 +101,7 @@ class SearchMigration extends Base implements CommandInterface
 			$compName = ucfirst($compObj->get('name'));
 			$startMessage = 'Indexing ' . $compName . '...' . PHP_EOL;
 			$this->output->addLine($startMessage);
-			while ($indexResults = $compObj->indexSearchResults($offset))
+			while ($indexResults = $compObj->indexSearchResults($offset, $url))
 			{
 				$batchMessage = 'Indexed ' . $compName . ' batch ' . $batchNum . ' of ' . $batchSize . PHP_EOL;
 				$this->output->addLine($batchMessage);
@@ -125,6 +129,10 @@ class SearchMigration extends Base implements CommandInterface
 				'Run a solr search migration. Searches for and indexes models with the searcable interface.'
 			)
 			->addTasks($this)
+			->addArgument(
+				'-url: the base url of the site being indexed.',
+				'Example: -url=\'https://localhost\''
+			)
 			->addArgument(
 				'-components: component(s) that should be indexed.',
 				'If multiple, separate each component name with a comma.',
