@@ -376,7 +376,7 @@ class File extends Obj
 	{
 		if (!isset($this->paths['override']))
 		{
-			$this->paths['override']  = (\App::get('template')->protected ? PATH_CORE : PATH_APP) . DS . 'templates' . DS . \App::get('template')->template . DS . 'html';
+			$this->paths['override']  = \App::get('template')->path . DS . 'html';
 			$this->paths['override'] .= DS . $this->extensionName() . DS . ($this->extensionType() == 'system' ? $this->type() . DS : '') . $this->file();
 		}
 		return $this->paths['override'];

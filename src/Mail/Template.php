@@ -65,8 +65,15 @@ class Template extends Html
 				$result = App::get('template');
 			}
 
-			$params['template']  = $result->template;
-			$params['directory'] = ($result->protected ? PATH_CORE : PATH_APP) . DS . 'templates';
+			$params['template'] = $result->template;
+			if (is_dir(PATH_APP . DS . 'templates' . DS . $result->template))
+			{
+				$params['directory'] = PATH_APP . DS . 'templates';
+			}
+			else
+			{
+				$params['directory'] = PATH_CORE . DS . 'templates';
+			}
 		}
 
 		if (!isset($params['file']))

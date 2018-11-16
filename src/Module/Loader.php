@@ -370,7 +370,7 @@ class Loader
 	public function getLayoutPath($module, $layout = 'default')
 	{
 		$template = $this->app['template']->template;
-		$path     = ($this->app['template']->protected ? PATH_CORE : PATH_APP) . DS . 'templates';
+		$path     = dirname($this->app['template']->path);
 		$default  = $layout;
 
 		if (strpos($layout, ':') !== false)
