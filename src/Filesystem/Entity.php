@@ -144,7 +144,7 @@ class Entity extends Obj
 
 		// If it's a file, do we have a more specialized class?
 		$class = __NAMESPACE__ . '\\Type\\' . ucfirst($properties['extension']);
-		if (classExists($class))
+		if (class_exists($class))
 		{
 			return new $class($properties, $adapter);
 		}
