@@ -307,51 +307,13 @@ class Sanitize
 	public static function html($text, $options = [])
 	{
 		$config = self::_buildHtmlPurifierConfig($options);
+		$htmlPurifierWhitelist  = $config->getHTMLDefinition(true);
 
-		// allow style tags
-		$def  = $config->getHTMLDefinition(true);
-		$form = $def->addElement('style', 'Block', 'Flow', 'Common', []);
+		self::_addElementsToHtmlPurifierWhitelist($htmlPurifierWhitelist);
+		self::_addAttributesToHtmlPurifierWhitelist($htmlPurifierWhitelist);
 
-		// Add usemap attribute to img tag
-		$def->addAttribute('img', 'usemap', 'CDATA');
-
-		// Add map tag
-		$map = $def->addElement(
-			'map', // name
-			'Block', // content set
-			'Flow', // allowed children
-			'Common', // attribute collection
-			[ // attributes
-				'name'  => 'CDATA',
-				'id'    => 'ID',
-				'title' => 'CDATA',
-			]
-		);
-		$map->excludes = array('map' => true);
-
-		// Add area tag
-		$area = $def->addElement(
-			'area', // name
-			'Block', // content set
-			'Empty', // don't allow children
-			'Common', // attribute collection
-			array( // attributes
-				'name'      => 'CDATA',
-				'id'        => 'ID',
-				'alt'       => 'Text',
-				'coords'    => 'CDATA',
-				'accesskey' => 'Character',
-				'nohref'    => new \HTMLPurifier_AttrDef_Enum(array('nohref')),
-				'href'      => 'URI',
-				'shape'     => new \HTMLPurifier_AttrDef_Enum(array('rect','circle','poly','default')),
-				'tabindex'  => 'Number',
-				'target'    => new \HTMLPurifier_AttrDef_Enum(array('_blank','_self','_target','_top'))
-			)
-		);
-		$area->excludes = array('area' => true);
-
-		// purify text & return
 		$purifier = new \HTMLPurifier($config);
+
 		return $purifier->purify($text);
 	}
 
@@ -410,6 +372,83 @@ class Sanitize
 		{
 			$purifierConfigSettings['Cache.SerializerPath'] = $clientSerializerPath;
 		}
+	}
+
+	/**
+	 * Adds elements to HTML purifier whitelist
+	 *
+	 * @param    object   $htmlPurifierWhitelist HTML purifier whitelist
+	 * @return   void
+	 */
+	protected static function _addElementsToHtmlPurifierWhitelist($htmlPurifierWhitelist)
+	{
+		$styleElement = [
+			'name' => 'style',
+			'contentSet' => 'Block',
+			'allowedChildren' => 'Flow',
+			'attributeCollection' => 'Common',
+			'attributes' => [],
+			'excludes' => []
+		];
+
+		$mapElement = [
+			'name' => 'map',
+			'contentSet' => 'Block',
+			'allowedChildren' => 'Flow',
+			'attributeCollection' => 'Common',
+			'attributes' => [
+				'name'  => 'CDATA',
+				'id'    => 'ID',
+				'title' => 'CDATA',
+			],
+			'excludes' => ['map' => true]
+		];
+
+		$areaElement = [
+			'name' => 'area',
+			'contentSet' => 'Block',
+			'allowedChildren' => 'Empty',
+			'attributeCollection' => 'Common',
+			'attributes' => [
+				'name'      => 'CDATA',
+				'id'        => 'ID',
+				'alt'       => 'Text',
+				'coords'    => 'CDATA',
+				'accesskey' => 'Character',
+				'nohref'    => new \HTMLPurifier_AttrDef_Enum(['nohref']),
+				'href'      => 'URI',
+				'shape'     => new \HTMLPurifier_AttrDef_Enum(['rect','circle','poly','default']),
+				'tabindex'  => 'Number',
+				'target'    => new \HTMLPurifier_AttrDef_Enum(['_blank','_self','_target','_top'])
+			],
+			'excludes' => ['area' => true]
+		];
+
+		$elementSettings = [$styleElement, $mapElement, $areaElement];
+
+		foreach($elementSettings as $settings)
+		{
+			$element = $htmlPurifierWhitelist->addElement(
+				$settings['name'],
+				$settings['contentSet'],
+				$settings['allowedChildren'],
+				$settings['attributeCollection'],
+				$settings['attributes']
+			);
+
+			$element->excludes = $settings['excludes'];
+		}
+	}
+
+	/**
+	 * Adds attributes to HTML purifier whitelist
+	 *
+	 * @param    object   $htmlPurifierWhitelist HTML purifier whitelist
+	 * @return   void
+	 */
+	protected static function _addAttributesToHtmlPurifierWhitelist($htmlPurifierWhitelist)
+	{
+		$htmlPurifierWhitelist->addAttribute('img', 'usemap', 'CDATA');
 	}
 
 	/**
