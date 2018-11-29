@@ -426,7 +426,7 @@ class Sanitize
 
 		$elementSettings = [$styleElement, $mapElement, $areaElement];
 
-		foreach($elementSettings as $settings)
+		foreach ($elementSettings as $settings)
 		{
 			$element = $htmlPurifierWhitelist->addElement(
 				$settings['name'],
