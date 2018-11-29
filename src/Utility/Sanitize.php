@@ -304,48 +304,13 @@ class Sanitize
 	 * @param   array   $options  Array of key => value pairs
 	 * @return  string
 	 */
-	public static function html($text, $options=array())
+	public static function html($text, $options = [])
 	{
-		$config = \HTMLPurifier_Config::createDefault();
-		$config->set('AutoFormat.Linkify', false);
-		$config->set('AutoFormat.RemoveEmpty', true);
-		$config->set('AutoFormat.RemoveEmpty.RemoveNbsp', false);
-		$config->set('Output.CommentScriptContents', false);
-		$config->set('Output.TidyFormat', true);
-		$config->set('Attr.AllowedFrameTargets', array('_blank'));
-		$config->set('Attr.EnableID', true);
-		$config->set('HTML.AllowedCommentsRegexp', '/./');
-
-		$config->set('HTML.SafeIframe', true);
-		// Allow YouTube, Vimeo, and calls to same domain
-		$root = str_replace(array('http://', 'https://', '.'), array('', '', '\.'), \App::get('request')->root());
-		$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www\.youtube(?:-nocookie)?\.com/embed/|player\.vimeo\.com/video/|' . $root . ')%');
-
-		$path = PATH_APP . DS . 'cache' . DS . (isset(\App::get('client')->alias) ? \App::get('client')->alias : \App::get('client')->name) . DS . 'htmlpurifier';
-		if (!is_dir($path))
-		{
-			if (!\App::get('filesystem')->makeDirectory($path))
-			{
-				$path = '';
-			}
-		}
-
-		if ($path)
-		{
-			$config->set('Cache.SerializerPath', $path);
-		}
-
-		if (!empty($options))
-		{
-			foreach ($options as $key => $val)
-			{
-				$config->set($key, $val);
-			}
-		}
+		$config = self::_buildHtmlPurifierConfig($options);
 
 		// allow style tags
 		$def  = $config->getHTMLDefinition(true);
-		$form = $def->addElement('style', 'Block', 'Flow', 'Common', array());
+		$form = $def->addElement('style', 'Block', 'Flow', 'Common', []);
 
 		// Add usemap attribute to img tag
 		$def->addAttribute('img', 'usemap', 'CDATA');
@@ -356,11 +321,11 @@ class Sanitize
 			'Block', // content set
 			'Flow', // allowed children
 			'Common', // attribute collection
-			array( // attributes
+			[ // attributes
 				'name'  => 'CDATA',
 				'id'    => 'ID',
 				'title' => 'CDATA',
-			)
+			]
 		);
 		$map->excludes = array('map' => true);
 
@@ -388,6 +353,63 @@ class Sanitize
 		// purify text & return
 		$purifier = new \HTMLPurifier($config);
 		return $purifier->purify($text);
+	}
+
+	/**
+	 * Builds HTML purification configuration
+	 *
+	 * @param    array    $options   Custom purifier configuration options
+	 * @return   object   $config    HTML purifier configuration
+	 */
+	protected static function _buildHtmlPurifierConfig($options)
+	{
+		$config = \HTMLPurifier_Config::createDefault();
+		$root = str_replace(['http://', 'https://', '.'], ['', '', '\.'], \App::get('request')->root());
+		$defaultSettings = [
+			'AutoFormat.Linkify' => false,
+			'AutoFormat.RemoveEmpty' => true,
+			'AutoFormat.RemoveEmpty.RemoveNbsp' => false,
+			'Output.CommentScriptContents' => false,
+			'Output.TidyFormat' => true,
+			'Attr.AllowedFrameTargets' => ['_blank'],
+			'Attr.EnableID' => true,
+			'HTML.AllowedCommentsRegexp' => '/./',
+			'HTML.SafeIframe' => true,
+			'URI.SafeIframeRegexp' => "%^(https?:)?//(www\.youtube(?:-nocookie)?\.com/embed/|player\.vimeo\.com/video/|$root)%",
+		];
+		$combinedSettings = array_merge($defaultSettings, $options);
+
+		self::_findOrCreateClientSerializerDirectory($combinedSettings);
+
+		foreach ($combinedSettings as $setting => $value)
+		{
+			$config->set($setting, $value);
+		}
+
+		return $config;
+	}
+
+	/**
+	 * Finds or creates client serializer directory
+	 *
+	 * @param    array   $purifierConfigSettings   HTML purifier configuration settings
+	 * @return   void
+	 */
+	protected static function _findOrCreateClientSerializerDirectory($purifierConfigSettings)
+	{
+		$client = \App::get('client');
+		$clientAlias = isset($client->alias) ? $client->alias : $client->name;
+		$clientSerializerPath = PATH_APP . "/cache/$clientAlias/htmlpurifier";
+
+		if (!is_dir($clientSerializerPath))
+		{
+			\App::get('filesystem')->makeDirectory($clientSerializerPath);
+		}
+
+		if (is_dir($clientSerializerPath))
+		{
+			$purifierConfigSettings['Cache.SerializerPath'] = $clientSerializerPath;
+		}
 	}
 
 	/**
