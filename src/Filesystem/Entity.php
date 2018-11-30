@@ -502,7 +502,7 @@ class Entity extends Obj
 	 **/
 	public function move($to)
 	{
-		$dest   = $to . '/' . $this->getName();
+		$dest   = $to . '/' . $this->getDisplayName() . '.' . $this->getExtension();
 		$return = $this->hasAdapterOrFail()->adapter->rename($this->getPath(), $dest);
 
 		// Update the internal path
