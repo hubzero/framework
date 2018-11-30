@@ -159,7 +159,7 @@ class Legacy extends Registry
 
 		$this->file = $path . DS . 'configuration.php';
 
-		if ($this->file)
+		if (file_exists($this->file))
 		{
 			$data = $this->read($this->file);
 			$data = \Hubzero\Utility\Arr::fromObject($data);
