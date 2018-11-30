@@ -471,6 +471,71 @@ class User extends \Hubzero\Database\Relational
 	 */
 	public function isGuest()
 	{
+		$pubkeyb64 = Config::get('jwt_pub_key', null);
+		$env = substr(Config::get('application_env', ''), -5);
+
+		// check for a jwt if user is not logged in
+		if ($this->guest && array_key_exists('jwt', $_COOKIE) &&
+			$env == 'cloud' && !is_null($pubkeyb64))
+		{
+			try
+			{
+				// decode public key and use it to check jwt signature
+				$pubkey = base64_decode($pubkeyb64);
+				$jwt = \Firebase\JWT\JWT::decode($_COOKIE['jwt'], $pubkey, array('RS512'));
+
+				// if we have information for a user, populate the user variable
+				if (isset($jwt->email) && isset($jwt->id) && isset($jwt->username) && isset($jwt->name))
+				{
+					$jwtid = $jwt->id;
+					$jwtemail = $jwt->email;
+					$jwtuser = $jwt->username;
+					$jwtname = $jwt->name;
+
+					// check if we have a user by this email address
+					$user = \User::oneByEmail($jwtemail);
+
+					// this user does not exist
+					// we should create this in the hub database
+					if ($user->isNew())
+					{
+						// Using SQL here because the ORM does not currently support writing
+						// new records with a specific primary key value
+						$db = App::get('db');
+						$query = "INSERT INTO `#__users` (`id`, `name`, `username`, `email`, `password`, `usertype`, `block`, " .
+							"`approved`, `sendEmail`, `activation`, `params`, `access`, `usageAgreement`, `homeDirectory`, `loginShell`, `ftpShell`)
+							VALUES (" . $db->quote($jwtid) . ", " . $db->quote($jwtname) . ", " . $db->quote($jwtuser) .
+							", " . $db->quote($jwtemail) . ", " . $db->quote('') . ", " . $db->quote('') . ", " .
+							$db->quote('0') . ", " . $db->quote('2') . ", " . $db->quote('0') . ", " . $db->quote('1') .
+							", " . $db->quote('') . ", " . $db->quote('5') . ", " . $db->quote('1') . ", " .
+							$db->quote('/home/' . $jwtuser) . ", " . $db->quote('/bin/bash') . ", " .
+							$db->quote('/usr/lib/sftp-server') . ")";
+
+						$db->setQuery($query);
+						$result = $db->query();
+						// Clear the session that was not logged in
+						App::get('session')->restart();
+					}
+
+					// set up the user object to be logged in
+					\User::set('id', $user->get('id'));
+					\User::set('email', $jwtemail);
+					\User::set('username', $jwtuser);
+					\User::set('guest', false);
+					\User::set('approved', 2);
+
+					// set the user object in the session such that
+					// next visit and other plugins that use the session
+					// know what user is logged in
+					App::get('session')->set('user', App::get('user')->getInstance());
+					$this->guest = false;
+				}
+			}
+			catch (Exception $e)
+			{
+				// something likely went wrong with the jwt
+			}
+		}
 		return $this->guest;
 	}
 
