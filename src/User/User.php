@@ -487,9 +487,9 @@ class User extends \Hubzero\Database\Relational
 				// if we have information for a user, populate the user variable
 				if (isset($jwt->email) && isset($jwt->id) && isset($jwt->username) && isset($jwt->name) && isset($jwt->exp))
 				{
-					if ($jwt->exp > time())
+					if ($jwt->exp < time())
 					{
-						setcookie('jwt', -86400, '', '/', '.' . \Hubzero\Utility\Dns::getDomain(), true, true);
+						setcookie('jwt', -86400, '', '/', '.' . \Hubzero\Utility\Dns::domain(), true, true);
 						return $this->guest();
 					}
 					$jwtid = $jwt->id;
