@@ -485,8 +485,13 @@ class User extends \Hubzero\Database\Relational
 				$jwt = \Firebase\JWT\JWT::decode($_COOKIE['jwt'], $pubkey, array('RS512'));
 
 				// if we have information for a user, populate the user variable
-				if (isset($jwt->email) && isset($jwt->id) && isset($jwt->username) && isset($jwt->name))
+				if (isset($jwt->email) && isset($jwt->id) && isset($jwt->username) && isset($jwt->name) && isset($jwt->exp))
 				{
+					if ($jwt->exp > time())
+					{
+						setcookie('jwt', -86400, '', '/', '.' . \Hubzero\Utility\Dns::getDomain(), true, true);
+						return $this->guest();
+					}
 					$jwtid = $jwt->id;
 					$jwtemail = $jwt->email;
 					$jwtuser = $jwt->username;
