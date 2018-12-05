@@ -64,7 +64,7 @@ class Helper
 	 */
 	public static function getSession($id)
 	{
-		return self::storage()->session($id);
+		return \App::get('session')->getStore()->session($id);
 	}
 
 	/**
@@ -76,7 +76,7 @@ class Helper
 	public static function getSessionWithUserId($userid)
 	{
 		// get list of all sessions
-		$sessions = self::storage()->all(array(
+		$sessions = \App::get('session')->getStore()->all(array(
 			'guest'    => 0,
 			'distinct' => 1
 		));
@@ -102,6 +102,6 @@ class Helper
 	 */
 	public static function getAllSessions($filters = array())
 	{
-		return self::storage()->all($filters);
+		return \App::get('session')->getStore()->all();
 	}
 }
