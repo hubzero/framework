@@ -518,6 +518,12 @@ class User extends \Hubzero\Database\Relational
 
 						$db->setQuery($query);
 						$result = $db->query();
+
+						$usersConfig = Component::params('com_users');
+						$newUsertype = $usersConfig->get('new_usertype', '2');
+						$query = "INSERT INTO `#__user_usergroup_map` (`user_id`, `group_id`) VALUES (" . $db->quote($jwtid) . ", " . $db->quote($newUsertype) . ")";
+						$db->setQuery($query);
+						$result = $db->query();
 						// Clear the session that was not logged in
 						App::get('session')->restart();
 					}
