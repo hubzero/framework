@@ -188,6 +188,16 @@ class Manager extends Obj
 	}
 
 	/**
+	 * Get session store object
+	 *
+	 * @return	object	The session store object
+	 */
+	public function getStore()
+	{
+		return $this->store;
+	}
+
+	/**
 	 * Get expiration time in minutes
 	 *
 	 * @return  integer  The session expiration time in minutes
