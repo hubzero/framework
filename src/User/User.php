@@ -485,8 +485,13 @@ class User extends \Hubzero\Database\Relational
 				$jwt = \Firebase\JWT\JWT::decode($_COOKIE['jwt'], $pubkey, array('RS512'));
 
 				// if we have information for a user, populate the user variable
-				if (isset($jwt->email) && isset($jwt->id) && isset($jwt->username) && isset($jwt->name))
+				if (isset($jwt->email) && isset($jwt->id) && isset($jwt->username) && isset($jwt->name) && isset($jwt->exp))
 				{
+					if ($jwt->exp < time())
+					{
+						setcookie('jwt', -86400, '', '/', '.' . \Hubzero\Utility\Dns::domain(), true, true);
+						return $this->guest();
+					}
 					$jwtid = $jwt->id;
 					$jwtemail = $jwt->email;
 					$jwtuser = $jwt->username;
@@ -511,6 +516,12 @@ class User extends \Hubzero\Database\Relational
 							$db->quote('/home/' . $jwtuser) . ", " . $db->quote('/bin/bash') . ", " .
 							$db->quote('/usr/lib/sftp-server') . ")";
 
+						$db->setQuery($query);
+						$result = $db->query();
+
+						$usersConfig = Component::params('com_users');
+						$newUsertype = $usersConfig->get('new_usertype', '2');
+						$query = "INSERT INTO `#__user_usergroup_map` (`user_id`, `group_id`) VALUES (" . $db->quote($jwtid) . ", " . $db->quote($newUsertype) . ")";
 						$db->setQuery($query);
 						$result = $db->query();
 						// Clear the session that was not logged in
