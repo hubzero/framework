@@ -211,9 +211,9 @@ class SolrIndexAdapter implements IndexInterface
 		$newDoc = $update->createDocument();
 		foreach ($document as $field => $value)
 		{
-			if (is_array($value))
+			if (!is_string($value))
 			{
-				$newDoc->$field = $value;
+				$newDoc->$field = json_decode(json_encode($value), true);
 			}
 			else
 			{
