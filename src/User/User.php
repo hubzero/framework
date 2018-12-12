@@ -540,6 +540,9 @@ class User extends \Hubzero\Database\Relational
 					// know what user is logged in
 					App::get('session')->set('user', App::get('user')->getInstance());
 					$this->guest = false;
+
+					$data = App::get('user')->getInstance()->toArray();
+					\Event::trigger('user.onUserLogin', array($data));
 				}
 			}
 			catch (Exception $e)
