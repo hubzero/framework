@@ -102,6 +102,6 @@ class Helper
 	 */
 	public static function getAllSessions($filters = array())
 	{
-		return \App::get('session')->getStore()->all();
+		return \App::get('session')->getStore()->all($filters);
 	}
 }
