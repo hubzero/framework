@@ -69,21 +69,41 @@ class QueryAddColumnStatement
 		return $this->_asString;
 	}
 
+	/**
+	 * Generates base SQL string statement
+	 *
+	 * @return   void
+	 */
 	protected function _generateBaseString()
 	{
 		$this->_asString = 'ADD COLUMN';
 	}
 
+	/**
+	 * Adds column name to SQL string statement
+	 *
+	 * @return   void
+	 */
 	protected function _addName()
 	{
 		$this->_asString .= " $this->_name";
 	}
 
+	/**
+	 * Adds column type to SQL string statement
+	 *
+	 * @return   void
+	 */
 	protected function _addType()
 	{
 		$this->_asString .= " $this->_type";
 	}
 
+	/**
+	 * Adds column restriction to SQL string statement
+	 *
+	 * @return   void
+	 */
 	protected function _addRestriction()
 	{
 		$restriction = rtrim(" $this->_restriction");
@@ -91,6 +111,11 @@ class QueryAddColumnStatement
 		$this->_asString .= $restriction;
 	}
 
+	/**
+	 * Adds column default to SQL string statement
+	 *
+	 * @return   void
+	 */
 	protected function _addDefault()
 	{
 		$default = '';

@@ -63,11 +63,21 @@ class QueryDropColumnStatement
 		return $this->_asString;
 	}
 
+	/**
+	 * Generates base SQL string statement
+	 *
+	 * @return   void
+	 */
 	protected function _generateBaseString()
 	{
 		$this->_asString = 'DROP COLUMN';
 	}
 
+	/**
+	 * Adds column name to SQL string statement
+	 *
+	 * @return   void
+	 */
 	protected function _addName()
 	{
 		$this->_asString .= " $this->_name";
