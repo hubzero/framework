@@ -32,6 +32,11 @@
 
 namespace Hubzero\Content\Migration;
 
+require_once __DIR__ . '/helpers/queryAddColumnStatement.php';
+require_once __DIR__ . '/helpers/queryDropColumnStatement.php';
+
+use Hubzero\Content\Migration\Helpers\QueryAddColumnStatement;
+use Hubzero\Content\Migration\Helpers\QueryDropColumnStatement;
 use Hubzero\Config\Registry;
 use Hubzero\Config\Processor;
 use Hubzero\Database\Driver;
@@ -1398,4 +1403,74 @@ class Base
 			$this->baseDb->query();
 		}
 	}
+
+	protected function _generateSafeAddColumns($table, $columns)
+	{
+		$query = $this->_generateSafeAlterTableColumnOperation(
+			$table, $columns, '_safeAddColumn'
+		);
+
+		return $query;
+	}
+
+	protected function _safeAddColumn($table, $columnData)
+	{
+		$columnName = $columnData['name'];
+		$addColumnStatement = '';
+
+		if (!$this->db->tableHasField($table, $columnName))
+		{
+			$addColumnStatement = (new QueryAddColumnStatement($columnData))
+				->toString();
+		}
+
+		return $addColumnStatement;
+	}
+
+	protected function _generateSafeDropColumns($table, $columns)
+	{
+		$query = $this->_generateSafeAlterTableColumnOperation(
+			$table, $columns, '_safeDropColumn'
+		);
+
+		return $query;
+	}
+
+	protected function _safeDropColumn($table, $columnData)
+	{
+		$columnName = $columnData['name'];
+		$dropColumnStatement = '';
+
+		if ($this->db->tableHasField($table, $columnName))
+		{
+			$dropColumnStatement = (new QueryDropColumnStatement($columnData))
+				->toString();
+		}
+
+		return $dropColumnStatement;
+	}
+
+	protected function _generateSafeAlterTableColumnOperation($table, $columns, $functionName)
+	{
+		$query = "ALTER TABLE $table ";
+
+		foreach ($columns as $columnData)
+		{
+			$query .= $this->$functionName($table, $columnData) . ',';
+		}
+
+		$query = rtrim($query, ',') . ';';
+
+		return $query;
+	}
+
+	protected function _queryIfTableExists($tableName, $query)
+	{
+		if ($this->db->tableExists($tableName))
+		{
+			$this->db->setQuery($query);
+			$this->db->query();
+		}
+	}
+
 }
