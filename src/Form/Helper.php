@@ -167,7 +167,11 @@ class Helper
 	 */
 	protected static function loadClass($entity, $type)
 	{
-		$class = __NAMESPACE__ . '\\' . ucfirst($entity) . 's' . '\\' . ucfirst($type);
+		$parts = explode('_', $type);
+		$parts = array_map('ucfirst', $parts);
+		$parts = implode('\\', $parts);
+
+		$class = __NAMESPACE__ . '\\' . ucfirst($entity) . 's' . '\\' . $parts;
 
 		if (class_exists($class))
 		{
@@ -177,12 +181,32 @@ class Helper
 		// Get the field search path array.
 		$paths = self::addPath($entity);
 
+		// If the type is complex, add the base type to the paths.
+		if ($pos = strpos($type, '_'))
+		{
+
+			// Add the complex type prefix to the paths.
+			for ($i = 0, $n = count($paths); $i < $n; $i++)
+			{
+				// Derive the new path.
+				$path = $paths[$i] . '/' . strtolower(substr($type, 0, $pos));
+
+				// If the path does not exist, add it.
+				if (!in_array($path, $paths))
+				{
+					$paths[] = $path;
+				}
+			}
+			// Break off the end of the complex type.
+			$type = substr($type, $pos + 1);
+		}
+
 		// Try to find the class file.
 		$type = strtolower($type) . '.php';
 
 		foreach ($paths as $path)
 		{
-			if ($file = \Filesystem::find($path, $type))
+			if ($file = self::find($path, $type))
 			{
 				require_once $file;
 
@@ -195,6 +219,43 @@ class Helper
 
 		// Check for all if the class exists.
 		return class_exists($class) ? $class : false;
+	}
+
+	/**
+	 * Searches the directory paths for a given file.
+	 *
+	 * @param   mixed   $paths  An path string or array of path strings to search in
+	 * @param   string  $file   The file name to look for.
+	 * @return  mixed   Full path and name for the target file, or false if file not found.
+	 */
+	protected static function find($paths, $file)
+	{
+		$paths = is_array($paths) ? $paths : array($paths);
+
+		foreach ($paths as $path)
+		{
+			$fullname = $path . DIRECTORY_SEPARATOR . $file;
+
+			// Is the path based on a stream?
+			if (strpos($path, '://') === false)
+			{
+				// Not a stream, so do a realpath() to avoid directory
+				// traversal attempts on the local file system.
+				$path     = realpath($path);
+				$fullname = realpath($fullname);
+			}
+
+			// The substr() check added to make sure that the realpath()
+			// results in a directory registered so that
+			// non-registered directories are not accessible via directory
+			// traversal attempts.
+			if (file_exists($fullname) && substr($fullname, 0, strlen($path)) == $path)
+			{
+				return $fullname;
+			}
+		}
+
+		return false;
 	}
 
 	/**
