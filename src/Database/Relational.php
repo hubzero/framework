@@ -176,6 +176,13 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	protected $table = null;
 
 	/**
+	 * An alias to apply to the table for initial query building
+	 *
+	 * @var  string
+	 **/
+	protected $tableAlias = null;
+
+	/**
 	 * The table namespace
 	 *
 	 * This is likely just the component name, and will most likely
@@ -830,9 +837,11 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 * @return  $this
 	 * @since   2.0.0
 	 **/
-	private function newQuery()
+	public function newQuery()
 	{
-		$this->query = $this->getQuery()->select('*')->from($this->getTableName());
+		$select = ($this->getTableAlias() ? $this->getTableAlias() . '.' : '') . '*';
+
+		$this->query = $this->getQuery()->select($select)->from($this->getTableName(), $this->getTableAlias());
 		return $this;
 	}
 
@@ -952,6 +961,29 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	}
 
 	/**
+	 * Retrieves the current model's table alias
+	 *
+	 * @return  string
+	 **/
+	public function getTableAlias()
+	{
+		return $this->tableAlias;
+	}
+
+	/**
+	 * Sets the current model's table alias
+	 *
+	 * @param   string  $alias
+	 * @return  object
+	 **/
+	public function setTableAlias($alias)
+	{
+		$this->tableAlias = (string) $alias;
+
+		return $this;
+	}
+
+	/**
 	 * Retrieves the current model's primary key name
 	 *
 	 * @return  string
@@ -981,7 +1013,8 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function getQualifiedFieldName($field)
 	{
-		return $this->getTableName() . '.' . $field;
+		$tbl = ($this->getTableAlias() ? $this->getTableAlias() : $this->getTableName());
+		return $tbl . '.' . $field;
 	}
 
 	/**
