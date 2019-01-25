@@ -32,6 +32,11 @@
 
 namespace Hubzero\Content\Migration;
 
+require_once __DIR__ . '/helpers/queryAddColumnStatement.php';
+require_once __DIR__ . '/helpers/queryDropColumnStatement.php';
+
+use Hubzero\Content\Migration\Helpers\QueryAddColumnStatement;
+use Hubzero\Content\Migration\Helpers\QueryDropColumnStatement;
 use Hubzero\Config\Registry;
 use Hubzero\Config\Processor;
 use Hubzero\Database\Driver;
@@ -1398,4 +1403,117 @@ class Base
 			$this->baseDb->query();
 		}
 	}
+
+	/**
+	 * Generates ALTER TABLE SQL query to add columns absent from given table
+	 *
+	 * @param  string    $table    Given table
+	 * @param  array     $columns  Columns to add to given table
+	 * @return string
+	 **/
+	protected function _generateSafeAddColumns($table, $columns)
+	{
+		$query = $this->_generateSafeAlterTableColumnOperation(
+			$table, $columns, '_safeAddColumn'
+		);
+
+		return $query;
+	}
+
+	/**
+	 * Generates ADD COLUMN SQL statement if column absent from given table
+	 *
+	 * @param  string    $table       Given table
+	 * @param  array     $columnData  Data for column to be added
+	 * @return string
+	 **/
+	protected function _safeAddColumn($table, $columnData)
+	{
+		$columnName = $columnData['name'];
+		$addColumnStatement = '';
+
+		if (!$this->db->tableHasField($table, $columnName))
+		{
+			$addColumnStatement = (new QueryAddColumnStatement($columnData))
+				->toString();
+		}
+
+		return $addColumnStatement;
+	}
+
+	/**
+	 * Generates ALTER TABLE SQL query to drop columns present on given table
+	 *
+	 * @param  string    $table    Given table
+	 * @param  array     $columns  Columns to drop from given table
+	 * @return string
+	 **/
+	protected function _generateSafeDropColumns($table, $columns)
+	{
+		$query = $this->_generateSafeAlterTableColumnOperation(
+			$table, $columns, '_safeDropColumn'
+		);
+
+		return $query;
+	}
+
+	/**
+	 * Generates DROP COLUMN SQL statement if column present on given table
+	 *
+	 * @param  string    $table       Given table
+	 * @param  array     $columnData  Data for column to be dropped
+	 * @return string
+	 **/
+	protected function _safeDropColumn($table, $columnData)
+	{
+		$columnName = $columnData['name'];
+		$dropColumnStatement = '';
+
+		if ($this->db->tableHasField($table, $columnName))
+		{
+			$dropColumnStatement = (new QueryDropColumnStatement($columnData))
+				->toString();
+		}
+
+		return $dropColumnStatement;
+	}
+
+	/**
+	 * Generates SQL statements to alter table for each column
+	 *
+	 * @param  string     $table         Given table
+	 * @param  array      $columns       Columns to be affected by query
+	 * @param  string     $functionName  Function to generate per column statements
+	 * @return string
+	 **/
+	protected function _generateSafeAlterTableColumnOperation($table, $columns, $functionName)
+	{
+		$query = "ALTER TABLE $table ";
+
+		foreach ($columns as $columnData)
+		{
+			$query .= $this->$functionName($table, $columnData) . ',';
+		}
+
+		$query = rtrim($query, ',') . ';';
+
+		return $query;
+	}
+
+	/**
+	 * Executes given query if given table exists
+	 *
+	 * @param  string     $table  Given table
+	 * @param  string     $query  Query to execute
+	 * @return string
+	 **/
+	protected function _queryIfTableExists($table, $query)
+	{
+		if ($this->db->tableExists($tableName))
+		{
+			$this->db->setQuery($query);
+			$this->db->query();
+		}
+	}
+
 }
