@@ -398,6 +398,10 @@ class SolrQueryAdapter implements QueryInterface
 			$accessFilter = "(access_level:public) OR (access_level:registered) " . $userFilter;
 
 			$userGroups = \Hubzero\User\Helper::getGroups($user);
+			if (!$userGroups)
+			{
+				$userGroups = array();
+			}
 			$userGroups = array_map(function($group){
 				return $group->gidNumber;
 			}, $userGroups);
