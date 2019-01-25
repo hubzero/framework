@@ -1110,7 +1110,7 @@ class Base
 			$this->baseDb->query();
 
 			// Remove the component container in the assets table
-			$asset = \Hubzero\Access\Asset::oneByName($element);
+			$asset = \Hubzero\Access\Asset::oneByName($name);
 			if ($asset && $asset->get('id'))
 			{
 				$asset->destroy();
