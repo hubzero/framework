@@ -351,12 +351,12 @@ abstract class Field
 			{
 				if (strpos($class, 'required') === false)
 				{
-					$this->element['class'] = $class . ' required-field';
+					$this->element['class'] = $class . ' required';
 				}
 			}
 			else
 			{
-				$this->element->addAttribute('class', 'required-field');
+				$this->element->addAttribute('class', 'required');
 			}
 		}
 
