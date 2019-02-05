@@ -4,26 +4,30 @@
  *
  * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
  * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @copyright Copyright 2005-2014 Open Source Matters, Inc.
- * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Html\Toolbar\Button;
@@ -32,8 +36,6 @@ use Hubzero\Html\Toolbar\Button;
 
 /**
  * Renders a help popup window button
- *
- * Inspired by Joomla's JButtonHelp class
  */
 class Help extends Button
 {
@@ -47,29 +49,33 @@ class Help extends Button
 	/**
 	 * Fetches the button HTML code.
 	 *
-	 * @param   string   $type       Unused string.
-	 * @param   string   $ref        The name of the help screen (its key reference).
-	 * @param   boolean  $com        Use the help file in the component directory.
-	 * @param   string   $override   Use this URL instead of any other.
-	 * @param   string   $component  Name of component to get Help (null for current component)
+	 * @param   string   $type    Unused string.
+	 * @param   string   $url     The URL to open
+	 * @param   integer  $width   The window width
+	 * @param   integer  $height  The window height
 	 * @return  string
 	 */
-	public function fetchButton($type = 'Help', $url = null, $width = 700, $height = 500)
+	public function fetchButton($type = 'Help', $url = '#', $width = 700, $height = 500)
 	{
-		$text   = \Lang::txt('JTOOLBAR_HELP');
-		$class  = $this->fetchIconClass('help');
-		if (!strstr('?', $url) && !strstr('&', $url) && substr($url, 0, 4) != 'http')
+		$text  = \Lang::txt('JTOOLBAR_HELP');
+		$class = $this->fetchIconClass('help');
+		$msg   = \Lang::txt('JHELP', true);
+
+		if (!strstr('?', $url)
+		 && !strstr('&', $url)
+		 && substr($url, 0, 4) != 'http')
 		{
 			$url = \Route::url('index.php?option=com_help&component=' . \Request::getCmd('option') . '&page=' . $url);
-			$doTask = "Joomla.popupWindow('$url', '" . \Lang::txt('JHELP', true) . "', {$width}, {$height}, 1)";
 		}
 		else
 		{
-			$doTask = $this->_getCommand($ref, $com, $override, $component);
+			$url = $this->_getCommand($ref = $type, $com = false, $override = false, $component = \Request::getCmd('option'));
 		}
 
-		$html  = '<a data-title="' . $text . '" href="#" onclick="' . $doTask . '" rel="help" class="toolbar">' . "\n";
-		$html .= '<span class="' . $class . '">' . "\n" . $text . "\n" . '</span>' . "\n";
+		$html  = '<a href="' . $url . '" data-title="' . $text . '" data-message="' . $msg. '" data-width="' . $width . '" data-height="' . $height . '" rel="help" class="toolbar toolbar-popup">' . "\n";
+		$html .= '<span class="' . $class . '">' . "\n";
+		$html .= $text . "\n";
+		$html .= '</span>' . "\n";
 		$html .= '</a>' . "\n";
 
 		return $html;
@@ -78,7 +84,7 @@ class Help extends Button
 	/**
 	 * Get the button id
 	 *
-	 * @return  string	Button CSS Id
+	 * @return  string  Button CSS Id
 	 */
 	public function fetchId()
 	{
@@ -99,9 +105,9 @@ class Help extends Button
 		// Get Help URL
 		$url = self::createURL($ref, $com, $override, $component);
 		$url = htmlspecialchars($url, ENT_QUOTES);
-		$cmd = "Joomla.popupWindow('$url', '" . \Lang::txt('JHELP', true) . "', 700, 500, 1)";
+		//$cmd = "Joomla.popupWindow('$url', '" . \Lang::txt('JHELP', true) . "', 700, 500, 1)";
 
-		return $cmd;
+		return $url; //$cmd;
 	}
 
 	/**
