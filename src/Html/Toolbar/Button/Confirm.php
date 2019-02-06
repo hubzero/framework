@@ -4,26 +4,30 @@
  *
  * Copyright 2005-2015 HUBzero Foundation, LLC.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
  * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @copyright Copyright 2005-2014 Open Source Matters, Inc.
- * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @license   http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Html\Toolbar\Button;
@@ -33,8 +37,6 @@ use Hubzero\Html\Builder\Behavior;
 
 /**
  * Renders a standard button with a confirm dialog
- *
- * Inspired by Joomla's JButtonConfirm class
  */
 class Confirm extends Button
 {
@@ -62,9 +64,23 @@ class Confirm extends Button
 		$text   = \Lang::txt($text);
 		$msg    = \Lang::txt($msg, true);
 		$class  = $this->fetchIconClass($name);
-		$doTask = $this->_getCommand($msg, $name, $task, $list);
+		$message = $this->_getCommand($msg, $name, $task, $list);
 
-		$html  = "<a data-title=\"$text\" href=\"#\" onclick=\"$doTask\" class=\"toolbar\">\n";
+		$cls = 'toolbar toolbar-confirm';
+
+		$attr   = array();
+		$attr[] = 'data-title="' . $text . '"';
+		$attr[] = 'data-task="' . $task . '"';
+		$attr[] = 'data-confirm="' . $msg . '"';
+
+		if ($list)
+		{
+			$cls .= ' toolbar-list';
+
+			$attr[] = ' data-message="' . $message . '"';
+		}
+
+		$html  = "<a href=\"#\" class=\"$cls\" " . implode(' ', $attr) . ">\n";
 		$html .= "<span class=\"$class\">\n";
 		$html .= "$text\n";
 		$html .= "</span>\n";
@@ -96,7 +112,7 @@ class Confirm extends Button
 	 * @param   string   $name  Not used.
 	 * @param   string   $task  The task used by the application
 	 * @param   boolean  $list  True is requires a list confirmation.
-	 * @return  string  JavaScript command string
+	 * @return  string
 	 */
 	protected function _getCommand($msg, $name, $task, $list)
 	{
@@ -105,15 +121,6 @@ class Confirm extends Button
 		$message = \Lang::txt('JLIB_HTML_PLEASE_MAKE_A_SELECTION_FROM_THE_LIST');
 		$message = addslashes($message);
 
-		if ($list)
-		{
-			$cmd = "if (document.adminForm.boxchecked.value==0){alert('$message');}else{if (confirm('$msg')){Joomla.submitbutton('$task');}}";
-		}
-		else
-		{
-			$cmd = "if (confirm('$msg')){Joomla.submitbutton('$task');}";
-		}
-
-		return $cmd;
+		return $message;
 	}
 }
