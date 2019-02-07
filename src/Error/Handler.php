@@ -44,11 +44,11 @@ use ErrorException;
 class Handler
 {
 	/**
-	 * Indicates if the application is in debug mode.
+	 * A logger to log errors.
 	 *
-	 * @var  bool
+	 * @var  object
 	 */
-	protected $debug;
+	protected $logger;
 
 	/**
 	 * The exception renderer.
@@ -61,24 +61,24 @@ class Handler
 	 * Create a new error handler instance.
 	 *
 	 * @param   object  $renderer
-	 * @param   bool    $debug
+	 * @param   object  $logger
 	 * @return  void
 	 */
-	public function __construct(RendererInterface $renderer, $debug = true)
+	public function __construct(RendererInterface $renderer, $logger = null)
 	{
-		$this->debug    = $debug;
+		$this->logger   = $logger;
 		$this->renderer = $renderer;
 	}
 
 	/**
-	 * Set the debug level for the handler.
+	 * Set the logger for the handler.
 	 *
-	 * @param   bool    $debug
+	 * @param   object  $logger
 	 * @return  object  Chainable.
 	 */
-	public function setDebug($debug)
+	public function setLogger($logger)
 	{
-		$this->debug = $debug;
+		$this->logger = $logger;
 
 		return $this;
 	}
@@ -180,6 +180,20 @@ class Handler
 	 */
 	public function handleException($exception)
 	{
+		if (is_object($this->logger))
+		{
+			$this->logger->log(
+				'error',
+				$exception->getMessage(),
+				array(
+					'code' => $exception->getCode(),
+					'file' => $exception->getFile(),
+					'line' => $exception->getLine(),
+					'severity' => $exception->getSeverity()
+				)
+			);
+		}
+
 		return $this->renderer->render($exception);
 	}
 
