@@ -188,8 +188,7 @@ class Handler
 				array(
 					'code' => $exception->getCode(),
 					'file' => $exception->getFile(),
-					'line' => $exception->getLine(),
-					'severity' => $exception->getSeverity()
+					'line' => $exception->getLine()
 				)
 			);
 		}
