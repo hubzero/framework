@@ -113,7 +113,7 @@ abstract class Button extends Obj
 	 */
 	public function fetchIconClass($identifier)
 	{
-		return "icon-32-$identifier";
+		return "icon-$identifier icon-32-$identifier";
 	}
 
 	/**

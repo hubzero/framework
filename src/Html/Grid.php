@@ -20,24 +20,16 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
  * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @copyright Copyright 2005-2014 Open Source Matters, Inc.
  * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
  */
 
 namespace Hubzero\Html;
 
-use Hubzero\Html\Builder\Select;
 use Hubzero\Html\Builder\Behavior;
-use Hubzero\Utility\Date;
-use Lang;
-use User;
 
 /**
  * Utility class for creating HTML Grids
- *
- * Inspired by a combination of Joomla's JGrid and JHtmlGrid
  */
 class Grid
 {
@@ -52,29 +44,7 @@ class Grid
 	 */
 	public static function boolean($i, $value, $taskOn = null, $taskOff = null)
 	{
-		// Load the behavior.
-		self::behavior();
-
-		// Build the title.
-		$title  = ($value) ? Lang::txt('JYES') : Lang::txt('JNO');
-		$title .= '::' . Lang::txt('JGLOBAL_CLICK_TO_TOGGLE_STATE');
-
-		// Build the <a> tag.
-		$bool   = ($value) ? 'true' : 'false';
-		$task   = ($value) ? $taskOff : $taskOn;
-		$toggle = (!$task) ? false : true;
-		$bool  .= ($value) ? ' on' : ' off';
-
-		if ($toggle)
-		{
-			$html = '<a class="state grid_' . $bool . ' hasTip" title="' . $title . '" rel="{\'id\':\'cb' . $i . '\', \'task\':\'' . $task . '\'}" href="#toggle"><span>' . $title . '</span></a>';
-		}
-		else
-		{
-			$html = '<a class="state grid_' . $bool . '"><span>' . $title . '</span></a>';
-		}
-
-		return $html;
+		return Builder\Grid::boolean($i, $value, $taskOn, $taskOff);
 	}
 
 	/**
@@ -90,27 +60,7 @@ class Grid
 	 */
 	public static function sort($title, $order, $direction = 'asc', $selected = 0, $task = null, $new_direction = 'asc')
 	{
-		$direction = strtolower($direction);
-		$index = intval($direction == 'desc');
-
-		if ($order != $selected)
-		{
-			$direction = $new_direction;
-		}
-		else
-		{
-			$direction = ($direction == 'desc') ? 'asc' : 'desc';
-		}
-
-		$html  = '<a href="#" onclick="Joomla.tableOrdering(\'' . $order . '\',\'' . $direction . '\',\'' . $task . '\');return false;" title="' . Lang::txt('JGLOBAL_CLICK_TO_SORT_THIS_COLUMN') . '" class="';
-		if ($order == $selected)
-		{
-			$html .= 'active ' . ($direction == 'desc' ? 'asc' : 'desc') . ' ';
-		}
-		$html .= 'sort">' . Lang::txt($title);
-		$html .= '</a>';
-
-		return $html;
+		return Builder\Grid::sort($title, $order, $direction, $selected, $task, $new_direction);
 	}
 
 	/**
@@ -124,12 +74,7 @@ class Grid
 	 */
 	public static function id($rowNum, $recId, $checkedOut = false, $name = 'cid')
 	{
-		if ($checkedOut)
-		{
-			return '';
-		}
-
-		return '<input type="checkbox" id="cb' . $rowNum . '" name="' . $name . '[]" value="' . $recId . '" class="checkbox-toggle" title="' . Lang::txt('JGRID_CHECKBOX_ROW_N', ($rowNum + 1)) . '" />';
+		return Builder\Grid::id($rowNum, $recId, $checkedOut, $name);
 	}
 
 	/**
@@ -142,60 +87,21 @@ class Grid
 	 */
 	public static function checkedOut(&$row, $i, $identifier = 'id')
 	{
-		$userid = User::get('id');
-
-		$result = false;
-		if ($row instanceof \JTable)
-		{
-			$result = $row->isCheckedOut($userid);
-		}
-		else
-		{
-			$result = \JTable::isCheckedOut($userid, $row->checked_out);
-		}
-
-		$checked = '';
-		if ($result)
-		{
-			$checked = self::_checkedOut($row);
-		}
-		else
-		{
-			if ($identifier == 'id')
-			{
-				$checked = self::id($i, $row->$identifier);
-			}
-			else
-			{
-				$checked = self::id($i, $row->$identifier, $result, $identifier);
-			}
-		}
-
-		return $checked;
+		return Builder\Grid::checkedOut($row, $i, $identifier);
 	}
 
 	/**
 	 * Method to create a clickable icon to change the state of an item
 	 *
-	 * @param   mixed    $value   Either the scalar value or an object (for backward compatibility, deprecated)
-	 * @param   integer  $i       The index
-	 * @param   string   $prefix  An optional prefix for the task
+	 * @param   mixed    $value     Either the scalar value or an object (for backward compatibility, deprecated)
+	 * @param   integer  $i         The index
+	 * @param   string   $prefix    An optional prefix for the task
+	 * @param   string   $checkbox  Checkbox ID prefix
 	 * @return  string
 	 */
-	public static function published($value, $i, $prefix = '')
+	public static function published($value, $i, $prefix = '', $checkbox = 'cb')
 	{
-		if (is_object($value))
-		{
-			$value = $value->published;
-		}
-
-		$task   = $value ? 'unpublish' : 'publish';
-		$alt    = $value ? Lang::txt('JPUBLISHED') : Lang::txt('JUNPUBLISHED');
-		$action = $value ? Lang::txt('JLIB_HTML_UNPUBLISH_ITEM') : Lang::txt('JLIB_HTML_PUBLISH_ITEM');
-
-		$href = '<a href="#" class="state ' . ($value ? 'publish' : 'unpublish') . '" onclick="return listItemTask(\'cb' . $i . '\',\'' . $prefix . $task . '\')" title="' . $action . '"><span>' . $alt . '</span></a>';
-
-		return $href;
+		return Builder\Grid::published($value, $i, $prefix, $checkbox);
 	}
 
 	/**
@@ -209,29 +115,7 @@ class Grid
 	 */
 	public static function publishedOptions($config = array())
 	{
-		// Build the active state filter options.
-		$options = array();
-		if (!array_key_exists('published', $config) || $config['published'])
-		{
-			$options[] = Select::option('1', 'JPUBLISHED');
-		}
-		if (!array_key_exists('unpublished', $config) || $config['unpublished'])
-		{
-			$options[] = Select::option('0', 'JUNPUBLISHED');
-		}
-		if (!array_key_exists('archived', $config) || $config['archived'])
-		{
-			$options[] = Select::option('2', 'JARCHIVED');
-		}
-		if (!array_key_exists('trash', $config) || $config['trash'])
-		{
-			$options[] = Select::option('-2', 'JTRASHED');
-		}
-		if (!array_key_exists('all', $config) || $config['all'])
-		{
-			$options[] = Select::option('*', 'JALL');
-		}
-		return $options;
+		return Builder\Grid::publishedOptions($config);
 	}
 
 	/**
@@ -247,73 +131,20 @@ class Grid
 	 */
 	public static function state($filter_state = '*', $published = 'Published', $unpublished = 'Unpublished', $archived = null, $trashed = null)
 	{
-		$state = array(
-			''  => '- ' . Lang::txt('JLIB_HTML_SELECT_STATE') . ' -',
-			'P' => Lang::txt($published),
-			'U' => Lang::txt($unpublished)
-		);
-
-		if ($archived)
-		{
-			$state['A'] = Lang::txt($archived);
-		}
-
-		if ($trashed)
-		{
-			$state['T'] = Lang::txt($trashed);
-		}
-
-		return Select::genericlist(
-			$state,
-			'filter_state',
-			array(
-				'list.attr' => 'class="inputbox" size="1" onchange="Joomla.submitform();"',
-				'list.select' => $filter_state,
-				'option.key' => null
-			)
-		);
+		return Builder\Grid::state($filter_state, $published, $unpublished, $archived, $trashed);
 	}
 
 	/**
 	 * Method to create an icon for saving a new ordering in a grid
 	 *
-	 * @param   array   $rows   The array of rows of rows
-	 * @param   string  $image  The image
-	 * @param   string  $task   The task to use, defaults to save order
-	 *
+	 * @param   array   $rows  The array of rows of rows
+	 * @param   string  $cls   Classname to apply
+	 * @param   string  $task  The task to use, defaults to save order
 	 * @return  string
-	 *
-	 * @since   11.1
 	 */
-	public static function order($rows, $image = 'save.png', $task = 'saveorder')
+	public static function order($rows, $cls = 'saveoder', $task = 'saveorder')
 	{
-		$href = '<a href="javascript:saveorder(' . (count($rows) - 1) . ', \'' . $task . '\')" class="saveorder" title="' . Lang::txt('JLIB_HTML_SAVE_ORDER') . '"><span>' . Lang::txt('JLIB_HTML_SAVE_ORDER') . '</span></a>';
-
-		return $href;
-	}
-
-	/**
-	 * Method to create a checked out icon with optional overlib in a grid.
-	 *
-	 * @param   object   &$row     The row object
-	 * @param   boolean  $tooltip  True if an overlib with checkout information should be created.
-	 * @return  string   HTML for the icon and tooltip
-	 */
-	protected static function _checkedOut(&$row, $tooltip = 1)
-	{
-		$hover = '<span class="checkedout">';
-
-		if ($tooltip && isset($row->checked_out_time))
-		{
-			$text = addslashes(htmlspecialchars($row->editor, ENT_COMPAT, 'UTF-8'));
-
-			$date = with(new Date($row->checked_out_time))->toLocal(Lang::txt('DATE_FORMAT_LC1'));
-			$time = with(new Date($row->checked_out_time))->toLocal('H:i');
-
-			$hover = '<span class="editlinktip hasTip" title="' . Lang::txt('JLIB_HTML_CHECKED_OUT') . '::' . $text . '<br />' . $date . '<br />' . $time . '">';
-		}
-
-		return $hover . Lang::txt('JLIB_HTML_CHECKED_OUT') . '</span>';
+		return Builder\Grid::order($rows, $cls, $task);
 	}
 
 	/**
@@ -327,30 +158,7 @@ class Grid
 
 		if (!$loaded)
 		{
-			// Add the behavior to the document head.
-			\App::get('document')->addScriptDeclaration(
-				'jQuery(document).ready(function($){
-					$("a.move_up, a.move_down, a.grid_true, a.grid_false, a.trash")
-						.on("click", function(){
-							if ($(this).attr("rel")) {
-								args = jQuery.parseJSON($(this).attr("rel").replace(/\'/g, \'"\'));
-								listItemTask(args.id, args.task);
-							}
-						});
-
-					$("input.check-all-toggle").on("click", function(){
-							if ($(this).checked) {
-								$($(this).closest("form")).find("input[type=checkbox]").each(function(i){
-									i.checked = true;
-								})
-							} else {
-								$($(this).closest("form")).find("input[type=checkbox]").each(function(i){
-									i.checked = false;
-								})
-							}
-					});
-				});'
-			);
+			Builder\Behavior::framework();
 
 			$loaded = true;
 		}
@@ -369,16 +177,7 @@ class Grid
 	 */
 	public static function orderUp($i, $task = 'orderup', $prefix = '', $text = 'JLIB_HTML_MOVE_UP', $enabled = true, $checkbox = 'cb')
 	{
-		if (is_array($prefix))
-		{
-			$options  = $prefix;
-			$text     = array_key_exists('text', $options)     ? $options['text']     : $text;
-			$enabled  = array_key_exists('enabled', $options)  ? $options['enabled']  : $enabled;
-			$checkbox = array_key_exists('checkbox', $options) ? $options['checkbox'] : $checkbox;
-			$prefix   = array_key_exists('prefix', $options)   ? $options['prefix']   : '';
-		}
-
-		return self::action($i, $task, $prefix, $text, $text, $text, false, 'uparrow', 'uparrow_disabled', $enabled, true, $checkbox);
+		return Builder\Grid::orderUp($i, $task, $prefix, $text, $enabled, $checkbox);
 	}
 
 	/**
@@ -394,16 +193,7 @@ class Grid
 	 */
 	public static function orderDown($i, $task = 'orderdown', $prefix = '', $text = 'JLIB_HTML_MOVE_DOWN', $enabled = true, $checkbox = 'cb')
 	{
-		if (is_array($prefix))
-		{
-			$options  = $prefix;
-			$text     = array_key_exists('text', $options)     ? $options['text']     : $text;
-			$enabled  = array_key_exists('enabled', $options)  ? $options['enabled']  : $enabled;
-			$checkbox = array_key_exists('checkbox', $options) ? $options['checkbox'] : $checkbox;
-			$prefix   = array_key_exists('prefix', $options)   ? $options['prefix']   : '';
-		}
-
-		return self::action($i, $task, $prefix, $text, $text, $text, false, 'downarrow', 'downarrow_disabled', $enabled, true, $checkbox);
+		return Builder\Grid::orderDown($i, $task, $prefix, $text, $enabled, $checkbox);
 	}
 
 	/**
@@ -418,20 +208,7 @@ class Grid
 	 */
 	public static function isdefault($value, $i, $prefix = '', $enabled = true, $checkbox = 'cb')
 	{
-		if (is_array($prefix))
-		{
-			$options  = $prefix;
-			$enabled  = array_key_exists('enabled', $options)  ? $options['enabled']  : $enabled;
-			$checkbox = array_key_exists('checkbox', $options) ? $options['checkbox'] : $checkbox;
-			$prefix   = array_key_exists('prefix', $options)   ? $options['prefix']   : '';
-		}
-
-		$states = array(
-			1 => array('unsetDefault', 'JDEFAULT', 'JLIB_HTML_UNSETDEFAULT_ITEM', 'JDEFAULT', false, 'default', 'default'),
-			0 => array('setDefault', '', 'JLIB_HTML_SETDEFAULT_ITEM', '', false, 'notdefault', 'notdefault'),
-		);
-
-		return self::state($states, $value, $i, $prefix, $enabled, true, $checkbox);
+		return Builder\Grid::isdefault($value, $i, $prefix, $enabled, $checkbox);
 	}
 
 	/**
@@ -453,45 +230,6 @@ class Grid
 	 */
 	public static function action($i, $task, $prefix = '', $text = '', $active_title = '', $inactive_title = '', $tip = false, $active_class = '', $inactive_class = '', $enabled = true, $translate = true, $checkbox = 'cb')
 	{
-		if (is_array($prefix))
-		{
-			$options = $prefix;
-			$text           = array_key_exists('text', $options) ? $options['text'] : $text;
-			$active_title   = array_key_exists('active_title', $options) ? $options['active_title'] : $active_title;
-			$inactive_title = array_key_exists('inactive_title', $options) ? $options['inactive_title'] : $inactive_title;
-			$tip            = array_key_exists('tip', $options) ? $options['tip'] : $tip;
-			$active_class   = array_key_exists('active_class', $options) ? $options['active_class'] : $active_class;
-			$inactive_class = array_key_exists('inactive_class', $options) ? $options['inactive_class'] : $inactive_class;
-			$enabled        = array_key_exists('enabled', $options) ? $options['enabled'] : $enabled;
-			$translate      = array_key_exists('translate', $options) ? $options['translate'] : $translate;
-			$checkbox       = array_key_exists('checkbox', $options) ? $options['checkbox'] : $checkbox;
-			$prefix         = array_key_exists('prefix', $options) ? $options['prefix'] : '';
-		}
-
-		if ($tip)
-		{
-			Behavior::tooltip();
-		}
-
-		if ($enabled)
-		{
-			$html[] = '<a class="jgrid' . ($tip ? ' hasTip' : '') . '"';
-			$html[] = ' href="javascript:void(0);" onclick="return listItemTask(\'' . $checkbox . $i . '\',\'' . $prefix . $task . '\')"';
-			$html[] = ' title="' . addslashes(htmlspecialchars($translate ? Lang::txt($active_title) : $active_title, ENT_COMPAT, 'UTF-8')) . '">';
-			$html[] = '<span class="state ' . $active_class . '">';
-			$html[] = $text ? ('<span class="text">' . ($translate ? Lang::txt($text):$text) . '</span>') : '';
-			$html[] = '</span>';
-			$html[] = '</a>';
-		}
-		else
-		{
-			$html[] = '<a class="jgrid' . ($tip ? ' hasTip' : '') . '"';
-			$html[] = ' title="' . addslashes(htmlspecialchars($translate ? Lang::txt($inactive_title) : $inactive_title, ENT_COMPAT, 'UTF-8')) . '">';
-			$html[] = '<span class="state ' . $inactive_class . '">';
-			$html[] = $text ? ('<span class="text">' . ($translate ? Lang::txt($text) : $text) . '</span>') :'';
-			$html[] = '</span>';
-			$html[] = '</a>';
-		}
-		return implode($html);
+		return Builder\Grid::action($i, $task, $prefix, $text, $active_title, $inactive_title, $tip, $active_class, $inactive_class, $enabled, $translate, $checkbox);
 	}
 }
