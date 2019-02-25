@@ -225,11 +225,12 @@ class Log extends Relational
 			$this->set('details', json_encode($data));
 		}
 
+		$isNew = $this->isNew();
 		$result = parent::save();
 
 		if ($result)
 		{
-			Event::trigger('activity.onLogSave', [$this]);
+			Event::trigger('activity.onLogSave', [$this, $isNew]);
 		}
 
 		return $result;
