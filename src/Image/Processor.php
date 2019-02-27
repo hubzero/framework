@@ -441,13 +441,20 @@ class Processor extends Obj
 
 		$resource = imagecreatetruecolor($new_w, $new_h);
 
-		if ($this->image_type == IMAGETYPE_PNG)
+		$transparencyIndex = imagecolortransparent($this->resource);
+		$transparencyColor = array('red' => 255, 'green' => 255, 'blue' => 255);
+		if ($transparencyIndex >= 0)
 		{
-			imagealphablending($resource, false);
-			imagesavealpha($resource, true);
-			$transparent = imagecolorallocatealpha($resource, 255, 255, 255, 127);
-			imagefilledrectangle($resource, 0, 0, $new_w, $new_h, $transparent);
+			$transparencyColor = imagecolorsforindex($this->resource, $transparencyIndex);
 		}
+		$transparencyIndex = imagecolorallocate(
+			$resource,
+			$transparencyColor['red'],
+			$transparencyColor['green'],
+			$transparencyColor['blue']
+		);
+		imagefill($resource, 0, 0, $transparencyIndex);
+		imagecolortransparent($resource, $transparencyIndex);
 
 		if ($resample)
 		{
