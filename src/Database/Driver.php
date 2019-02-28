@@ -218,9 +218,15 @@ abstract class Driver
 	public static function getInstance($options = [])
 	{
 		// Sanitize the database connector options
-		$options['driver']   = (isset($options['driver']))   ? preg_replace('/[^A-Z0-9_\.-]/i', '', $options['driver']) : 'pdo';
+		$options['driver']   = (isset($options['driver']))   ? preg_replace('/[^A-Z0-9_\.-]/i', '', $options['driver']) : 'mysql';
 		$options['database'] = (isset($options['database'])) ? $options['database']                                     : null;
 		$options['select']   = (isset($options['select']))   ? $options['select']                                       : true;
+
+		// @TODO: Eventually remove this?
+		if ($options['driver'] == 'pdo')
+		{
+			$options['driver'] = 'mysql';
+		}
 
 		// Get the options signature for the database connector
 		$signature = md5(serialize($options));
@@ -262,6 +268,28 @@ abstract class Driver
 		$this->setSyntax($this->detectSyntax());
 
 		return $this;
+	}
+
+	/**
+	 * Destroys the connection
+	 *
+	 * @return  void
+	 * @since   2.1.11
+	 */
+	public function disconnect()
+	{
+		$this->connection = null;
+	}
+
+	/**
+	 * Destroys the connection
+	 *
+	 * @return  void
+	 * @since   2.0.0
+	 */
+	public function __destruct()
+	{
+		$this->disconnect();
 	}
 
 	/**

@@ -46,13 +46,6 @@ use Hubzero\Database\Exception\QueryFailedException;
 class Pdo extends Driver
 {
 	/**
-	 * The name of the driver
-	 *
-	 * @var	string
-	 */
-	public $name = 'pdo';
-
-	/**
 	 * Constructs a new database object based on the given params
 	 *
 	 * @param   array  $options  The database connection params
@@ -70,19 +63,25 @@ class Pdo extends Driver
 		// Try to connect
 		try
 		{
-			// Add "extra" options as needed
-			$extras = [];
-
-			// Check if we're trying to make an SSL connection
-			if (isset($options['ssl_ca']) && $options['ssl_ca'] && $options['host'] != 'localhost')
+			// Make sure the DSN is set
+			if (!isset($options['dsn']) || !$options['dsn'])
 			{
-				$extras[PDO::MYSQL_ATTR_SSL_CA] = $options['ssl_ca'];
+				throw new ConnectionFailedException('DSN for PDO connection not set.', 500);
+			}
+
+			// Make sure extra PDO options array is set
+			if (!isset($options['extras']))
+			{
+				$options['extras'] = [];
 			}
 
 			// Establish connection string
-			$parameters  = "mysql:host={$options['host']};charset=utf8";
-			$parameters .= ($options['select']) ? ";dbname={$options['database']}" : '';
-			$this->setConnection(new \PDO($parameters, $options['user'], $options['password'], $extras));
+			$this->setConnection(new \PDO(
+				(string)$options['dsn'],
+				(string)$options['user'],
+				(string)$options['password'],
+				(array)$options['extras']
+			));
 		}
 		catch (\PDOException $e)
 		{
@@ -96,17 +95,6 @@ class Pdo extends Driver
 		parent::__construct($options);
 
 		// @FIXME: Set sql_mode to non_strict mode?
-	}
-
-	/**
-	 * Destroys the connection
-	 *
-	 * @return  void
-	 * @since   2.0.0
-	 */
-	public function __destruct()
-	{
-		$this->connection = null;
 	}
 
 	/**
