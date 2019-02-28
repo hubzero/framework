@@ -218,7 +218,7 @@ class Head extends Renderer
 		{
 			$buffer[] = $tab . '<script type="text/javascript">';
 			$buffer[] = $tab . $tab . '(function() {';
-			$buffer[] = $tab . $tab . $tab . 'var strings = ' . json_encode(\JText::script()) . ';';
+			$buffer[] = $tab . $tab . $tab . 'var strings = ' . json_encode(\Lang::script()) . ';';
 			$buffer[] = $tab . $tab . $tab . 'if (typeof Joomla == \'undefined\') {';
 			$buffer[] = $tab . $tab . $tab . $tab . 'Joomla = {};';
 			$buffer[] = $tab . $tab . $tab . $tab . 'Joomla.JText = strings;';

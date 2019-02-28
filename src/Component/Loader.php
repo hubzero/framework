@@ -41,8 +41,6 @@ use stdClass;
 
 /**
  * Component helper class
- *
- * Largely inspired by Joomla's JComponentHelper class.
  */
 class Loader
 {
@@ -122,10 +120,10 @@ class Loader
 			$result->path = '';
 
 			$paths = array(
-				PATH_APP . DS . 'components' . DS . substr($result->option, 4),
-				PATH_APP . DS . 'components' . DS . $result->option,
-				PATH_CORE . DS . 'components' . DS . substr($result->option, 4),
-				PATH_CORE . DS . 'components' . DS . $result->option
+				PATH_APP . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . substr($result->option, 4),
+				PATH_APP . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATORS . $result->option,
+				PATH_CORE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . substr($result->option, 4),
+				PATH_CORE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . $result->option
 			);
 
 			foreach ($paths as $path)
@@ -170,13 +168,16 @@ class Loader
 	 */
 	public function render($option, $params = array())
 	{
+		$client = (isset($this->app['client']->alias) ? $this->app['client']->alias : $this->app['client']->name);
+
 		// Load template language files.
 		$lang = $this->app['language'];
 		if ($this->app->has('template'))
 		{
 			$template = $this->app['template']->template;
-			$lang->load('tpl_' . $template, JPATH_BASE, null, false, true);
-			$lang->load('tpl_' . $template, JPATH_THEMES . DS . $template, null, false, true);
+
+			$lang->load('tpl_' . $template, PATH_APP . DIRECTORY_SEPARATOR . 'bootstrap' . DIRECTORY_SEPARATOR . $client . DIRECTORY_SEPARATOR . 'language', null, false, true);
+			$lang->load('tpl_' . $template, $this->app['template']->path, null, false, true);
 		}
 
 		if (empty($option))
@@ -196,12 +197,10 @@ class Loader
 		// Build the component path.
 		$file   = substr($option, 4);
 
-		$client = (isset($this->app['client']->alias) ? $this->app['client']->alias : $this->app['client']->name);
-
 		// Get component path
-		define('PATH_COMPONENT', $this->path($option) . DS . $client);
-		define('PATH_COMPONENT_SITE', $this->path($option) . DS . 'site');
-		define('PATH_COMPONENT_ADMINISTRATOR', $this->path($option) . DS . 'admin');
+		define('PATH_COMPONENT', $this->path($option) . DIRECTORY_SEPARATOR . $client);
+		define('PATH_COMPONENT_SITE', $this->path($option) . DIRECTORY_SEPARATOR . 'site');
+		define('PATH_COMPONENT_ADMINISTRATOR', $this->path($option) . DIRECTORY_SEPARATOR . 'admin');
 
 		// Legacy compatibility
 		// @TODO: Deprecate this!
@@ -209,7 +208,7 @@ class Loader
 		define('JPATH_COMPONENT_SITE', PATH_COMPONENT_SITE);
 		define('JPATH_COMPONENT_ADMINISTRATOR', PATH_COMPONENT_ADMINISTRATOR);
 
-		$path      = PATH_COMPONENT . DS . $file . '.php';
+		$path      = PATH_COMPONENT . DIRECTORY_SEPARATOR . $file . '.php';
 		$namespace = '\\Components\\' . ucfirst(substr($option, 4)) . '\\' . ucfirst($client) . '\\Bootstrap';
 		$found     = false;
 
@@ -224,8 +223,8 @@ class Loader
 
 				// Infer the appropriate language path and load from there
 				$file  = with(new \ReflectionClass($namespace))->getFileName();
-				$bits  = explode(DS, $file);
-				$local = implode(DS, array_slice($bits, 0, -1));
+				$bits  = explode(DIRECTORY_SEPARATOR, $file);
+				$local = implode(DIRECTORY_SEPARATOR, array_slice($bits, 0, -1));
 
 				// Load local language files
 				$lang->load($option, $local, null, false, true);
@@ -336,10 +335,10 @@ class Loader
 				$paths = array();
 				if (!is_null($version))
 				{
-					$paths[] = $this->path($option) . DS . strtolower($client) . DS . 'routerv' . $version . '.php';
+					$paths[] = $this->path($option) . DIRECTORY_SEPARATOR . strtolower($client) . DIRECTORY_SEPARATOR . 'routerv' . $version . '.php';
 				}
-				$paths[] = $this->path($option) . DS . strtolower($client) . DS . 'router.php';
-				$paths[] = $this->path($option) . DS . 'router.php';
+				$paths[] = $this->path($option) . DIRECTORY_SEPARATOR . strtolower($client) . DIRECTORY_SEPARATOR . 'router.php';
+				$paths[] = $this->path($option) . DIRECTORY_SEPARATOR . 'router.php';
 
 				// Use the custom routing handler if it exists
 				foreach ($paths as $path)

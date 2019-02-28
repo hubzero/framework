@@ -1538,7 +1538,7 @@ class Translator extends Obj
 	/**
 	 * Translate a string into the current language and stores it in the JavaScript language store.
 	 *
-	 * @param   string   $string                The JText key.
+	 * @param   string   $string                The language key.
 	 * @param   boolean  $jsSafe                Ensure the output is JavaScript safe.
 	 * @param   boolean  $interpretBackSlashes  Interpret \t and \n.
 	 * @return  mixed
