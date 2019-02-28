@@ -2,7 +2,7 @@
 /**
  * HUBzero CMS
  *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
+ * Copyright 2005-2019 HUBzero Foundation, LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,45 +25,48 @@
  * HUBzero is a registered trademark of Purdue University.
  *
  * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
+ * @copyright Copyright 2005-2019 HUBzero Foundation, LLC.
  * @license   http://opensource.org/licenses/MIT MIT
+ * @since     Class available since release 2.2.14
  */
 
-namespace Framework\Providers;
+namespace Hubzero\Database\Driver;
 
-use Hubzero\Database\Driver;
-use Hubzero\Base\ServiceProvider;
+use Hubzero\Database\Driver\Pdo as PdoDriver;
+use Hubzero\Database\Exception\ConnectionFailedException;
+use Hubzero\Database\Exception\QueryFailedException;
 
 /**
- * Database service provider
- *
- * @codeCoverageIgnore
+ * Sqlite (Pdo) database driver
  */
-class DatabaseServiceProvider extends ServiceProvider
+class Sqlite extends PdoDriver
 {
 	/**
-	 * Register the service provider
+	 * Constructs a new database object based on the given params
 	 *
+	 * @param   array  $options  The database connection params
 	 * @return  void
 	 */
-	public function register()
+	public function __construct($options)
 	{
-		$this->app['db'] = function($app)
+		// Add "extra" options as needed
+		if (!isset($options['extras']))
 		{
-			// @FIXME: this isn't pretty, but it will shim the removal of the old mysql_* calls from php
-			$driver = ($app['config']->get('dbtype') == 'pdo') ? 'mysql' : $app['config']->get('dbtype');
+			$options['extras'] = [];
+		}
 
-			$options = [
-				'driver'   => $driver,
-				'host'     => $app['config']->get('host'),
-				'user'     => $app['config']->get('user'),
-				'password' => $app['config']->get('password'),
-				'database' => $app['config']->get('db'),
-				'prefix'   => $app['config']->get('dbprefix')
-			];
+		// Establish connection string
+		if (!isset($options['dsn']))
+		{
+			$options['dsn'] = "sqlite:{$options['database']}";
+		}
 
-			return Driver::getInstance($options);
-		};
+		if (substr($options['dsn'], 0, 7) != 'sqlite:')
+		{
+			throw new ConnectionFailedException('Sqlite DSN for PDO connection does not appear to be valid.', 500);
+		}
+
+		// Call parent construct
+		parent::__construct($options);
 	}
 }
