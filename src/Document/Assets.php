@@ -65,12 +65,7 @@ class Assets
 	 */
 	public static function base()
 	{
-		$base = JPATH_SITE;
-		if (\App::isAdmin())
-		{
-			$base = JPATH_ADMINISTRATOR;
-		}
-		return $base;
+		return PATH_APP;
 	}
 
 	/**

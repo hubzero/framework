@@ -42,7 +42,7 @@ class Toolbar extends Facade
 	/**
 	 * Get the registered name.
 	 *
-	 * @return string
+	 * @return  string
 	 */
 	protected static function getAccessor()
 	{
@@ -70,9 +70,14 @@ class Toolbar extends Facade
 
 		$html = '<div class="pagetitle ' . htmlspecialchars(implode(' ', $icons)) . '"><h2>' . $title . '</h2></div>';
 
-		\App::set('ComponentTitle', $html);
+		$app = static::getApplication();
 
-		\App::get('document')->setTitle(\App::get('config')->get('sitename') . ' - ' . \App::get('language')->txt('JADMINISTRATION') . ' - ' . $title);
+		$app->set('ComponentTitle', $html);
+
+		if ($app->has('document'))
+		{
+			$app->setTitle($app->get('config')->get('sitename') . ' - ' . $app->get('language')->txt('JADMINISTRATION') . ' - ' . $title);
+		}
 	}
 
 	/**
@@ -193,10 +198,10 @@ class Toolbar extends Facade
 	/**
 	 * Writes the common 'new' icon for the button bar.
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @param	boolean	$check	True if required to check that a standard list item is checked.
-	 * @since	1.0
+	 * @param   string   $task   An override for the task.
+	 * @param   string   $alt    An override for the alt text.
+	 * @param   boolean  $check  True if required to check that a standard list item is checked.
+	 * @return  void
 	 */
 	public static function addNew($task = 'add', $alt = 'JTOOLBAR_NEW', $check = false)
 	{
@@ -206,10 +211,10 @@ class Toolbar extends Facade
 	/**
 	 * Writes a common 'publish' button.
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @param	boolean	$check	True if required to check that a standard list item is checked.
-	 * @since	1.0
+	 * @param   string   $task   An override for the task.
+	 * @param   string   $alt    An override for the alt text.
+	 * @param   boolean  $check  True if required to check that a standard list item is checked.
+	 * @return  void
 	 */
 	public static function publish($task = 'publish', $alt = 'JTOOLBAR_PUBLISH', $check = false)
 	{
@@ -219,9 +224,9 @@ class Toolbar extends Facade
 	/**
 	 * Writes a common 'publish' button for a list of records.
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @since	1.0
+	 * @param   string  $task  An override for the task.
+	 * @param   string  $alt   An override for the alt text.
+	 * @return  void
 	 */
 	public static function publishList($task = 'publish', $alt = 'JTOOLBAR_PUBLISH')
 	{
@@ -231,10 +236,10 @@ class Toolbar extends Facade
 	/**
 	 * Writes a common 'unpublish' button.
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @param	boolean	$check	True if required to check that a standard list item is checked.
-	 * @since	1.0
+	 * @param   string   $task   An override for the task.
+	 * @param   string   $alt    An override for the alt text.
+	 * @param   boolean  $check  True if required to check that a standard list item is checked.
+	 * @return  void
 	 */
 	public static function unpublish($task = 'unpublish', $alt = 'JTOOLBAR_UNPUBLISH', $check = false)
 	{
@@ -244,9 +249,9 @@ class Toolbar extends Facade
 	/**
 	 * Writes a common 'unpublish' button for a list of records.
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @since	1.0
+	 * @param   string  $task  An override for the task.
+	 * @param   string  $alt   An override for the alt text.
+	 * @return  void
 	 */
 	public static function unpublishList($task = 'unpublish', $alt = 'JTOOLBAR_UNPUBLISH')
 	{
@@ -256,9 +261,9 @@ class Toolbar extends Facade
 	/**
 	 * Writes a common 'archive' button for a list of records.
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @since	1.0
+	 * @param   string  $task  An override for the task.
+	 * @param   string  $alt   An override for the alt text.
+	 * @return  void
 	 */
 	public static function archiveList($task = 'archive', $alt = 'JTOOLBAR_ARCHIVE')
 	{
@@ -268,9 +273,9 @@ class Toolbar extends Facade
 	/**
 	 * Writes an unarchive button for a list of records.
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @since	1.0
+	 * @param   string  $task  An override for the task.
+	 * @param   string  $alt   An override for the alt text.
+	 * @return  void
 	 */
 	public static function unarchiveList($task = 'unarchive', $alt = 'JTOOLBAR_UNARCHIVE')
 	{
@@ -280,9 +285,9 @@ class Toolbar extends Facade
 	/**
 	 * Writes a common 'edit' button for a list of records.
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @since	1.0
+	 * @param   string  $task  An override for the task.
+	 * @param   string  $alt   An override for the alt text.
+	 * @return  void
 	 */
 	public static function editList($task = 'edit', $alt = 'JTOOLBAR_EDIT')
 	{
@@ -292,9 +297,9 @@ class Toolbar extends Facade
 	/**
 	 * Writes a common 'edit' button for a template html.
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @since	1.0
+	 * @param   string  $task  An override for the task.
+	 * @param   string  $alt   An override for the alt text.
+	 * @return  void
 	 */
 	public static function editHtml($task = 'edit_source', $alt = 'JTOOLBAR_EDIT_HTML')
 	{
@@ -304,9 +309,9 @@ class Toolbar extends Facade
 	/**
 	 * Writes a common 'edit' button for a template css.
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @since	1.0
+	 * @param   string  $task  An override for the task.
+	 * @param   string  $alt   An override for the alt text.
+	 * @return  void
 	 */
 	public static function editCss($task = 'edit_css', $alt = 'JTOOLBAR_EDIT_CSS')
 	{
@@ -316,10 +321,10 @@ class Toolbar extends Facade
 	/**
 	 * Writes a common 'delete' button for a list of records.
 	 *
-	 * @param	string	$msg	Postscript for the 'are you sure' message.
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @since	1.0
+	 * @param   string  $msg   Postscript for the 'are you sure' message.
+	 * @param   string  $task  An override for the task.
+	 * @param   string  $alt   An override for the alt text.
+	 * @return  void
 	 */
 	public static function deleteList($msg = '', $task = 'remove', $alt = 'JTOOLBAR_DELETE')
 	{
@@ -338,10 +343,10 @@ class Toolbar extends Facade
 	/**
 	 * Write a trash button that will move items to Trash Manager.
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @param	bool	$check
-	 * @since	1.0
+	 * @param   string  $task   An override for the task.
+	 * @param   string  $alt    An override for the alt text.
+	 * @param   bool    $check
+	 * @return  void
 	 */
 	public static function trash($task = 'remove', $alt = 'JTOOLBAR_TRASH', $check = true)
 	{
@@ -352,9 +357,9 @@ class Toolbar extends Facade
 	 * Writes a save button for a given option.
 	 * Apply operation leads to a save action only (does not leave edit mode).
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @since	1.0
+	 * @param   string  $task  An override for the task.
+	 * @param   string  $alt   An override for the alt text.
+	 * @return  void
 	 */
 	public static function apply($task = 'apply', $alt = 'JTOOLBAR_APPLY')
 	{
@@ -365,9 +370,9 @@ class Toolbar extends Facade
 	 * Writes a save button for a given option.
 	 * Save operation leads to a save and then close action.
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @since	1.0
+	 * @param   string  $task  An override for the task.
+	 * @param   string  $alt   An override for the alt text.
+	 * @return  void
 	 */
 	public static function save($task = 'save', $alt = 'JTOOLBAR_SAVE')
 	{
@@ -378,9 +383,9 @@ class Toolbar extends Facade
 	 * Writes a save and create new button for a given option.
 	 * Save and create operation leads to a save and then add action.
 	 *
-	 * @param string $task
-	 * @param string $alt
-	 * @since 1.6
+	 * @param   string  $task
+	 * @param   string  $alt
+	 * @return  void
 	 */
 	public static function save2new($task = 'save2new', $alt = 'JTOOLBAR_SAVE_AND_NEW')
 	{
@@ -392,9 +397,9 @@ class Toolbar extends Facade
 	 * Save as copy operation leads to a save after clearing the key,
 	 * then returns user to edit mode with new key.
 	 *
-	 * @param string $task
-	 * @param string $alt
-	 * @since 1.6
+	 * @param   string  $task
+	 * @param   string  $alt
+	 * @return  void
 	 */
 	public static function save2copy($task = 'save2copy', $alt = 'JTOOLBAR_SAVE_AS_COPY')
 	{
@@ -404,10 +409,10 @@ class Toolbar extends Facade
 	/**
 	 * Writes a checkin button for a given option.
 	 *
-	 * @param string $task
-	 * @param string $alt
-	 * @param boolean $check True if required to check that a standard list item is checked.
-	 * @since 1.7
+	 * @param   string   $task
+	 * @param   string   $alt
+	 * @param   boolean  $check  True if required to check that a standard list item is checked.
+	 * @return  void
 	 */
 	public static function checkin($task = 'checkin', $alt = 'JTOOLBAR_CHECKIN', $check = true)
 	{
@@ -417,9 +422,9 @@ class Toolbar extends Facade
 	/**
 	 * Writes a cancel button and invokes a cancel operation (eg a checkin).
 	 *
-	 * @param	string	$task	An override for the task.
-	 * @param	string	$alt	An override for the alt text.
-	 * @since	1.0
+	 * @param   string  $task  An override for the task.
+	 * @param   string  $alt   An override for the alt text.
+	 * @return  void
 	 */
 	public static function cancel($task = 'cancel', $alt = 'JTOOLBAR_CANCEL')
 	{
@@ -429,12 +434,13 @@ class Toolbar extends Facade
 	/**
 	 * Writes a configuration button and invokes a cancel operation (eg a checkin).
 	 *
-	 * @param	string	$component	The name of the component, eg, com_content.
-	 * @param	int		$height		The height of the popup.
-	 * @param	int		$width		The width of the popup.
-	 * @param	string	$alt		The name of the button.
-	 * @param	string	$path		An alternative path for the configuation xml relative to JPATH_SITE.
-	 * @since	1.0
+	 * @param   string  $component  The name of the component, eg, com_content.
+	 * @param   int     $height     The height of the popup.
+	 * @param   int     $width      The width of the popup.
+	 * @param   string  $alt        The name of the button.
+	 * @param   string  $path       An alternative path for the configuation xml relative to PATH_ROOT.
+	 * @param   string  $onClose    Called on close
+	 * @return  void
 	 */
 	public static function preferences($component, $height = '550', $width = '875', $alt = 'JToolbar_Options', $path = '', $onClose = '')
 	{

@@ -48,26 +48,6 @@ class User extends Facade
 	}
 
 	/**
-	 * Is the current user a guest (logged out) or not?
-	 *
-	 * @return  boolean
-	 */
-	/*public static function isGuest()
-	{
-		return static::getRoot()->get('guest');
-	}*/
-
-	/**
-	 * Get the root object behind the facade.
-	 *
-	 * @return  mixed
-	 */
-	/*public static function getRoot()
-	{
-		return \JFactory::getUser();
-	}*/
-
-	/**
 	 * Gets a user state.
 	 *
 	 * @param   string  $key      The path of the state.

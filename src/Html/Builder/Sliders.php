@@ -127,9 +127,9 @@ class Sliders
 				"toggler.removeClass('pane-toggler-down');i.addClass('pane-hide');i.removeClass('pane-down');if($('div#"
 				. $group . ".pane-sliders > .panel > h3').length==$('div#" . $group . ".pane-sliders > .panel > h3.pane-toggler').length) Cookie.write('jpanesliders_" . $group . "',-1);}";
 			$opt['duration']   = (isset($params['duration'])) ? (int) $params['duration'] : 300;
-			$opt['display']    = (isset($params['useCookie']) && $params['useCookie']) ? JRequest::getInt('jpanesliders_' . $group, $display, 'cookie')
+			$opt['display']    = (isset($params['useCookie']) && $params['useCookie']) ? Request::getInt('jpanesliders_' . $group, $display, 'cookie')
 				: $display;
-			$opt['show']       = (isset($params['useCookie']) && $params['useCookie']) ? JRequest::getInt('jpanesliders_' . $group, $show, 'cookie') : $show;
+			$opt['show']       = (isset($params['useCookie']) && $params['useCookie']) ? Request::getInt('jpanesliders_' . $group, $show, 'cookie') : $show;
 			$opt['opacity']    = (isset($params['opacityTransition']) && ($params['opacityTransition'])) ? 'true' : 'false';
 			$opt['alwaysHide'] = (isset($params['allowAllClose']) && (!$params['allowAllClose'])) ? 'false' : 'true';*/
 
