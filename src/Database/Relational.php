@@ -1371,23 +1371,31 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		$method = $this->isNew() ? 'create' : 'modify';
 		$result = $this->$method();
 
-		// If creating, result is our new id, so set that back on the model
-		if ($this->isNew())
+		// Only perform the following upon success
+		if ($result)
 		{
-			$this->set($this->getPrimaryKey(), $result);
-			\Event::trigger($this->getTableName() . '_new', ['model' => $this]);
-		}
+			// Purge cache
+			$this->purgeCache();
 
-		\Event::trigger('system.onContentSave', array($this->getTableName(), $this));
+			// If creating, result is our new id, so set that back on the model
+			if ($this->isNew())
+			{
+				$this->set($this->getPrimaryKey(), $result);
+				\Event::trigger($this->getTableName() . '_new', ['model' => $this]);
+			}
+
+			\Event::trigger('system.onContentSave', array($this->getTableName(), $this));
+		}
 
 		return $result;
 	}
 
 	/**
 	 * Filters out fields that are not actually a table column
-	 * @param	string	$table	The name of the database table
-	 * @param	array	$data	The attributes passed in to be saved to the table
-	 * @return	array
+	 *
+	 * @param   string  $table  The name of the database table
+	 * @param   array   $data   The attributes passed in to be saved to the table
+	 * @return  array
 	 **/
 	public function getTableColumnsOnly()
 	{
@@ -1403,6 +1411,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 
 	/**
 	 * Inserts a new row into the database
+	 *
 	 * @return  bool
 	 * @since   2.0.0
 	 **/
@@ -1416,6 +1425,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 
 	/**
 	 * Updates an existing item in the database
+	 *
 	 * @return  bool
 	 * @since   2.0.0
 	 **/
