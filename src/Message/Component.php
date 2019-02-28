@@ -139,6 +139,7 @@ class Component extends Relational
 		return self::all()
 			->order('component', 'asc')
 			->group('component')
+			->group('id')
 			->rows();
 	}
 }
