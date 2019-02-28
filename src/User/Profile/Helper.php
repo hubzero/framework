@@ -206,7 +206,7 @@ class Helper
 					{
 						$hash = md5(strtolower(trim($member->get('email'))));
 						$protocol = \App::get('request')->isSecure() ? 'https' : 'http';
-						//$paths[] = $protocol . '://www.gravatar.com/avatar/' . htmlspecialchars($hash) . '?' . (!$thumbit ? 's=300&' : '') . 'd=' . urlencode(JURI::base() . $dfthumb);
+
 						return $protocol
 								. '://www.gravatar.com/avatar/' . htmlspecialchars($hash) . '?'
 								. (!$thumbit ? 's=300&' : '')

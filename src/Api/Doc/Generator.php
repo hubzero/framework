@@ -34,6 +34,7 @@ namespace Hubzero\Api\Doc;
 
 use ReflectionClass;
 use phpDocumentor\Reflection\DocBlock;
+use App;
 
 /**
  * Documentation Generator Class
@@ -127,7 +128,14 @@ class Generator
 		}
 
 		// get developer params to get cache expiration
-		$developerParams = \App::get('component')->params('com_developer');
+		if (App::has('component'))
+		{
+			$developerParams = App::get('component')->params('com_developer');
+		}
+		else
+		{
+			$developerParams = new \Hubzero\Config\Registry();
+		}
 		$cacheExpiration = $developerParams->get('doc_expiration', 720);
 
 		// cache file
@@ -169,9 +177,10 @@ class Generator
 
 		// create cache folder
 		$cacheFile = PATH_APP . DS . 'cache' . DS . 'api' . DS . 'documentation.json';
-		if (!\App::get('filesystem')->exists(dirname($cacheFile)))
+
+		if (App::has('filesystem') && !App::get('filesystem')->exists(dirname($cacheFile)))
 		{
-			\App::get('filesystem')->makeDirectory(dirname($cacheFile));
+			App::get('filesystem')->makeDirectory(dirname($cacheFile));
 		}
 
 		// save cache file
@@ -185,27 +194,32 @@ class Generator
 	 */
 	private function discoverComponentSections()
 	{
-		// group by component
-		foreach (glob(PATH_CORE . DS . 'components' . DS . 'com_*' . DS . 'api') as $path)
+		$loader = null;
+		if (App::has('component'))
 		{
-			// get component
-			$pieces = explode(DS, $path);
-			array_pop($pieces);
-			$component = str_replace('com_', '', array_pop($pieces));
-
-			// add all matching files to section
-			$this->sections[$component] = glob($path . DS . 'controllers' . DS . '*.php');
+			$loader = App::get('component');
 		}
 
-		foreach (glob(PATH_APP . DS . 'components' . DS . 'com_*' . DS . 'api') as $path)
-		{
-			// get component
-			$pieces = explode(DS, $path);
-			array_pop($pieces);
-			$component = str_replace('com_', '', array_pop($pieces));
+		$roots = array(PATH_CORE, PATH_APP);
 
-			// add all matching files to section
-			$this->sections[$component] = glob($path . DS . 'controllers' . DS . '*.php');
+		// group by component
+		foreach ($roots as $base)
+		{
+			foreach (glob($base . DS . 'components' . DS . 'com_*' . DS . 'api') as $path)
+			{
+				// get component
+				$pieces = explode(DS, $path);
+				array_pop($pieces);
+				$component = str_replace('com_', '', array_pop($pieces));
+
+				if ($loader && !$loader->isEnabled('com_' . $component))
+				{
+					continue;
+				}
+
+				// add all matching files to section
+				$this->sections[$component] = glob($path . DS . 'controllers' . DS . '*.php');
+			}
 		}
 	}
 

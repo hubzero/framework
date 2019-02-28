@@ -91,7 +91,7 @@ class Cookie
 			new \Hubzero\Encryption\Key('simple', $key, $key)
 		);
 
-		if ($str = \App::get('request')->getString($hash, '', 'cookie', JREQUEST_ALLOWRAW | JREQUEST_NOTRIM))
+		if ($str = \App::get('request')->getString($hash, '', 'cookie'))
 		{
 			$sstr   = $crypt->decrypt($str);
 			$cookie = @unserialize($sstr);
