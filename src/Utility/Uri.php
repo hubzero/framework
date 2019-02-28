@@ -111,7 +111,7 @@ class Uri
 	protected $vars = array();
 
 	/**
-	 * An array of JURI instances.
+	 * An array of URI instances.
 	 *
 	 * @var  array
 	 */

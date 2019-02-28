@@ -422,6 +422,6 @@ class Helper
 		}
 
 		// return instance of db
-		return \JDatabase::getInstance($config);
+		return \Hubzero\Database\Driver::getInstance($config);
 	}
 }

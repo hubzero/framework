@@ -391,7 +391,7 @@ class Request
 			}
 		}
 
-		$GLOBALS['_JREQUEST'] = array();
+		$GLOBALS['_REQUEST'] = array();
 	}
 
 	/**

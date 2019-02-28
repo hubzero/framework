@@ -136,7 +136,7 @@ class Behavior
 			$data['scripts'] = array();
 
 			// We can't reset the script data with $document->setHeadData($data); and then
-			// use $document->addScript() because JDocument will ignore the empty array we
+			// use $document->addScript() because Document will ignore the empty array we
 			// just set $data['scripts'] to and keep the old data. So, all we'd end up
 			// doing is appending items. SO, we populate a new array and set the head data
 			// to that.
@@ -380,7 +380,6 @@ class Behavior
 		$opt['offset']			= (isset($params['offset']) && (is_array($params['offset']))) ? $params['offset'] : null;
 		if (!isset($opt['offset']))
 		{
-			// Supporting offsets parameter which was working in mootools 1.2 (Joomla!1.5)
 			$opt['offset']		= (isset($params['offsets']) && (is_array($params['offsets']))) ? $params['offsets'] : null;
 		}
 		$opt['showDelay']		= (isset($params['showDelay'])) ? (int) $params['showDelay'] : null;
