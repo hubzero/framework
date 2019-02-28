@@ -456,11 +456,10 @@ class Loader
 				->whereEquals('e.enabled', 1);
 
 			$now = with(new Date('now'))->toSql();
-			$nullDate = $db->getNullDate();
 
 			$query
-				->whereEquals('m.publish_up', $nullDate, 1)->orWhere('m.publish_up', '<=', $now, 1)->resetDepth()
-				->whereEquals('m.publish_down', $nullDate, 1)->orWhere('m.publish_down', '>=', $now, 1)->resetDepth();
+				->where('m.publish_up', 'IS', null, 'and', 1)->orWhere('m.publish_up', '<=', $now, 1)->resetDepth()
+				->where('m.publish_down', 'IS', null, 'and', 1)->orWhere('m.publish_down', '>=', $now, 1)->resetDepth();
 
 			$query
 				->whereIn('m.access', $user->getAuthorisedViewLevels())
