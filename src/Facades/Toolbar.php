@@ -76,7 +76,7 @@ class Toolbar extends Facade
 
 		if ($app->has('document'))
 		{
-			$app->setTitle($app->get('config')->get('sitename') . ' - ' . $app->get('language')->txt('JADMINISTRATION') . ' - ' . $title);
+			$app->get('document')->setTitle($app->get('config')->get('sitename') . ' - ' . $app->get('language')->txt('JADMINISTRATION') . ' - ' . $title);
 		}
 	}
 
