@@ -121,7 +121,7 @@ class Loader
 
 			$paths = array(
 				PATH_APP . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . substr($result->option, 4),
-				PATH_APP . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATORS . $result->option,
+				PATH_APP . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . $result->option,
 				PATH_CORE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . substr($result->option, 4),
 				PATH_CORE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . $result->option
 			);
