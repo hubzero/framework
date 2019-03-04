@@ -180,7 +180,7 @@ class Handler
 	 */
 	public function handleException($exception)
 	{
-		if (is_object($this->logger))
+		if (is_object($this->logger) && !in_array($exception->getCode(), [403, 404]))
 		{
 			$this->logger->log(
 				'error',
