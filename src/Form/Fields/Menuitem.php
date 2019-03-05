@@ -34,9 +34,6 @@ namespace Hubzero\Form\Fields;
 use Hubzero\Form\Field;
 use Hubzero\Html\Builder\Select as Dropdown;
 
-// Import the com_menus helper.
-require_once realpath(PATH_CORE . '/components/com_menus/admin/helpers/menus.php');
-
 /**
  * Supports an HTML grouped select list of menu item grouped by menu
  */
@@ -66,7 +63,14 @@ class Menuitem extends Groupedlist
 		$language  = $this->element['language'] ? explode(',', (string) $this->element['language']) : array();
 
 		// Get the menu items.
-		$items = \MenusHelper::getMenuLinks($menuType, 0, 0, $published, $language);
+		$items = array();
+		if (file_exists(PATH_CORE . '/components/com_menus/helpers/menus.php'))
+		{
+			// Import the com_menus helper.
+			require_once PATH_CORE . '/components/com_menus/helpers/menus.php';
+
+			$items = \Components\Menus\Helpers\Menus::getMenuLinks($menuType, 0, 0, $published, $language);
+		}
 
 		// Build group for a specific menu type.
 		if ($menuType)
