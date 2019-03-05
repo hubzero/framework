@@ -300,6 +300,7 @@ class Database extends Store
 		if (isset($filters['distinct']) && $filters['distinct'] == 1)
 		{
 			$query
+				->group('session_id')
 				->group('userid')
 				->group('client_id');
 		}
