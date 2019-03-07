@@ -43,6 +43,7 @@ use Hubzero\Database\Relationship\ManyShiftsToMany;
 
 use Hubzero\Error\Exception\BadMethodCallException;
 use Hubzero\Error\Exception\RuntimeException;
+use Hubzero\Utility\Date;
 
 /**
  * Database ORM base class
@@ -1534,22 +1535,60 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	/**
 	 * Checks out the current model to the provided user
 	 *
-	 * @param   string  $userId  Optional userId for whom the row should be checked out
-	 * @return  $this
+	 * @param   integer  $userId  Optional userId for whom the row should be checked out
+	 * @return  boolean
 	 * @since   2.0.0
 	 **/
 	public function checkout($userId = null)
 	{
-		$userId = $userId ?: \User::get('id');
-		$this->set('checked_out', $userId)
-		     ->set('checked_out_time', \Date::toSql())
-		     ->save();
+		if (!$this->isNew())
+		{
+			$columns = $this->getStructure()->getTableColumns($this->getTableName());
+
+			$data = [];
+
+			if (isset($columns['checked_out_time']))
+			{
+				$now = new Date('now');
+				$data['checked_out_time'] = $now->toSql();
+			}
+
+			if (isset($columns['checked_out']))
+			{
+				$userId = $userId ?: \User::get('id');
+				$data['checked_out'] = $userId;
+			}
+
+			if (empty($data))
+			{
+				// There is no 'checked_out_time' or 'checked_out' column
+				return true;
+			}
+
+			$this->set($data);
+
+			// We build a simple update query as calling save()
+			// can have unintended consequences when all we want
+			// is to update two columns
+			$query = $this->getQuery()
+				->update($this->getTableName())
+				->set($data)
+				->whereEquals($this->getPrimaryKey(), $this->get($this->getPrimaryKey()));
+
+			if (!$query->execute())
+			{
+				$this->addError(__CLASS__ . '::' . __METHOD__ . '() failed');
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
 	 * Checks back in the current model
 	 *
-	 * @return  $this
+	 * @return  boolean
 	 * @since   2.0.0
 	 **/
 	public function checkin()
@@ -1557,10 +1596,48 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		// @FIXME: need to be able to get database null date format here?
 		if (!$this->isNew())
 		{
-			$this->set('checked_out', '0')
-			     ->set('checked_out_time', '0000-00-00 00:00:00')
-			     ->save();
+			$columns = $this->getStructure()->getTableColumns($this->getTableName(), false);
+
+			$data = [];
+			foreach ($columns as $column)
+			{
+				// We want to get the default values from the
+				// table's schema, rather than assuming
+				if ($column['name'] == 'checked_out_time')
+				{
+					$data['checked_out_time'] = $column['default'];
+				}
+
+				if ($column['name'] == 'checked_out')
+				{
+					$data['checked_out'] = $column['default'];
+				}
+			}
+
+			if (empty($data))
+			{
+				// There is no 'checked_out_time' or 'checked_out' column
+				return true;
+			}
+
+			$this->set($data);
+
+			// We build a simple update query as calling save()
+			// can have unintended consequences when all we want
+			// is to update two columns
+			$query = $this->getQuery()
+				->update($this->getTableName())
+				->set($data)
+				->whereEquals($this->getPrimaryKey(), $this->get($this->getPrimaryKey()));
+
+			if (!$query->execute())
+			{
+				$this->addError(__CLASS__ . '::' . __METHOD__ . '() failed');
+				return false;
+			}
 		}
+
+		return true;
 	}
 
 	/**
@@ -1571,7 +1648,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function isCheckedOut()
 	{
-		return ($this->checked_out && $this->checked_out != \User::get('id'));
+		return ($this->get('checked_out') && $this->get('checked_out') != \User::get('id'));
 	}
 
 	/**
@@ -2331,7 +2408,12 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function automaticCreated($data)
 	{
-		return (isset($data['created']) && $data['created'] ? $data['created'] : Date::toSql());
+		if (!isset($data['created']) || !$data['created'])
+		{
+			$now = new Date('now');
+			$data['created'] = $now->toSql();
+		}
+		return $data['created'];
 	}
 
 	/**
@@ -2343,7 +2425,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function automaticCreatedBy($data)
 	{
-		return (isset($data['created_by']) && $data['created_by'] ? (int)$data['created_by'] : (int)User::get('id'));
+		return (isset($data['created_by']) && $data['created_by'] ? (int)$data['created_by'] : (int)\User::get('id'));
 	}
 
 	/**
