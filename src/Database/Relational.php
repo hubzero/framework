@@ -1575,6 +1575,8 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 				->set($data)
 				->whereEquals($this->getPrimaryKey(), $this->get($this->getPrimaryKey()));
 
+			// @FIXME: Maybe unnecessary? Database may throw an exception on error
+			//         so this might be pointless.
 			if (!$query->execute())
 			{
 				$this->addError(__CLASS__ . '::' . __METHOD__ . '() failed');
@@ -1593,7 +1595,6 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function checkin()
 	{
-		// @FIXME: need to be able to get database null date format here?
 		if (!$this->isNew())
 		{
 			$columns = $this->getStructure()->getTableColumns($this->getTableName(), false);
@@ -1630,6 +1631,8 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 				->set($data)
 				->whereEquals($this->getPrimaryKey(), $this->get($this->getPrimaryKey()));
 
+			// @FIXME: Maybe unnecessary? Database may throw an exception on error
+			//         so this might be pointless.
 			if (!$query->execute())
 			{
 				$this->addError(__CLASS__ . '::' . __METHOD__ . '() failed');
