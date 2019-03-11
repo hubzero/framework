@@ -198,6 +198,46 @@ class QueryTest extends Database
 	}
 
 	/**
+	 * Test to make sure we can build a query with where IS NULL statements
+	 *
+	 * @return  void
+	 **/
+	public function testBuildQueryWithWhereIsNull()
+	{
+		// Here's the query we're try to write...
+		$expected = "SELECT * FROM `users` WHERE `name` IS NULL";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users')
+		      ->whereIsNull('name');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+	}
+
+	/**
+	 * Test to make sure we can build a query with where IS NULL statements
+	 *
+	 * @return  void
+	 **/
+	public function testBuildQueryWithWhereIsNotNull()
+	{
+		// Here's the query we're try to write...
+		$expected = "SELECT * FROM `users` WHERE `name` IS NOT NULL";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users')
+		      ->whereIsNotNull('name');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+	}
+
+	/**
 	 * Test to make sure we can build a query with complex nested where statements
 	 *
 	 * @return  void
