@@ -97,7 +97,8 @@ class Recipient extends Relational
 	 */
 	public function wasViewed()
 	{
-		if ($this->get('viewed', '0000-00-00 00:00:00') != '0000-00-00 00:00:00')
+		if ($this->get('viewed')
+		 && $this->get('viewed') != '0000-00-00 00:00:00')
 		{
 			return true;
 		}
@@ -126,7 +127,7 @@ class Recipient extends Relational
 	 */
 	public function markAsNotViewed()
 	{
-		$this->set('viewed', '0000-00-00 00:00:00');
+		$this->set('viewed', null);
 
 		return $this->save();
 	}

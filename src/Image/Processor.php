@@ -127,7 +127,7 @@ class Processor extends Obj
 			$this->image_type = $type;
 		}
 
-		if ($this->image_type == IMAGETYPE_PNG)
+		if ($this->image_type == IMAGETYPE_PNG && $this->resource)
 		{
 			imagealphablending($this->resource, false);
 			imagesavealpha($this->resource, true);
@@ -164,48 +164,56 @@ class Processor extends Obj
 	 */
 	private function openImage()
 	{
-		$image_atts = getimagesize($this->source);
-		if (empty($image_atts))
+		try
 		{
+			$image_atts = getimagesize($this->source);
+			if (empty($image_atts))
+			{
+				return false;
+			}
+
+			switch ($image_atts['mime'])
+			{
+				case 'image/jpeg':
+					$this->image_type = IMAGETYPE_JPEG;
+					$this->resource   = imagecreatefromjpeg($this->source);
+				break;
+				case 'image/gif':
+					$this->image_type = IMAGETYPE_GIF;
+					$this->resource   = imagecreatefromgif($this->source);
+				break;
+				case 'image/png':
+				case 'image/x-png':
+					$this->image_type = IMAGETYPE_PNG;
+					$this->resource   = imagecreatefrompng($this->source);
+				break;
+				default:
+					return false;
+				break;
+			}
+
+			if ($this->image_type == IMAGETYPE_PNG)
+			{
+				imagesavealpha($this->resource, true);
+				imagealphablending($this->resource, false);
+			}
+
+			if (isset($this->config['auto_rotate']) && $this->config['auto_rotate'] == true)
+			{
+				$this->autoRotate();
+			}
+
+			if (!empty($this->resource))
+			{
+				return true;
+			}
 			return false;
 		}
-
-		switch ($image_atts['mime'])
+		catch (Exception $error)
 		{
-			case 'image/jpeg':
-				$this->image_type = IMAGETYPE_JPEG;
-				$this->resource   = imagecreatefromjpeg($this->source);
-			break;
-			case 'image/gif':
-				$this->image_type = IMAGETYPE_GIF;
-				$this->resource   = imagecreatefromgif($this->source);
-			break;
-			case 'image/png':
-			case 'image/x-png':
-				$this->image_type = IMAGETYPE_PNG;
-				$this->resource   = imagecreatefrompng($this->source);
-			break;
-			default:
-				return false;
-			break;
+			$this->setError($error->getMessage());
+			return false;
 		}
-
-		if ($this->image_type == IMAGETYPE_PNG)
-		{
-			imagesavealpha($this->resource, true);
-			imagealphablending($this->resource, false);
-		}
-
-		if (isset($this->config['auto_rotate']) && $this->config['auto_rotate'] == true)
-		{
-			$this->autoRotate();
-		}
-
-		if (!empty($this->resource))
-		{
-			return true;
-		}
-		return false;
 	}
 
 	/**
@@ -231,6 +239,7 @@ class Processor extends Obj
 			{
 				$this->exif_data = array();
 			}
+
 			if (isset($this->exif_data['Orientation']))
 			{
 				switch ($this->exif_data['Orientation'])

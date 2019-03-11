@@ -142,7 +142,7 @@ class Announcement extends Relational
 	{
 		if (!isset($data['publish_down']) || !$data['publish_down'])
 		{
-			$data['publish_down'] = '0000-00-00 00:00:00';
+			$data['publish_down'] = null;
 		}
 		return $data['publish_down'];
 	}
