@@ -1600,17 +1600,20 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 			$columns = $this->getStructure()->getTableColumns($this->getTableName(), false);
 
 			$data = [];
+			$orig = [];
 			foreach ($columns as $column)
 			{
 				// We want to get the default values from the
 				// table's schema, rather than assuming
 				if ($column['name'] == 'checked_out_time')
 				{
+					$orig['checked_out_time'] = $this->get('checked_out_time');
 					$data['checked_out_time'] = $column['default'];
 				}
 
 				if ($column['name'] == 'checked_out')
 				{
+					$orig['checked_out'] = $this->get('checked_out');
 					$data['checked_out'] = $column['default'];
 				}
 			}
@@ -1635,6 +1638,9 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 			//         so this might be pointless.
 			if (!$query->execute())
 			{
+				// Reset to original data
+				$this->set($orig);
+
 				$this->addError(__CLASS__ . '::' . __METHOD__ . '() failed');
 				return false;
 			}
