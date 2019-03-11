@@ -129,7 +129,7 @@ class Query
 	 *
 	 * @var  string
 	 **/
-	private $type = null;
+	protected $type = null;
 
 	/**
 	 * Constructs a new query instance
@@ -433,6 +433,62 @@ class Query
 	public function orWhereLike($column, $value, $depth = 0)
 	{
 		$this->where($column, 'LIKE', "%{$value}%", 'or', $depth);
+		return $this;
+	}
+
+	/**
+	 * Applies an AND where is null clause to the pending query
+	 *
+	 * @param   string  $column  The column to which the clause will apply
+	 * @param   int     $depth   The depth level of the clause, for sub clauses
+	 * @return  $this
+	 * @since   2.2.15
+	 **/
+	public function whereIsNull($column, $depth = 0)
+	{
+		$this->where($column, 'IS', null, 'and', $depth);
+		return $this;
+	}
+
+	/**
+	 * Applies a OR where is null clause to the pending query
+	 *
+	 * @param   string  $column  The column to which the clause will apply
+	 * @param   int     $depth   The depth level of the clause, for sub clauses
+	 * @return  $this
+	 * @since   2.2.15
+	 **/
+	public function orWhereIsNull($column, $depth = 0)
+	{
+		$this->where($column, 'IS', null, 'or', $depth);
+		return $this;
+	}
+
+	/**
+	 * Applies an AND where is not null clause to the pending query
+	 *
+	 * @param   string  $column  The column to which the clause will apply
+	 * @param   int     $depth   The depth level of the clause, for sub clauses
+	 * @return  $this
+	 * @since   2.2.15
+	 **/
+	public function whereIsNotNull($column, $depth = 0)
+	{
+		$this->where($column, 'IS NOT', null, 'and', $depth);
+		return $this;
+	}
+
+	/**
+	 * Applies a OR where is not null clause to the pending query
+	 *
+	 * @param   string  $column  The column to which the clause will apply
+	 * @param   int     $depth   The depth level of the clause, for sub clauses
+	 * @return  $this
+	 * @since   2.2.15
+	 **/
+	public function orWhereIsNotNull($column, $depth = 0)
+	{
+		$this->where($column, 'IS NOT', null, 'or', $depth);
 		return $this;
 	}
 
