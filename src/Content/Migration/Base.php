@@ -129,6 +129,21 @@ class Base
 	}
 
 	/**
+	 * Helper function for logging messages
+	 *
+	 * @param   string  $message
+	 * @param   string  $type (info, warning, error, success)
+	 * @return  void
+	 **/
+	public function log($message, $type='info')
+	{
+		$this->callback('migration', 'log', [
+			'message' => $message,
+			'type'    => $type
+		]);
+	}
+
+	/**
 	 * Get option - these are specified/overwritten by the individual migrations/hooks
 	 *
 	 * @param   string  $key
