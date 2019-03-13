@@ -430,6 +430,8 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 
+			$this->log(sprintf('Added component entry for "%s"', $name));
+
 			return true;
 		}
 		elseif ($this->baseDb->tableExists('#__extensions'))
@@ -494,6 +496,8 @@ class Base
 				}
 			}
 
+			$this->log(sprintf('Added extension entry for component "%s"', $name));
+
 			if ($createMenuItem && $this->baseDb->tableExists('#__menu'))
 			{
 				// Check for an admin menu entry...if it's not there, create it
@@ -510,6 +514,8 @@ class Base
 				$query .= " VALUES ('main', '{$option}', '{$alias}', '', '{$alias}', 'index.php?option={$option}', 'component', {$enabled}, 1, 1, {$component_id}, 0, 0, '0000-00-00 00:00:00', 0, 0, '', 0, '', 0, 0, 0, '*', 1)";
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
+
+				$this->log(sprintf('Added menu entry for component "%s"', $name));
 
 				// Rebuild lft/rgt
 				$this->rebuildMenu();
@@ -636,6 +642,10 @@ class Base
 			$query .= " VALUES ('{$name}', '{$element}', '{$folder}', 0, {$ordering}, {$enabled}, 0, 0, 0, '0000-00-00 00:00:00', ".$this->baseDb->quote($params).")";
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			$this->log(sprintf('Added entry for plugin "%s"', $name));
+
+			return true;
 		}
 		elseif ($this->baseDb->tableExists('#__extensions'))
 		{
@@ -665,6 +675,8 @@ class Base
 			$query .= " VALUES ('{$name}', 'plugin', '{$element}', '{$folder}', 0, {$enabled}, 1, 0, '', ".$this->baseDb->quote($params).", '', '', 0, '0000-00-00 00:00:00', {$ordering}, 0)";
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			$this->log(sprintf('Added extension entry for plugin "%s"', $name));
 
 			return true;
 		}
@@ -735,6 +747,8 @@ class Base
 			$query = "UPDATE `{$table}` SET `name` = " . $this->baseDb->quote($name) . " WHERE `{$pk}` = " . $this->baseDb->quote($id);
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			$this->log(sprintf('Renamed plugin plg_%s_%s to "%s"', $folder, $element, $name));
 		}
 
 		return true;
@@ -785,6 +799,8 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 
+			$this->log(sprintf('Plugin params saved for plg_%s_%s', $folder, $element));
+
 			return true;
 		}
 		else if ($this->baseDb->tableExists('#__extensions'))
@@ -815,6 +831,8 @@ class Base
 			$query = "UPDATE `#__extensions` SET `params` = " . $this->baseDb->quote($params) . " WHERE `extension_id` = " . $this->baseDb->quote($id);
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			$this->log(sprintf('Plugin params saved for plg_%s_%s', $folder, $element));
 
 			return true;
 		}
@@ -904,6 +922,8 @@ class Base
 			$query .= " VALUES ('{$name}', 'module', '{$element}', '', {$client}, {$enabled}, 1, 0, '', ".$this->baseDb->quote($params).", '', '', 0, '0000-00-00 00:00:00', {$ordering}, 0)";
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			$this->log(sprintf('Added extension entry for module "%s"', $element));
 
 			return true;
 		}
@@ -1021,6 +1041,8 @@ class Base
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
 
+				$this->log(sprintf('Added extension entry for template "%s"', $element));
+
 				if ($this->baseDb->tableExists('#__template_styles'))
 				{
 					// If we're setting this template to be default, disable others first
@@ -1035,6 +1057,8 @@ class Base
 					$query .= " VALUES ('{$element}', '{$client}', '{$home}', '{$name}', " . ((isset($styles)) ? $this->baseDb->quote(json_encode($styles)) : "'{}'") . ")";
 					$this->baseDb->setQuery($query);
 					$this->baseDb->query();
+
+					$this->log(sprintf('Added style entry for template "%s"', $element));
 				}
 			}
 
@@ -1114,6 +1138,8 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 
+			$this->log(sprintf('Removed component entry for "%s"', $element));
+
 			return true;
 		}
 		elseif ($this->baseDb->tableExists('#__extensions'))
@@ -1131,6 +1157,8 @@ class Base
 				$asset->destroy();
 			}
 
+			$this->log(sprintf('Removed extension entry for component "%s"', $element));
+
 			if ($this->baseDb->tableExists('#__menu'))
 			{
 				// Check for an admin menu entry...if it's not there, create it
@@ -1140,6 +1168,8 @@ class Base
 
 				// Rebuild lft/rgt
 				$this->rebuildMenu();
+
+				$this->log(sprintf('Removed menu entry for component "%s"', $element));
 			}
 
 			return true;
@@ -1163,6 +1193,8 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 
+			$this->log(sprintf('Removed plugin entry for "%s"', 'plg_' . $folder . ($element ? '_' . $element : '')));
+
 			return true;
 		}
 		elseif ($this->baseDb->tableExists('#__extensions'))
@@ -1171,6 +1203,8 @@ class Base
 			$query = "DELETE FROM `#__extensions` WHERE `folder` = " . $this->baseDb->quote($folder) . ((!is_null($element)) ? " AND `element` = '{$element}'" : "");
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			$this->log(sprintf('Removed extension entry for plugin "%s"', 'plg_' . $folder . ($element ? '_' . $element : '')));
 
 			return true;
 		}
@@ -1194,6 +1228,8 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 
+			$this->log(sprintf('Removed extension entry for module "%s"', $element));
+
 			// See if entries are present in #__modules table as well
 			$query = "SELECT `id` FROM `#__modules` WHERE `module` = '{$element}'" . ((isset($client)) ? " AND `client_id` = " . $this->baseDb->quote($client) : '');
 			$this->baseDb->setQuery($query);
@@ -1209,6 +1245,8 @@ class Base
 				$query = "DELETE FROM `#__modules_menu` WHERE `moduleid` IN (" . implode(',', $ids) . ")";
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
+
+				$this->log(sprintf('Removed module/menu entries for module "%s"', $element));
 			}
 
 			return true;
@@ -1229,6 +1267,8 @@ class Base
 				$query = "DELETE FROM `#__modules_menu` WHERE `moduleid` IN (" . implode(',', $ids) . ")";
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
+
+				$this->log(sprintf('Removed module/menu entries for module "%s"', $element));
 			}
 
 			return true;
@@ -1252,11 +1292,15 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 
+			$this->log(sprintf('Removed extension entry for template "%s"', $element));
+
 			if ($this->baseDb->tableExists('#__template_styles'))
 			{
 				$query = "DELETE FROM `#__template_styles` WHERE `template` = '{$element}' AND `client_id` = '{$client}'";
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
+
+				$this->log(sprintf('Removed style entry for template "%s"', $element));
 
 				// Now make sure we have an enabled template (don't really care which one it is)
 				$query = "SELECT `id` FROM `#__template_styles` WHERE `home` = 1 AND `client_id` = '{$client}'";
@@ -1326,6 +1370,8 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 		}
+
+		$this->log(sprintf('Set plugin "plg_%s_%s" status to "%s"', $folder, $element, $enabled));
 	}
 
 	/**
@@ -1371,6 +1417,8 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 		}
+
+		$this->log(sprintf('Set component "%s" status to "%s"', $element, $enabled));
 	}
 
 	/**
@@ -1398,9 +1446,9 @@ class Base
 	/**
 	 * Enable/disable module
 	 *
-	 * @param  string  $element  Element
-	 * @param  int     $enabled  Whether or not the module should be enabled
-	 * @return void
+	 * @param   string  $element  Element
+	 * @param   int     $enabled  Whether or not the module should be enabled
+	 * @return  void
 	 **/
 	private function setModuleStatus($element, $enabled=1)
 	{
@@ -1417,14 +1465,16 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 		}
+
+		$this->log(sprintf('Set module "%s" status to "%s"', $element, $enabled));
 	}
 
 	/**
 	 * Generates ALTER TABLE SQL query to add columns absent from given table
 	 *
-	 * @param  string    $table    Given table
-	 * @param  array     $columns  Columns to add to given table
-	 * @return string
+	 * @param   string  $table    Given table
+	 * @param   array   $columns  Columns to add to given table
+	 * @return  string
 	 **/
 	protected function _generateSafeAddColumns($table, $columns)
 	{
@@ -1438,9 +1488,9 @@ class Base
 	/**
 	 * Generates ADD COLUMN SQL statement if column absent from given table
 	 *
-	 * @param  string    $table       Given table
-	 * @param  array     $columnData  Data for column to be added
-	 * @return string
+	 * @param   string  $table       Given table
+	 * @param   array   $columnData  Data for column to be added
+	 * @return  string
 	 **/
 	protected function _safeAddColumn($table, $columnData)
 	{
@@ -1459,9 +1509,9 @@ class Base
 	/**
 	 * Generates ALTER TABLE SQL query to drop columns present on given table
 	 *
-	 * @param  string    $table    Given table
-	 * @param  array     $columns  Columns to drop from given table
-	 * @return string
+	 * @param   string  $table    Given table
+	 * @param   array   $columns  Columns to drop from given table
+	 * @return  string
 	 **/
 	protected function _generateSafeDropColumns($table, $columns)
 	{
@@ -1475,9 +1525,9 @@ class Base
 	/**
 	 * Generates DROP COLUMN SQL statement if column present on given table
 	 *
-	 * @param  string    $table       Given table
-	 * @param  array     $columnData  Data for column to be dropped
-	 * @return string
+	 * @param   string  $table       Given table
+	 * @param   array   $columnData  Data for column to be dropped
+	 * @return  string
 	 **/
 	protected function _safeDropColumn($table, $columnData)
 	{
@@ -1486,7 +1536,7 @@ class Base
 
 		if ($this->db->tableHasField($table, $columnName))
 		{
-			$dropColumnStatement = (new QueryDropColumnStatement($columnData))
+			$dropColumnStatement = with(new QueryDropColumnStatement($columnData))
 				->toString();
 		}
 
@@ -1496,10 +1546,10 @@ class Base
 	/**
 	 * Generates SQL statements to alter table for each column
 	 *
-	 * @param  string     $table         Given table
-	 * @param  array      $columns       Columns to be affected by query
-	 * @param  string     $functionName  Function to generate per column statements
-	 * @return string
+	 * @param   string  $table         Given table
+	 * @param   array   $columns       Columns to be affected by query
+	 * @param   string  $functionName  Function to generate per column statements
+	 * @return  string
 	 **/
 	protected function _generateSafeAlterTableColumnOperation($table, $columns, $functionName)
 	{
@@ -1518,9 +1568,9 @@ class Base
 	/**
 	 * Executes given query if given table exists
 	 *
-	 * @param  string     $table  Given table
-	 * @param  string     $query  Query to execute
-	 * @return string
+	 * @param   string  $table  Given table
+	 * @param   string  $query  Query to execute
+	 * @return  void
 	 **/
 	protected function _queryIfTableExists($table, $query)
 	{
@@ -1530,5 +1580,4 @@ class Base
 			$this->db->query();
 		}
 	}
-
 }
