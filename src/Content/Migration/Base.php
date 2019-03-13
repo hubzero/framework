@@ -339,6 +339,8 @@ class Base
 	 **/
 	public function getParams($element, $returnRaw=false)
 	{
+		$params = null;
+
 		if ($this->baseDb->tableExists('#__components'))
 		{
 			if (substr($element, 0, 4) == 'plg_')
@@ -368,6 +370,10 @@ class Base
 
 			$this->baseDb->setQuery($query);
 			$params = $this->baseDb->loadResult();
+		}
+		else
+		{
+			$this->log(sprintf('Required table not found for retrieving "%s" params', $element), 'warning');
 		}
 
 		if (!$returnRaw)
@@ -404,6 +410,7 @@ class Base
 			$this->baseDb->setQuery($query);
 			if ($this->baseDb->loadResult())
 			{
+				$this->log(sprintf('Component entry already exists for "%s"', $name));
 				return true;
 			}
 
@@ -448,6 +455,8 @@ class Base
 			if ($this->baseDb->loadResult())
 			{
 				$component_id = $this->baseDb->loadResult();
+
+				$this->log(sprintf('Extension entry already exists for component "%s"', $name));
 			}
 			else
 			{
@@ -463,6 +472,8 @@ class Base
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
 				$component_id = $this->baseDb->insertId();
+
+				$this->log(sprintf('Added extension entry for component "%s"', $name));
 			}
 
 			if ($this->baseDb->tableExists('#__assets'))
@@ -493,10 +504,10 @@ class Base
 					$asset->set('rules', json_encode($defaulRules));
 					$asset->set('title', $option);
 					$asset->saveAsChildOf(1);
+
+					$this->log(sprintf('Added asset entry for component "%s"', $name));
 				}
 			}
-
-			$this->log(sprintf('Added extension entry for component "%s"', $name));
 
 			if ($createMenuItem && $this->baseDb->tableExists('#__menu'))
 			{
@@ -523,6 +534,8 @@ class Base
 
 			return true;
 		}
+
+		$this->log(sprintf('Required table not found for adding component "%s"', $namet), 'warning');
 
 		return false;
 	}
@@ -619,6 +632,7 @@ class Base
 			$this->baseDb->setQuery($query);
 			if ($this->baseDb->loadResult())
 			{
+				$this->log(sprintf('Entry already exists for plugin "%s"', $name));
 				return true;
 			}
 
@@ -658,6 +672,7 @@ class Base
 			$this->baseDb->setQuery($query);
 			if ($this->baseDb->loadResult())
 			{
+				$this->log(sprintf('Extension entry already exists for plugin "%s"', $name));
 				return true;
 			}
 
@@ -680,6 +695,8 @@ class Base
 
 			return true;
 		}
+
+		$this->log(sprintf('Required table not found for adding plugin "plg_%s_%s"', $folder, $element), 'warning');
 
 		return false;
 	}
@@ -733,6 +750,7 @@ class Base
 		}
 		else
 		{
+			$this->log(sprintf('Required table not found for renaming plugin plg_%s_%s', $folder, $element), 'warning');
 			return false;
 		}
 
@@ -790,8 +808,13 @@ class Base
 
 				$params = $p;
 			}
+			else if ($params instanceof \JRegistry || $params instanceof Registry)
+			{
+				$params = $params->toString('INI');
+			}
 			else
 			{
+				$this->log(sprintf('Params for "plg_%s_%s" not in usable format', $folder, $element), 'warning');
 				return false;
 			}
 
@@ -799,7 +822,7 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 
-			$this->log(sprintf('Plugin params saved for plg_%s_%s', $folder, $element));
+			$this->log(sprintf('Plugin params saved for "plg_%s_%s"', $folder, $element));
 
 			return true;
 		}
@@ -823,8 +846,13 @@ class Base
 			{
 				$params = json_encode($params);
 			}
+			else if ($params instanceof \JRegistry || $params instanceof Registry)
+			{
+				$params = $params->toString('JSON');
+			}
 			else
 			{
+				$this->log(sprintf('Params for "plg_%s_%s" not in usable format', $folder, $element), 'warning');
 				return false;
 			}
 
@@ -832,10 +860,12 @@ class Base
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 
-			$this->log(sprintf('Plugin params saved for plg_%s_%s', $folder, $element));
+			$this->log(sprintf('Plugin params saved for "plg_%s_%s"', $folder, $element));
 
 			return true;
 		}
+
+		$this->log(sprintf('Required table not found for saving "plg_%s_%s" params', $folder, $element), 'warning');
 
 		return false;
 	}
@@ -879,6 +909,7 @@ class Base
 		}
 		else
 		{
+			$this->log(sprintf('Params for extension "%s" not in usable format', $element), 'warning');
 			return false;
 		}
 
@@ -908,6 +939,7 @@ class Base
 			$this->baseDb->setQuery($query);
 			if ($this->baseDb->loadResult())
 			{
+				$this->log(sprintf('Extension entry already exists for module "%s"', $element));
 				return true;
 			}
 
@@ -927,6 +959,8 @@ class Base
 
 			return true;
 		}
+
+		$this->log(sprintf('Required table not found for adding module "%s"', $element), 'warning');
 
 		return false;
 	}
@@ -996,6 +1030,8 @@ class Base
 			$query = "INSERT INTO `#__modules_menu` (`moduleid`, `menuid`) VALUES ({$id}, {$menu})";
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
+
+			$this->log(sprintf('Added module_menu entry for module "%s" to menu "%s"', $module, $menu));
 		}
 	}
 
@@ -1051,6 +1087,8 @@ class Base
 						$query = "UPDATE `#__template_styles` SET `home` = 0 WHERE `client_id` = '{$client}'";
 						$this->baseDb->setQuery($query);
 						$this->baseDb->query();
+
+						$this->log(sprintf('Disabling "home" for all other templates (client "%s")', $client));
 					}
 
 					$query  = "INSERT INTO `#__template_styles` (`template`, `client_id`, `home`, `title`, `params`)";
@@ -1061,9 +1099,15 @@ class Base
 					$this->log(sprintf('Added style entry for template "%s"', $element));
 				}
 			}
+			else
+			{
+				$this->log(sprintf('Extension entry already exists for template "%s"', $element));
+			}
 
 			return true;
 		}
+
+		$this->log(sprintf('Required table not found for adding template "%s"', $element), 'warning');
 
 		return false;
 	}
@@ -1314,6 +1358,8 @@ class Base
 						$query = "UPDATE `#__template_styles` SET `home` = 1 WHERE `id` = '{$id}'";
 						$this->baseDb->setQuery($query);
 						$this->baseDb->query();
+
+						$this->log(sprintf('Setting "home" for template style "%s"', $id));
 					}
 				}
 			}
