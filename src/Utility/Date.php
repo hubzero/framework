@@ -104,7 +104,7 @@ class Date extends DateTime
 	 * @return  void
 	 * @throws  Exception
 	 */
-	public function __construct($date = 'now', $tz = null)
+	public function __construct($date = 'now', $tz = null, $ignoreDst = false)
 	{
 		// Create the base GMT and server time zone objects.
 		if (empty(self::$gmt) || empty(self::$stz))
@@ -113,23 +113,8 @@ class Date extends DateTime
 			self::$stz = new DateTimeZone(@date_default_timezone_get());
 		}
 
-		// If the time zone object is not set, attempt to build it.
-		if (!($tz instanceof DateTimeZone))
-		{
-			if ($tz === null)
-			{
-				$tz = self::$gmt;
-			}
-			elseif (is_numeric($tz))
-			{
-				// Translate from offset.
-				$tz = new DateTimeZone(self::$offsets[(string) $tz]);
-			}
-			elseif (is_string($tz))
-			{
-				$tz = new DateTimeZone($tz);
-			}
-		}
+		$tz = self::getTimeZoneObject($tz, $ignoreDst);
+
 
 		// If the date is numeric assume a unix timestamp and convert it.
 		date_default_timezone_set('UTC');
@@ -262,9 +247,63 @@ class Date extends DateTime
 	 * @param   mixed   $tz    Time zone to be used for the date.
 	 * @return  object
 	 */
-	public static function of($date = 'now', $tz = null)
+	public static function of($date = 'now', $tz = null, $ignoreDst = false)
 	{
-		return new self($date, $tz);
+		return new self($date, $tz, $ignoreDst);
+	}
+
+	/**
+	 * Get TimeZone object for setting the timezone on the provided time.
+	 *
+	 * @param   mixed   $tz    Time zone in either string, offset number, or a TimeZone object.
+	 * @param	boolean	$ignoreDst	if set to true, will prevent the date from converting to DST.
+	 * @return	object
+	 */
+	public static function getTimeZoneObject($tz, $ignoreDst = false)
+	{
+		// If the time zone object is not set, attempt to build it.
+		if (!($tz instanceof DateTimeZone))
+		{
+			if ($tz === null)
+			{
+				$tz = self::$gmt;
+			}
+			elseif (is_numeric($tz))
+			{
+				// Translate from offset.
+				$tz = new DateTimeZone(self::$offsets[(string) $tz]);
+			}
+			elseif (is_string($tz))
+			{
+				$tz = new DateTimeZone($tz);
+			}
+		}
+
+		if ($ignoreDst)
+		{
+			$lastYear = self::of('-1 year')->toUnix();
+			$currentDate = self::of('now')->toUnix();
+			$transitions = $tz->getTransitions($lastYear, $currentDate);
+			$offsets = array_reduce($transitions, function($carry, $transition){
+				if (empty($transition['isdst']))
+				{
+					$carry[] = $transition['offset'];
+				}
+				return $carry;
+			});
+
+			if (!empty($offsets))
+			{
+				$offset = $offsets[0];
+				if (abs($offset) > 0)
+				{
+					// convert seconds to hours
+					$offset = $offset / 3600;
+				}
+				$tz = new DateTimeZone($offset);
+			}
+		}
+		return $tz;
 	}
 
 	/**
@@ -430,17 +469,29 @@ class Date extends DateTime
 	 * @param   string  $format  The date format specification string (see {@link PHP_MANUAL#date})
 	 * @return  string
 	 */
-	public function toLocal($format='')
+	public function toLocal($format='', $ignoreDst = false)
 	{
 		$format = $format ?: self::$format;
 
 		// get timezone idenfier from user setting otherwise user system
 		$tz = \User::getParam('timezone', \Config::get('offset'));
 
-		// set our timezone
-		$this->setTimezone(new DateTimeZone($tz));
-
 		// format date
+		return $this->toTimeZone($tz, $format, $ignoreDst);
+	}
+
+	/**
+	 * Function to explicitly convert a date to the timezone and format provided.
+	 * @param   mixed  $timeZone The numeric key on the Date static offsets array (a short list of common timezones) 
+	 * 		or a timezone string accepted by the TimeZone PHP object (see {@link PHP_MANUAL#timezones})
+	 * @param   string  $format  The date format specification string (see {@link PHP_MANUAL#date})
+	 * @return  string
+	 */
+	public function toTimeZone($timeZone, $format = null, $ignoreDst = false)
+	{
+		$format = $format ?: parent::$format;
+		$timeZone = self::getTimeZoneObject($timeZone, $ignoreDst);
+		$this->setTimezone($timeZone);
 		return $this->format($format, true);
 	}
 
