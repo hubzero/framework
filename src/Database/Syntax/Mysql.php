@@ -160,6 +160,18 @@ class Mysql
 	}
 
 	/**
+	 * Empty insert values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetInsert()
+	{
+		$this->insert = '';
+		$this->ignore = false;
+	}
+
+	/**
 	 * Sets an update element on the query
 	 *
 	 * @param   string  $table  The table whose fields will be updated
@@ -172,6 +184,17 @@ class Mysql
 	}
 
 	/**
+	 * Empty update values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetUpdate()
+	{
+		$this->update = '';
+	}
+
+	/**
 	 * Sets a delete element on the query
 	 *
 	 * @param   string  $table  The table whose row will be deleted
@@ -181,6 +204,17 @@ class Mysql
 	public function setDelete($table)
 	{
 		$this->delete = $table;
+	}
+
+	/**
+	 * Empty update values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetDelete()
+	{
+		$this->delete = '';
 	}
 
 	/**
@@ -197,6 +231,17 @@ class Mysql
 			'table' => $table,
 			'as'    => $as
 		];
+	}
+
+	/**
+	 * Empty from values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetFrom()
+	{
+		$this->from = [];
 	}
 
 	/**
@@ -217,6 +262,17 @@ class Mysql
 			'right' => $rightKey,
 			'type'  => $type
 		];
+	}
+
+	/**
+	 * Empty join values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetJoin()
+	{
+		$this->join = [];
 	}
 
 	/**
@@ -249,6 +305,17 @@ class Mysql
 	}
 
 	/**
+	 * Empty join values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetSet()
+	{
+		$this->set = [];
+	}
+
+	/**
 	 * Sets a values element on the query
 	 *
 	 * @param   array  $data  The data to be inserted
@@ -261,6 +328,17 @@ class Mysql
 	}
 
 	/**
+	 * Empty values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetValues()
+	{
+		$this->values = [];
+	}
+
+	/**
 	 * Sets a group element on the query
 	 *
 	 * @param   string  $column  The column on which to apply the group by
@@ -270,6 +348,17 @@ class Mysql
 	public function setGroup($column)
 	{
 		$this->group[] = $column;
+	}
+
+	/**
+	 * Empty group values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetGroup()
+	{
+		$this->group = [];
 	}
 
 	/**
@@ -288,6 +377,17 @@ class Mysql
 			'operator' => $operator,
 			'value'    => $value
 		];
+	}
+
+	/**
+	 * Empty having values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetHaving()
+	{
+		$this->having = [];
 	}
 
 	/**
@@ -345,6 +445,17 @@ class Mysql
 			'resetdepth' => true,
 			'depth'      => $depth
 		];
+	}
+
+	/**
+	 * Empty where values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetWhere()
+	{
+		$this->where = [];
 	}
 
 	/**
