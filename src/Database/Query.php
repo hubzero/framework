@@ -171,6 +171,29 @@ class Query
 	}
 
 	/**
+	 * Empties a query clause of current values
+	 *
+	 * @param   string  $clause  [select, update, insert, delete, from, join, set, values, where, group, having, order]
+	 * @return  $this
+	 * @since   2.2.15
+	 **/
+	public function clear($clause = '')
+	{
+		if (!$clause)
+		{
+			$this->reset();
+		}
+		else
+		{
+			$clause = 'reset' . ucfirst(strtolower($clause));
+
+			$this->syntax->$clause();
+		}
+
+		return $this;
+	}
+
+	/**
 	 * Empties a query of current select values
 	 *
 	 * @return  $this
@@ -280,6 +303,62 @@ class Query
 	public function joinRaw($table, $raw, $type = 'inner')
 	{
 		$this->syntax->setRawJoin($table, $raw, $type);
+		return $this;
+	}
+
+	/**
+	 * Defines a table INNER join to be performed for the query
+	 *
+	 * @param   string  $table     The table join
+	 * @param   string  $leftKey   The left side of the join condition
+	 * @param   string  $rightKey  The right side of the join condition
+	 * @return  $this
+	 **/
+	public function innerJoin($table, $leftKey, $rightKey)
+	{
+		$this->syntax->setJoin($table, $leftKey, $rightKey, 'inner');
+		return $this;
+	}
+
+	/**
+	 * Defines a table FULL OUTER join to be performed for the query
+	 *
+	 * @param   string  $table     The table join
+	 * @param   string  $leftKey   The left side of the join condition
+	 * @param   string  $rightKey  The right side of the join condition
+	 * @return  $this
+	 **/
+	public function fullJoin($table, $leftKey, $rightKey)
+	{
+		$this->syntax->setJoin($table, $leftKey, $rightKey, 'full');
+		return $this;
+	}
+
+	/**
+	 * Defines a table LEFT join to be performed for the query
+	 *
+	 * @param   string  $table     The table join
+	 * @param   string  $leftKey   The left side of the join condition
+	 * @param   string  $rightKey  The right side of the join condition
+	 * @return  $this
+	 **/
+	public function leftJoin($table, $leftKey, $rightKey)
+	{
+		$this->syntax->setJoin($table, $leftKey, $rightKey, 'left');
+		return $this;
+	}
+
+	/**
+	 * Defines a table RIGHT join to be performed for the query
+	 *
+	 * @param   string  $table     The table join
+	 * @param   string  $leftKey   The left side of the join condition
+	 * @param   string  $rightKey  The right side of the join condition
+	 * @return  $this
+	 **/
+	public function rightJoin($table, $leftKey, $rightKey)
+	{
+		$this->syntax->setJoin($table, $leftKey, $rightKey, 'right');
 		return $this;
 	}
 

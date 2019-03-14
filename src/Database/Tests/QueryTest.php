@@ -266,6 +266,97 @@ class QueryTest extends Database
 	 *
 	 * @return  void
 	 **/
+	public function testBuildQueryWithJoinClause()
+	{
+		$dbo = $this->getMockDriver();
+
+		// Here's the query we're try to write...
+		$expected = "SELECT * FROM `users` INNER JOIN posts ON `users`.id = `posts`.user_id";
+
+		$query = new Query($dbo);
+		$query->select('*')
+		      ->from('users')
+		      ->join('posts', '`users`.id', '`posts`.user_id');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'join Query did not build the expected result');
+
+		$query = new Query($dbo);
+		$query->select('*')
+		      ->from('users')
+		      ->innerJoin('posts', '`users`.id', '`posts`.user_id');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'innerJoin Query did not build the expected result');
+
+		// Here's the query we're try to write...
+		$expected = "SELECT * FROM `users` LEFT JOIN posts ON `users`.id = `posts`.user_id";
+
+		$query = new Query($dbo);
+		$query->select('*')
+		      ->from('users')
+		      ->leftJoin('posts', '`users`.id', '`posts`.user_id');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'leftJoin Query did not build the expected result');
+
+		// Here's the query we're try to write...
+		$expected = "SELECT * FROM `users` RIGHT JOIN posts ON `users`.id = `posts`.user_id";
+
+		$query = new Query($dbo);
+
+		if ($dbo->getConnection()->getAttribute(\PDO::ATTR_DRIVER_NAME) == 'sqlite')
+		{
+			$this->setExpectedException('\Hubzero\Database\Exception\UnsupportedSyntaxException');
+
+			$query->select('*')
+			      ->from('users')
+			      ->rightJoin('posts', '`users`.id', '`posts`.user_id');
+		}
+		else
+		{
+			$query->select('*')
+			      ->from('users')
+			      ->rightJoin('posts', '`users`.id', '`posts`.user_id');
+
+			$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'rightJoin Query did not build the expected result');
+		}
+
+		// Here's the query we're try to write...
+		$expected = "SELECT * FROM `users` RIGHT JOIN posts ON `users`.id = `posts`.user_id";
+
+		$query = new Query($dbo);
+		$query->select('*')
+		      ->from('users')
+		      ->rightJoin('posts', '`users`.id', '`posts`.user_id');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'rightJoin Query did not build the expected result');
+
+		// Here's the query we're try to write...
+		$expected = "SELECT * FROM `users` FULL JOIN posts ON `users`.id = `posts`.user_id";
+
+		$query = new Query($dbo);
+
+		if ($dbo->getConnection()->getAttribute(\PDO::ATTR_DRIVER_NAME) == 'sqlite')
+		{
+			$this->setExpectedException('\Hubzero\Database\Exception\UnsupportedSyntaxException');
+
+			$query->select('*')
+			      ->from('users')
+			      ->fullJoin('posts', '`users`.id', '`posts`.user_id');
+		}
+		else
+		{
+			$query->select('*')
+			      ->from('users')
+			      ->fullJoin('posts', '`users`.id', '`posts`.user_id');
+
+			$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'fullJoin Query did not build the expected result');
+		}
+	}
+
+	/**
+	 * Test to make sure we can build a query with a raw JOIN statement
+	 *
+	 * @return  void
+	 **/
 	public function testBuildQueryWithRawJoinClause()
 	{
 		// Here's the query we're try to write...
@@ -339,5 +430,28 @@ class QueryTest extends Database
 		// If the result were not in the cache, we could get a false positive.
 		$query->fetch('rows', true);
 		$query->fetch('rows', true);
+	}
+
+	/**
+	 * Test to make sure we can build a query with where IS NULL statements
+	 *
+	 * @return  void
+	 **/
+	public function testBuildQueryClear()
+	{
+		// Here's the query we're try to write...
+		$expected = "SELECT * FROM `groups`";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users')
+		      ->whereIsNotNull('name')
+		      ->clear('from')
+		      ->clear('where')
+		      ->from('groups');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
 	}
 }
