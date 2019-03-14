@@ -467,8 +467,8 @@ class Base
 					$params = json_encode($params);
 				}
 
-				$query = "INSERT INTO `#__extensions` (`name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `checked_out_time`, `ordering`, `state`)";
-				$query .= " VALUES ('{$name}', 'component', '{$option}', '', 1, {$enabled}, 1, 0, '', ".$this->baseDb->quote($params).", '', '', 0, '0000-00-00 00:00:00', {$ordering}, 0)";
+				$query = "INSERT INTO `#__extensions` (`name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `ordering`, `state`)";
+				$query .= " VALUES ('{$name}', 'component', '{$option}', '', 1, {$enabled}, 1, 0, '', ".$this->baseDb->quote($params).", '', '', 0, {$ordering}, 0)";
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
 				$component_id = $this->baseDb->insertId();
@@ -521,8 +521,8 @@ class Base
 
 				$alias = substr($option, 4);
 
-				$query = "INSERT INTO `#__menu` (`menutype`, `title`, `alias`, `note`, `path`, `link`, `type`, `published`, `parent_id`, `level`, `component_id`, `ordering`, `checked_out`, `checked_out_time`, `browserNav`, `access`, `img`, `template_style_id`, `params`, `lft`, `rgt`, `home`, `language`, `client_id`)";
-				$query .= " VALUES ('main', '{$option}', '{$alias}', '', '{$alias}', 'index.php?option={$option}', 'component', {$enabled}, 1, 1, {$component_id}, 0, 0, '0000-00-00 00:00:00', 0, 0, '', 0, '', 0, 0, 0, '*', 1)";
+				$query = "INSERT INTO `#__menu` (`menutype`, `title`, `alias`, `note`, `path`, `link`, `type`, `published`, `parent_id`, `level`, `component_id`, `ordering`, `checked_out`, `browserNav`, `access`, `img`, `template_style_id`, `params`, `lft`, `rgt`, `home`, `language`, `client_id`)";
+				$query .= " VALUES ('main', '{$option}', '{$alias}', '', '{$alias}', 'index.php?option={$option}', 'component', {$enabled}, 1, 1, {$component_id}, 0, 0, 0, 0, '', 0, '', 0, 0, 0, '*', 1)";
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
 
@@ -652,8 +652,8 @@ class Base
 				$params = $p;
 			}
 
-			$query = "INSERT INTO `#__plugins` (`name`, `element`, `folder`, `access`, `ordering`, `published`, `iscore`, `client_id`, `checked_out`, `checked_out_time`, `params`)";
-			$query .= " VALUES ('{$name}', '{$element}', '{$folder}', 0, {$ordering}, {$enabled}, 0, 0, 0, '0000-00-00 00:00:00', ".$this->baseDb->quote($params).")";
+			$query = "INSERT INTO `#__plugins` (`name`, `element`, `folder`, `access`, `ordering`, `published`, `iscore`, `client_id`, `checked_out`, `params`)";
+			$query .= " VALUES ('{$name}', '{$element}', '{$folder}', 0, {$ordering}, {$enabled}, 0, 0, 0, ".$this->baseDb->quote($params).")";
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 
@@ -686,8 +686,8 @@ class Base
 				$params = json_encode($params);
 			}
 
-			$query = "INSERT INTO `#__extensions` (`name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `checked_out_time`, `ordering`, `state`)";
-			$query .= " VALUES ('{$name}', 'plugin', '{$element}', '{$folder}', 0, {$enabled}, 1, 0, '', ".$this->baseDb->quote($params).", '', '', 0, '0000-00-00 00:00:00', {$ordering}, 0)";
+			$query = "INSERT INTO `#__extensions` (`name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `ordering`, `state`)";
+			$query .= " VALUES ('{$name}', 'plugin', '{$element}', '{$folder}', 0, {$enabled}, 1, 0, '', ".$this->baseDb->quote($params).", '', '', 0, {$ordering}, 0)";
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 
@@ -950,8 +950,8 @@ class Base
 				$params = json_encode($params);
 			}
 
-			$query = "INSERT INTO `#__extensions` (`name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `checked_out_time`, `ordering`, `state`)";
-			$query .= " VALUES ('{$name}', 'module', '{$element}', '', {$client}, {$enabled}, 1, 0, '', ".$this->baseDb->quote($params).", '', '', 0, '0000-00-00 00:00:00', {$ordering}, 0)";
+			$query = "INSERT INTO `#__extensions` (`name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `ordering`, `state`)";
+			$query .= " VALUES ('{$name}', 'module', '{$element}', '', {$client}, {$enabled}, 1, 0, '', ".$this->baseDb->quote($params).", '', '', 0, {$ordering}, 0)";
 			$this->baseDb->setQuery($query);
 			$this->baseDb->query();
 
@@ -1072,8 +1072,8 @@ class Base
 
 			if (!$this->baseDb->loadResult())
 			{
-				$query  = "INSERT INTO `#__extensions` (`name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `checked_out_time`, `ordering`, `state`)";
-				$query .= " VALUES ('{$name}', 'template', '{$element}', '', '{$client}', '{$enabled}', '1', '{$protected}', '{}', '{}', '', '', '0', '0000-00-00 00:00:00', '0', '0')";
+				$query  = "INSERT INTO `#__extensions` (`name`, `type`, `element`, `folder`, `client_id`, `enabled`, `access`, `protected`, `manifest_cache`, `params`, `custom_data`, `system_data`, `checked_out`, `ordering`, `state`)";
+				$query .= " VALUES ('{$name}', 'template', '{$element}', '', '{$client}', '{$enabled}', '1', '{$protected}', '{}', '{}', '', '', '0', '0', '0')";
 				$this->baseDb->setQuery($query);
 				$this->baseDb->query();
 
