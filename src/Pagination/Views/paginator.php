@@ -53,7 +53,7 @@ if (!function_exists('paginator_item_active'))
 	{
 		if (App::isAdmin())
 		{
-			return '<a title="' . $item->text . '" onclick="document.adminForm.' . $prefix . 'limitstart.value=' . ($item->base > 0 ? $item->base : 0) . '; Joomla.submitform();return false;">' . $item->text . '</a>';
+			return '<a title="' . $item->text . '" data-prefix="' . $prefix . '" data-start="' . ($item->base > 0 ? $item->base : 0) . '">' . $item->text . '</a>';
 		}
 		else
 		{
@@ -98,7 +98,7 @@ if (!function_exists('paginator_item_active'))
 			$attr = 'class="inputbox" size="1" onchange="this.form.submit()"';
 			if (App::isAdmin())
 			{
-				$attr = 'class="inputbox" size="1" onchange="Joomla.submitform();"';
+				$attr = 'class="inputbox" size="1"';
 			}
 
 			echo \Hubzero\Html\Builder\Select::genericlist($limits, $this->pages->prefix . 'limit', $attr, 'value', 'text', $selected);
