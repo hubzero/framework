@@ -35,8 +35,6 @@ namespace Hubzero\Events;
 /**
  * An enumeration of priorities for event listeners,
  * that you are encouraged to use when adding them in the Dispatcher.
- *
- * Based on work by the Joomla Framework
  */
 final class Priority
 {

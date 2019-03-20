@@ -37,9 +37,7 @@ use Hubzero\Console\Command\CommandInterface;
 use Hubzero\Console\Output;
 use Hubzero\Console\Arguments;
 use Hubzero\Content\Migration\Base as Migration;
-
-// Check to ensure this file is included in Joomla!
-defined('_JEXEC') or die('Restricted access');
+use App;
 
 /**
  * Repository flavor class
@@ -74,7 +72,7 @@ class Flavor extends Base implements CommandInterface
 		$query = "SELECT `params` FROM `#__template_styles` WHERE `template` = 'welcome';";
 		$database->setQuery($query);
 		$p = $database->loadResult();
-		$welcome_params  = new \Hubzero\Config\Registry($p);
+		$welcome_params = new \Hubzero\Config\Registry($p);
 
 		switch ($flavor)
 		{
@@ -108,7 +106,7 @@ class Flavor extends Base implements CommandInterface
 				{
 					$welcome_params->set('template', 'hubbasic2013');
 				}
-	                        $query = "UPDATE `#__template_styles` SET `params`=".$database->quote(json_encode($welcome_params->toArray()))." WHERE `template`='welcome';";
+				$query = "UPDATE `#__template_styles` SET `params`=".$database->quote(json_encode($welcome_params->toArray()))." WHERE `template`='welcome';";
 				$database->setQuery($query);
 				$database->query();
 
@@ -143,8 +141,6 @@ class Flavor extends Base implements CommandInterface
 
 				$this->output->addLine('Disabling com_store');
 				$migration->disableComponent('com_store');
-
-
 				break;
 
 			case 'amazoncmsonly':
@@ -235,8 +231,6 @@ class Flavor extends Base implements CommandInterface
 
 				$this->output->addLine('Disabling com_store');
 				$migration->disableComponent('com_store');
-
-
 				break;
 
 			case 'default':
@@ -350,8 +344,6 @@ class Flavor extends Base implements CommandInterface
 
 		$this->output->addLine("Successfully updated to the {$flavor} flavor!", 'success');
 	}
-
-
 
 	/**
 	 * Output help documentation

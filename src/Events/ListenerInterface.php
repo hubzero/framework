@@ -34,8 +34,6 @@ namespace Hubzero\Events;
 
 /**
  * Interface for event listener
- *
- * Based on work by the Joomla Framework
  */
 interface ListenerInterface
 {
