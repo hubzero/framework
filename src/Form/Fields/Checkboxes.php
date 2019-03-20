@@ -36,7 +36,7 @@ use Hubzero\Html\Builder\Select as Dropdown;
 use App;
 
 /**
- * Form Field class for the Joomla Platform.
+ * Form Field class.
  * Displays options as a list of check boxes.
  * Multiselect may be forced to be true.
  */

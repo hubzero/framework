@@ -47,7 +47,7 @@ use Hubzero\Database\Driver;
 class Base
 {
 	/**
-	 * Base database object (should have joomla extensions and migrations log tables in it)
+	 * Base database object (should have extensions and migrations log tables in it)
 	 *
 	 * @var  object
 	 **/
@@ -392,7 +392,7 @@ class Base
 	}
 
 	/**
-	 * Add, as needed, the component to the appropriate table, depending on the Joomla version
+	 * Add, as needed, the component to the appropriate table, depending on the CMS version
 	 *
 	 * @param   string  $name            Component name
 	 * @param   string  $option          String) com_xyz
@@ -611,7 +611,7 @@ class Base
 	}
 
 	/**
-	 * Add, as needed, the plugin entry to the appropriate table, depending on the Joomla version
+	 * Add, as needed, the plugin entry to the appropriate table, depending on the CMS version
 	 *
 	 * @param   string  $folder   Plugin folder
 	 * @param   string  $element  Plugin element
@@ -729,7 +729,7 @@ class Base
 	}
 
 	/**
-	 * Rename a plugin entry in the appropriate table, depending on the Joomla version
+	 * Rename a plugin entry in the appropriate table, depending on the CMS version
 	 *
 	 * @param   string  $folder   Plugin folder
 	 * @param   string  $element  Plugin element
@@ -920,7 +920,7 @@ class Base
 	}
 
 	/**
-	 * Add, as needed, the module entry to the appropriate table, depending on the Joomla version
+	 * Add, as needed, the module entry to the appropriate table, depending on the CMS version
 	 *
 	 * @param   string  $element  Plugin element
 	 * @param   int     $enabled  Whether or not the plugin should be enabled
@@ -1168,7 +1168,7 @@ class Base
 	}
 
 	/**
-	 * Remove component entries from the appropriate table, depending on the Joomla version
+	 * Remove component entries from the appropriate table, depending on the CMS version
 	 *
 	 * @param   string  $name  Component name
 	 * @return  bool
@@ -1223,7 +1223,7 @@ class Base
 	}
 
 	/**
-	 * Remove plugin entries from the appropriate table, depending on the Joomla version
+	 * Remove plugin entries from the appropriate table, depending on the CMS version
 	 *
 	 * @param   string  $name  Plugin name
 	 * @return  bool
@@ -1257,7 +1257,7 @@ class Base
 	}
 
 	/**
-	 * Remove module entries from the appropriate table, depending on the Joomla version
+	 * Remove module entries from the appropriate table, depending on the CMS version
 	 *
 	 * @param   string  $name    Plugin name
 	 * @param   int     $client  Client (site=0, admin=1)

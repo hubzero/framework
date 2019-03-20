@@ -34,8 +34,6 @@ namespace Hubzero\Events;
 
 /**
  * Interface for event dispatchers.
- *
- * Based on work by the Joomla Framework
  */
 interface DispatcherInterface
 {

@@ -1515,7 +1515,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function destroy()
 	{
-		// If it has an associated Joomla asset entry, try deleting that first
+		// If it has an associated asset entry, try deleting that first
 		if ($this->hasAttribute('asset_id'))
 		{
 			if (!Asset::destroy($this))
