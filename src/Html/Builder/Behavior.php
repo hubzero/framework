@@ -555,7 +555,7 @@ class Behavior
 		// Attach multiselect to document
 		App::get('document')->addScriptDeclaration(
 			"jQuery(document).ready(function($){
-				new Joomla.JMultiSelect('" . $id . "');
+				new Hubzero.MultiSelect('" . $id . "');
 			});"
 		);
 
