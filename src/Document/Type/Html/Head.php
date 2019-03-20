@@ -219,11 +219,11 @@ class Head extends Renderer
 			$buffer[] = $tab . '<script type="text/javascript">';
 			$buffer[] = $tab . $tab . '(function() {';
 			$buffer[] = $tab . $tab . $tab . 'var strings = ' . json_encode(\Lang::script()) . ';';
-			$buffer[] = $tab . $tab . $tab . 'if (typeof Joomla == \'undefined\') {';
-			$buffer[] = $tab . $tab . $tab . $tab . 'Joomla = {};';
-			$buffer[] = $tab . $tab . $tab . $tab . 'Joomla.JText = strings;';
+			$buffer[] = $tab . $tab . $tab . 'if (typeof Hubzero == \'undefined\') {';
+			$buffer[] = $tab . $tab . $tab . $tab . 'Hubzero = {};';
+			$buffer[] = $tab . $tab . $tab . $tab . 'Hubzero.Lang = strings;';
 			$buffer[] = $tab . $tab . $tab . '} else {';
-			$buffer[] = $tab . $tab . $tab . $tab . 'Joomla.JText.load(strings);';
+			$buffer[] = $tab . $tab . $tab . $tab . 'Hubzero.Lang.load(strings);';
 			$buffer[] = $tab . $tab . $tab . '}';
 			$buffer[] = $tab . $tab . '})();';
 			$buffer[] = $tab . '</script>';

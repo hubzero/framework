@@ -105,7 +105,7 @@ class Help extends Button
 		// Get Help URL
 		$url = self::createURL($ref, $com, $override, $component);
 		$url = htmlspecialchars($url, ENT_QUOTES);
-		//$cmd = "Joomla.popupWindow('$url', '" . \Lang::txt('JHELP', true) . "', 700, 500, 1)";
+		//$cmd = "Hubzero.popupWindow('$url', '" . \Lang::txt('JHELP', true) . "', 700, 500, 1)";
 
 		return $url; //$cmd;
 	}
@@ -191,9 +191,9 @@ class Help extends Button
 			'{language}', // Full language code (eg. 'en-GB')
 			'{langcode}', // Short language code (eg. 'en')
 			'{langregion}', // Region code (eg. 'GB')
-			'{major}', // Joomla major version number
-			'{minor}', // Joomla minor version number
-			'{maintenance}'// Joomla maintenance version number
+			'{major}', // major version number
+			'{minor}', // minor version number
+			'{maintenance}'// maintenance version number
 		);
 
 		$replace = array(
