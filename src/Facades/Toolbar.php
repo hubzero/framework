@@ -451,4 +451,19 @@ class Toolbar extends Facade
 
 		static::getRoot()->appendButton('Popup', 'options', $alt, \Route::url('index.php?option=com_config&view=component&component=' . $component . '&path=' . $path . '&tmpl=component'), $width, $height, $top, $left, $onClose);
 	}
+
+	/**
+	 * Writes a button that prompts for confirmation before executing a task
+	 *
+	 * @param   string   $msg   Postscript for the 'are you sure' message.
+	 * @param   string   $name  Name to be used as apart of the id
+	 * @param   string   $task  An override for the task.
+	 * @param   string   $alt   An override for the alt text.
+	 * @param   boolean  $list  True to allow use of lists
+	 * @return  void
+	 */
+	public static function confirm($msg = '', $name='delete', $task = 'remove', $alt = 'JTOOLBAR_DELETE', $list = true)
+	{
+		static::getRoot()->appendButton('Confirm', $msg, $name, $alt, $task, $list);
+	}
 }
