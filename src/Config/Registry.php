@@ -540,11 +540,6 @@ class Registry implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \
 	{
 		$array = array();
 
-		if (empty($separator))
-		{
-			$separator = $this->separator;
-		}
-
 		$this->toFlatten($separator, $this->data, $array);
 
 		return $array;

@@ -257,7 +257,7 @@ class LoaderTest extends Database
 	}
 
 	/**
-	 * Test that the system template is built and returned properly
+	 * Test loading a template by client ID
 	 *
 	 * @covers  \Hubzero\Template\Loader::load
 	 * @return  void
@@ -300,5 +300,35 @@ class LoaderTest extends Database
 		$this->setExpectedException('InvalidArgumentException');
 
 		$template = $this->loader->load('foobar');
+	}
+
+	/**
+	 * Test that the system template is returned on a database error
+	 *
+	 * @covers  \Hubzero\Template\Loader::load
+	 * @return  void
+	 */
+	public function testDatabaseError()
+	{
+		self::tearDownAfterClass();
+
+		$this->fixture = 'testBad.sqlite3';
+		$this->connection = null;
+
+		$app = new Application();
+		$app['client'] = new \Hubzero\Base\Client\Site();
+		$app['db']     = $this->getMockDriver();
+		$app['config'] = \App::get('config');
+
+		$this->loader = new Loader($app, [
+			'path_app'  => __DIR__ . '/Mock/app',
+			'path_core' => __DIR__ . '/Mock/core'
+		]);
+
+		// Load admin template by client name
+		$template = $this->loader->load();
+
+		$this->assertTrue(is_object($template));
+		$this->assertEquals($template->template, 'system');
 	}
 }

@@ -75,6 +75,15 @@ class RegistryTest extends Basic
 
 		$this->assertEquals($data->get('lorem.ipsum'), 'ipsum');
 		$this->assertEquals($data['lorem.ipsum'], 'ipsum');
+		$this->assertEquals($data->get('lorem.dolor', 'mit'), 'mit');
+
+		$data['lorem'] = array('ipsum' => 'dolor');
+
+		$this->assertEquals($data->get('lorem.ipsum'), 'dolor');
+
+		$data->set('lorem.ipsum', array('dolor' => 'mit'));
+
+		$this->assertEquals($data->get('lorem.ipsum.dolor'), 'mit');
 	}
 
 	/**
@@ -403,5 +412,38 @@ class RegistryTest extends Basic
 		$this->assertTrue($result);
 		$this->assertEquals($data->get('lorem.ipsum'), 'mit');
 		$this->assertTrue($data->has('cullen'));
+	}
+
+	/**
+	 * Tests the parse() method
+	 *
+	 * @covers  \Hubzero\Config\Registry::parse
+	 * @return  void
+	 **/
+	public function testParse()
+	{
+		$data = new Registry();
+
+		$json = '{"one":"bar","bar":"foo","lorem":{"ipsum":"sham"}}';
+
+		$data->set('one', 'blue');
+		$data->set('two', 'shoe');
+
+		$data->parse($json);
+
+		$this->assertEquals($data->get('one'), 'bar');
+		$this->assertEquals($data->get('lorem.ipsum'), 'sham');
+
+		$data = new Registry();
+
+		$arr = array('one' => 'bar', 'bar' => 'foo', 'lorem' => array('ipsum' => 'sham'));
+
+		$data->set('one', 'blue');
+		$data->set('two', 'shoe');
+
+		$data->parse($arr);
+
+		$this->assertEquals($data->get('one'), 'bar');
+		$this->assertEquals($data->get('lorem.ipsum'), 'sham');
 	}
 }
