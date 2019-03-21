@@ -46,6 +46,13 @@ class Database extends \PHPUnit_Extensions_Database_TestCase
 	static protected $pdo = null;
 
 	/**
+	 * The database driver
+	 *
+	 * @var  object
+	 */
+	static protected $dbo = null;
+
+	/**
 	 * The database connection
 	 *
 	 * @var  object
@@ -116,22 +123,20 @@ class Database extends \PHPUnit_Extensions_Database_TestCase
 	 */
 	public function getMockDriver()
 	{
-		static $dbo;
-
-		if (!isset($dbo))
+		if (!isset(self::$dbo))
 		{
-			$dbo = $this->getMockBuilder('Hubzero\Database\Driver\Pdo')
+			self::$dbo = $this->getMockBuilder('Hubzero\Database\Driver\Pdo')
 			            ->disableOriginalConstructor()
 			            ->setMethods(null)
 			            ->getMock();
 
 			$this->getConnection();
 
-			$dbo->setConnection(self::$pdo)
+			self::$dbo->setConnection(self::$pdo)
 			    ->setPrefix('');
 		}
 
-		return $dbo;
+		return self::$dbo;
 	}
 
 	/**
@@ -142,6 +147,7 @@ class Database extends \PHPUnit_Extensions_Database_TestCase
 	 */
 	public static function tearDownAfterClass()
 	{
+		self::$dbo = null;
 		self::$pdo = null;
 	}
 }

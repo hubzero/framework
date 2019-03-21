@@ -79,6 +79,10 @@ class XmlTest extends Basic
 		<setting name="sef_groups" type="integer">0</setting>
 		<setting name="feed_limit" type="integer">10</setting>
 		<setting name="feed_email" type="string">author</setting>
+		<setting name="ratelimit" type="array">
+			<setting name="short" type="double">500.1</setting>
+			<setting name="long" type="double">5000.7</setting>
+		</setting>
 	</setting>
 	<setting name="seo" type="object">
 		<setting name="sef" type="integer">1</setting>
@@ -112,6 +116,10 @@ class XmlTest extends Basic
 		$data->app->sef_groups = 0;
 		$data->app->feed_limit = 10;
 		$data->app->feed_email = "author";
+		$data->app->ratelimit = array(
+			'short' => 500.1,
+			'long' => 5000.7
+		);
 
 		$data->seo = new stdClass();
 		$data->seo->sef = 1;
