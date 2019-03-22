@@ -37,7 +37,7 @@ use Hubzero\Database\Driver;
 use Hubzero\Database\Query;
 use Hubzero\Database\Exception\ConnectionFailedException;
 use Hubzero\Database\Exception\QueryFailedException;
-use Hubzero\Database\Exception\UnsupportedFeatureException;
+use Hubzero\Database\Exception\UnsupportedEngineException;
 
 /**
  * Pdo database driver
@@ -621,6 +621,32 @@ class Pdo extends Driver
 		$this->setQuery('SHOW TABLE STATUS WHERE Name = ' . str_replace('#__', $this->tablePrefix, $this->quote($table, false)));
 
 		return ($info = $this->loadObjectList()) ? $info[0]->Engine : false;
+	}
+
+	/**
+	 * Set the database engine of the given table
+	 *
+	 * @param   string  $table   The table for which to retrieve the engine type
+	 * @param   string  $engine  The engine type to set
+	 * @return  bool
+	 * @since   2.2.15
+	 **/
+	public function setEngine($table, $engine)
+	{
+		$supported = ['innodb', 'myisam', 'archive', 'merge', 'memory', 'csv', 'federated'];
+
+		if (!in_array(strtolower($engine), $supported))
+		{
+			throw new UnsupportedEngineException(sprintf(
+				'Unsupported engine type of "%s" specified. Engine type must be one of %s',
+				$engine,
+				implode(', ', $supported)
+			));
+		}
+
+		$this->setQuery('ALTER TABLE ' . str_replace('#__', $this->tablePrefix, $this->quote($table, false)) . " ENGINE = " . $this->quote($engine));
+
+		return $this->db->query();
 	}
 
 	/**
