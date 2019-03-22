@@ -1514,6 +1514,16 @@ abstract class Driver
 	abstract public function getEngine($table);
 
 	/**
+	 * Set the database engine of the given table
+	 *
+	 * @param   string  $table   The table for which to retrieve the engine type
+	 * @param   string  $engine  The engine type to set
+	 * @return  bool
+	 * @since   2.2.15
+	 **/
+	abstract public function setEngine($table, $engine);
+
+	/**
 	 * Gets the database character set of the given table
 	 *
 	 * @param   string  $table  The table for which to retrieve the character set
