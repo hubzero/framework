@@ -37,6 +37,7 @@ use Hubzero\Database\Driver;
 use Hubzero\Database\Query;
 use Hubzero\Database\Exception\ConnectionFailedException;
 use Hubzero\Database\Exception\QueryFailedException;
+use Hubzero\Database\Exception\UnsupportedFeatureException;
 
 /**
  * Pdo database driver
@@ -339,17 +340,23 @@ class Pdo extends Driver
 	}
 
 	/**
-	 * Gets the database collation in use by sampling a text field of a table in the database
+	 * Gets the database collation in use
 	 *
 	 * @return  string|bool
 	 * @since   2.0.0
 	 */
 	public function getCollation()
 	{
-		$this->setQuery('SHOW FULL COLUMNS FROM #__users');
-		$array = $this->loadAssocList();
+		// Attempt to get the database collation by accessing the server system variable.
+		$this->setQuery('SHOW VARIABLES LIKE "collation_database"');
+		$result = $this->loadObject();
 
-		return $array['2']['Collation'];
+		if (property_exists($result, 'Value'))
+		{
+			return $result->Value;
+		}
+
+		return false;
 	}
 
 	/**
@@ -378,7 +385,7 @@ class Pdo extends Driver
 	}
 
 	/**
-	 * Retrieves field information about the given tables
+	 * Retrieves field information about the given table
 	 *
 	 * @param   string  $table     The name of the database table
 	 * @param   bool    $typeOnly  True (default) to only return field types
@@ -424,7 +431,7 @@ class Pdo extends Driver
 	{
 		// Get the details columns information
 		$this->setQuery('SHOW KEYS FROM ' . $this->quoteName($table));
-		$keys = $this->loadObjectList();
+		$keys = $this->loadObjectList('Key_name');
 
 		return $keys;
 	}
@@ -546,7 +553,7 @@ class Pdo extends Driver
 	 */
 	public function tableHasField($table, $field)
 	{
-		$this->setQuery( 'SHOW FIELDS FROM ' . $table );
+		$this->setQuery('SHOW FIELDS FROM ' . $table);
 		$fields = $this->loadObjectList('Field');
 
 		if (!is_array($fields))
@@ -567,15 +574,14 @@ class Pdo extends Driver
 	 */
 	public function tableHaskey($table, $key)
 	{
-		$this->setQuery('SHOW KEYS FROM ' . $table);
-		$keys = $this->loadObjectList('Key_name');
+		$keys = $this->getTableKeys($table);
 
 		if (!is_array($keys))
 		{
 			return false;
 		}
 
-		return (in_array($key, array_keys($keys))) ? true : false;
+		return isset($keys[$key]);
 	}
 
 	/**
@@ -780,8 +786,7 @@ class Pdo extends Driver
 	 */
 	public function setUTF()
 	{
-		// @FIXME: This should be handled by the syntax class!
-		//return $this->connection->exec("SET NAMES 'utf8'");
+		return false;
 	}
 
 	/**
