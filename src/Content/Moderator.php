@@ -107,7 +107,7 @@ class Moderator
 	 **/
 	public function getUrl()
 	{
-		return '/files/' . $this->getIdentifier();
+		return App::get('request')->root(true) . 'files/' . $this->getIdentifier();
 	}
 
 	/**
