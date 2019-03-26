@@ -1368,6 +1368,15 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 			return false;
 		}
 
+		// Handle cases where the primary key might be an empty string
+		// For auto-increment in strict-mode DBs, this needs to be NULL
+		// instead.
+		if ($this->hasAttribute($this->getPrimaryKey())
+		 && !$this->get($this->getPrimaryKey()))
+		{
+			$this->set($this->getPrimaryKey(), null);
+		}
+
 		// See if we're creating or updating
 		$method = $this->isNew() ? 'create' : 'modify';
 		$result = $this->$method();
