@@ -1236,7 +1236,7 @@ class Profile extends Obj
 				}
 			}
 		}
-		else
+		elseif (is_string($value))
 		{
 			$value = strval($value);
 		}
