@@ -79,6 +79,15 @@ class Asset extends Nested
 	);
 
 	/**
+	 * Automatic fields to populate every time a row is touched
+	 *
+	 * @var  array
+	 **/
+	public $always = array(
+		'rules'
+	);
+
+	/**
 	 * Sets up additional custom rules
 	 *
 	 * @return  void
@@ -125,6 +134,27 @@ class Asset extends Nested
 		}
 
 		return $data['parent_id'];
+	}
+
+	/**
+	 * Generates automatic rules field value
+	 *
+	 * @param   array   $data  the data being saved
+	 * @return  string
+	 */
+	public function automaticRules($data)
+	{
+		if (!isset($data['rules']))
+		{
+			$data['rules'] = '{}';
+		}
+
+		if (!is_string($data['rules']))
+		{
+			$data['rules'] = (string)$data['rules'];
+		}
+
+		return $data['rules'];
 	}
 
 	/**
