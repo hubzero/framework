@@ -194,6 +194,57 @@ class Behavior
 	}
 
 	/**
+	 * Add MathJax resources
+	 *
+	 * @return  void
+	 */
+	public static function math()
+	{
+		if (isset(self::$loaded[__METHOD__]))
+		{
+			return;
+		}
+
+		$path = Asset::script('assets/MathJax/MathJax.js', true, true, true);
+		Document::addScriptDeclaration('
+		(function() {
+			var script = document.createElement("script");
+			script.type = "text/javascript";
+			script.src = "' . $path . '";
+			var config = `
+			MathJax.Hub.Config({
+				extensions: ["tex2jax.js"],
+				jax: ["input/TeX", "output/HTML-CSS"],
+				"HTML-CSS": {
+						preferredFont: "TeX", 
+						availableFonts: ["STIX","TeX"], 
+						linebreaks: { automatic:true }, 
+						EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+				},
+				tex2jax:{
+						inlineMath: [ ["$$", "$$"], ["\\\\(","\\\\)"] ],
+						displayMath: [ ["$$$","$$$"], ["\\[", "\\]"] ],
+						processEscapes: true,
+						ignoreClass: "tex2jax_ignore|dno"
+				},
+				TeX: {
+					extensions: ["autoload-all.js", "mediawiki-texvc.js"],
+					noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+					Macros: { href: "{}" }
+				},
+				messageStyle: "none",
+				styles: { ".MathJax_Display, .MathJax_Preview, .MathJax_Preview > *": { "background": "inherit" } }
+			});`;
+			if (window.opera) { script.innerHTML = config; }
+			else { script.text = config; }
+			document.getElementsByTagName("head")[0].appendChild(script);
+		})();
+		');
+
+		self::$loaded[__METHOD__] = true;
+	}
+
+	/**
 	 * Add unobtrusive javascript support for image captions.
 	 *
 	 * @param   string  $selector  The selector for which a caption behaviour is to be applied.
