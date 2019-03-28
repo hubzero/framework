@@ -313,6 +313,12 @@ class Generator
 				continue;
 			}
 
+			$controller = basename($file);
+			$controller = preg_replace('#\.[^.]*$#', '', $controller);
+			$parts = explode('v', $controller);
+			$v = array_pop($parts);
+			$controller = implode('v', $parts);
+
 			// Create endpoint data array
 			$endpoint = array(
 				//'name'        => substr($method->getName(), 0, -4),
@@ -323,6 +329,7 @@ class Generator
 				'uri'         => '',
 				'parameters'  => array(),
 				'_metadata'   => array(
+					'controller' => $controller,
 					'component' => $component,
 					'version'   => $version,
 					'method'    => $method->getName()
@@ -349,6 +356,16 @@ class Generator
 
 					$endpoint['parameters'][] = (array) $parameter;
 					continue;
+				}
+
+				if ($name == 'uri')
+				{
+					$content = str_replace(['{component}', '{controller}'], [$component, $controller], $content);
+
+					if ($controller == $component)
+					{
+						$content = str_replace($component . '/' . $controller, $component, $content);
+					}
 				}
 
 				if ($name == 'uri' && $method->getName() == 'indexTask')
