@@ -105,7 +105,11 @@ class Popup extends Button
 	{
 		if (substr($url, 0, 4) !== 'http')
 		{
-			$url = rtrim(\Request::root(), '/') . '/' . ltrim($url, '/');
+			$root = rtrim(\Request::root(true), '/');
+			if (substr($url, 0, strlen($root)) != $root)
+			{
+				$url = $root . '/' . ltrim($url, '/');
+			}
 		}
 
 		return $url;
