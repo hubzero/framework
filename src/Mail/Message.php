@@ -201,7 +201,7 @@ class Message extends \Swift_Message
 	}
 
 	/**
-	 * Get the list of failed email addresses
+	 * Generates email token
 	 *
 	 * @param   integer  $user_id    User ID
 	 * @param   integer  $object_id  Object ID
