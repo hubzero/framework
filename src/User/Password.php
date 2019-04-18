@@ -801,7 +801,7 @@ class Password
 	protected static function _getCryptedPassword($plaintext, $salt = '', $encryption = 'md5-hex', $show_encrypt = false)
 	{
 		// Get the salt to use.
-		$salt = self::_getSalt($encryption, $salt, $plaintext);
+		$salt = self::getSalt($encryption, $salt, $plaintext);
 
 		// Encrypt the password.
 		switch ($encryption)
@@ -895,7 +895,7 @@ class Password
 	 * @param   string  $plaintext   The plaintext password that we're generating  a salt for. Defaults to none.
 	 * @return  string  The generated or extracted salt.
 	 */
-	protected static function _getSalt($encryption = 'md5-hex', $seed = '', $plaintext = '')
+	public static function getSalt($encryption = 'md5-hex', $seed = '', $plaintext = '')
 	{
 		// Encrypt the password.
 		switch ($encryption)
