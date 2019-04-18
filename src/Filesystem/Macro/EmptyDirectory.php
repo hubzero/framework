@@ -61,11 +61,11 @@ class EmptyDirectory extends Base
 		{
 			if ($item['type'] === 'dir')
 			{
-				$this->filesystem->deleteDirectory($item['path']);
+				$this->filesystem->deleteDirectory($dirname . $item['path']);
 			}
 			else
 			{
-				$this->filesystem->delete($item['path']);
+				$this->filesystem->delete($dirname . $item['path']);
 			}
 		}
 	}
