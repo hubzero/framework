@@ -352,8 +352,7 @@ class File extends Obj
 						$paths_core[] = $basec . $path2 . ($this->directory ? $this->directory . DS : '') . substr($this->name, 4) . '.' . $this->type;
 					}
 				}
-				$paths = $paths_app;
-				array_merge($paths, $paths_core);
+				$paths = array_merge($paths_app, $paths_core);
 				// Run through each path until we find one that works
 				foreach ($paths as $path)
 				{
