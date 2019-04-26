@@ -183,11 +183,12 @@ class Relationship
 	 **/
 	public function getConstrainedKeysByCount($count, $operator = '>=')
 	{
+		$localKey   = $this->localKey;
 		$relatedKey = $this->relatedKey;
 
-		return $this->getConstrainedKeys(function($related) use ($count, $relatedKey, $operator)
+		return $this->getConstrainedKeys(function($related) use ($count, $relatedKey, $localKey, $operator)
 		{
-			$related->group($relatedKey)->having('COUNT(*)', $operator, $count);
+			$related->group($relatedKey)->group($localKey)->having('COUNT(*)', $operator, $count);
 		});
 	}
 
