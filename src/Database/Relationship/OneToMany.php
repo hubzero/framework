@@ -166,8 +166,8 @@ class OneToMany extends Relationship
 	 **/
 	public function getConstrainedKeys($constraint)
 	{
-		$this->related->select($this->related->getPrimaryKey())
-		              ->select($this->relatedKey);
+		//$this->related->select($this->related->getPrimaryKey())
+		$this->related->select($this->relatedKey);
 
 		return $this->getConstrained($constraint)->fieldsByKey($this->relatedKey);
 	}
