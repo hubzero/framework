@@ -663,6 +663,12 @@ class Password
 
 		$hzup = self::getInstance($user);
 
+		// Make sure we found a record
+		if (!$hzup)
+		{
+			return false;
+		}
+
 		$oldhash = $hzup->__get('passhash');
 
 		$hzup->__set('passhash', $passhash);
