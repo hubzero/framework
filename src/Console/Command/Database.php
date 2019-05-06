@@ -104,11 +104,11 @@ class Database extends Base implements CommandInterface
 		}
 
 		// First, set some things aside that we need to reapply after the update
-		$params                           = [];
+		$params = [];
 		$params['com_system']             = \Component::params('com_system');
 		$params['com_tools']              = \Component::params('com_tools');
 		$params['com_usage']              = \Component::params('com_usage');
-		$params['com_users']              = \Component::params('com_users');
+		$params['com_members']            = \Component::params('com_members');
 		$params['plg_projects_databases'] = \Plugin::params('projects', 'databases');
 
 		$tables = App::get('db')->getTableList();
