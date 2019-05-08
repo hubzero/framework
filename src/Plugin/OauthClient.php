@@ -72,18 +72,17 @@ abstract class OauthClient extends Plugin
 	protected static function getRedirectUri($name)
 	{
 		// Get the hub url
-		$service = trim(Request::base(), '/');
+		$service = trim(\Request::base(), '/');
 
-		if (substr($service, -13) == 'administrator')
-		{
-			$scope = '/index.php?option=com_login&task=login&authenticator=' . $name;
-		}
-		else
+		$task = 'login';
+
+		if (\App::isSite())
 		{
 			// If someone is logged in already, then we're linking an account
-			$task  = (User::isGuest()) ? 'user.login' : 'user.link';
-			$scope = '/index.php?option=com_users&task=' . $task . '&authenticator=' . $name;
+			$task  = (\User::isGuest()) ? 'login' : 'link';
 		}
+
+		$scope = '/index.php?option=com_login&task=' . $task . '&authenticator=' . $name;
 
 		return $service . $scope;
 	}
