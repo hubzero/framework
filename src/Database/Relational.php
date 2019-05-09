@@ -738,7 +738,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 
 				if (!isset($this->$property))
 				{
-					$this->$property = Html::content('prepare', $this->get($field, ''));
+					$this->$property = \Hubzero\Html\Builder\Content::prepare($this->get($field, ''));
 				}
 
 				return $this->$property;
