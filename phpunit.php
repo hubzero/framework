@@ -86,7 +86,6 @@ $app['config'] = new Hubzero\Config\Repository('test', new Hubzero\Config\FileLo
 */
 
 $services = [
-	'JoomlaServiceProvider',
 	'EventServiceProvider',
 	'TranslationServiceProvider',
 	'DatabaseServiceProvider',
