@@ -858,12 +858,25 @@ abstract class Table extends Obj
 			return false;
 		}
 
+		$columns = $this->getFields();
+
+		$data = [];
+		foreach ($columns as $name => $column)
+		{
+			// We want to get the default values from the
+			// table's schema, rather than assuming
+			if ($name == 'checked_out_time' || $name == 'checked_out')
+			{
+				$data[$name] = $column->Default;
+			}
+		}
+
 		// Check the row in by primary key.
 		$query = $this->_db->getQuery();
 		$query->update($this->_tbl);
 		$query->set(array(
-			'checked_out' => 0,
-			'checked_out_time' => $this->_db->getNullDate()
+			'checked_out' => $data['checked_out'],
+			'checked_out_time' => $data['checked_out_time']
 		));
 		$query->whereEquals($this->_tbl_key, $pk);
 		$this->_db->setQuery($query->toString());
@@ -877,8 +890,8 @@ abstract class Table extends Obj
 		}
 
 		// Set table values in the object.
-		$this->checked_out = 0;
-		$this->checked_out_time = '';
+		$this->checked_out = $data['checked_out'];
+		$this->checked_out_time = $data['checked_out_time'];
 
 		return true;
 	}
