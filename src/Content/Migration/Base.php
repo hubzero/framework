@@ -1176,7 +1176,7 @@ class Base
 				$asset->destroy();
 			}
 
-			$this->log(sprintf('Removed extension entry for component "%s"', $element));
+			$this->log(sprintf('Removed extension entry for component "%s"', $name));
 
 			if ($this->baseDb->tableExists('#__menu'))
 			{
@@ -1188,7 +1188,7 @@ class Base
 				// Rebuild lft/rgt
 				$this->rebuildMenu();
 
-				$this->log(sprintf('Removed menu entry for component "%s"', $element));
+				$this->log(sprintf('Removed menu entry for component "%s"', $name));
 			}
 
 			return true;
