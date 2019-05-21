@@ -112,9 +112,10 @@ class Component extends Relational
 	public function getComponents()
 	{
 		return self::all()
+			->deselect()
+			->select('component')
 			->order('component', 'asc')
 			->group('component')
-			->group('id')
 			->rows();
 	}
 }
