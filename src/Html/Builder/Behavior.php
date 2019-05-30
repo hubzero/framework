@@ -198,7 +198,7 @@ class Behavior
 						EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
 				},
 				tex2jax:{
-						inlineMath: [ ["$$", "$$"], ["\\\\(","\\\\)"] ],
+						inlineMath: [ ["$$", "$$"] ], // , ["\\\\(","\\\\)"]
 						displayMath: [ ["$$$","$$$"], ["\\[", "\\]"] ],
 						processEscapes: true,
 						ignoreClass: "tex2jax_ignore|dno"
