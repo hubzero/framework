@@ -1375,23 +1375,54 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	}
 
 	/**
+	 * Get database table columns
+	 *
+	 * @return  array
+	 **/
+	public function getTableColumns()
+	{
+		static $columns = null;
+
+		if (is_null($columns))
+		{
+			$columns = (array)$this->getStructure()->getTableColumns($this->getTableName(), false);
+
+			if (empty($columns))
+			{
+				throw new Exception(sprintf('Columns not found for table %s', $this->getTableName()));
+			}
+		}
+
+		return $columns;
+	}
+
+	/**
 	 * Filters out fields that are not actually a table column
 	 *
-	 * @param   string  $table  The name of the database table
-	 * @param   array   $data   The attributes passed in to be saved to the table
 	 * @return  array
 	 **/
 	public function getTableColumnsOnly()
 	{
-		$data = $this->attributes;
-		$tableColumns = $this->getStructure()->getTableColumns($this->table);
-		if (!empty($tableColumns))
-		{
-			$data = array_intersect_key($data, $tableColumns);
-		}
-		return $data;
+		return array_intersect_key($this->attributes, $this->getTableColumns());
 	}
 
+	/**
+	 * Get the defined default value for a database table column
+	 *
+	 * @param   string  $col  The name of the database table column
+	 * @return  mixed
+	 **/
+	public function getTableColumnDefault($col)
+	{
+		$columns = $this->getTableColumns();
+
+		if (isset($columns[$col]))
+		{
+			return $column[$col]['default'];
+		}
+
+		return null;
+	}
 
 	/**
 	 * Inserts a new row into the database
@@ -1403,7 +1434,9 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	{
 		// Add any automatic fields
 		$this->parseAutomatics('initiate');
+
 		$data = $this->getTableColumnsOnly();
+
 		return $this->query->push($this->getTableName(), $data);
 	}
 
@@ -1417,7 +1450,9 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	{
 		// Add any automatic fields
 		$this->parseAutomatics('renew');
+
 		$data = $this->getTableColumnsOnly();
+
 		// Return the result of the query
 		return $this->query->alter(
 			$this->getTableName(),
@@ -1508,6 +1543,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		}
 
 		\Event::trigger('system.onContentDestroy', array($this->getTableName(), $this));
+
 		return $this->query->remove(
 			$this->getTableName(),
 			$this->getPrimaryKey(),
@@ -1526,7 +1562,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	{
 		if (!$this->isNew())
 		{
-			$columns = $this->getStructure()->getTableColumns($this->getTableName());
+			$columns = $this->getTableColumns();
 
 			$data = [];
 
@@ -1580,25 +1616,23 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	{
 		if (!$this->isNew())
 		{
-			$columns = $this->getStructure()->getTableColumns($this->getTableName(), false);
+			$columns = $this->getTableColumns();
 
 			$data = [];
 			$orig = [];
-			foreach ($columns as $column)
-			{
-				// We want to get the default values from the
-				// table's schema, rather than assuming
-				if ($column['name'] == 'checked_out_time')
-				{
-					$orig['checked_out_time'] = $this->get('checked_out_time');
-					$data['checked_out_time'] = $column['default'];
-				}
 
-				if ($column['name'] == 'checked_out')
-				{
-					$orig['checked_out'] = $this->get('checked_out');
-					$data['checked_out'] = $column['default'];
-				}
+			// We want to get the default values from the
+			// table's schema, rather than assuming
+			if (isset($columns['checked_out_time']))
+			{
+				$orig['checked_out_time'] = $this->get('checked_out_time');
+				$data['checked_out_time'] = $columns['checked_out_time']['default'];
+			}
+
+			if (isset($columns['checked_out']))
+			{
+				$orig['checked_out'] = $this->get('checked_out');
+				$data['checked_out'] = $columns['checked_out']['default'];
 			}
 
 			if (empty($data))
