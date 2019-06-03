@@ -75,14 +75,24 @@ abstract class OauthClient extends Plugin
 		$service = trim(\Request::base(), '/');
 
 		$task = 'login';
+		$option = 'login';
 
 		if (\App::isSite())
 		{
-			// If someone is logged in already, then we're linking an account
-			$task  = (\User::isGuest()) ? 'login' : 'link';
+			// Legacy support
+			if (\App::has('component') && \App::get('component')->isEnabled('com_users'))
+			{
+				// If someone is logged in already, then we're linking an account
+				$task   = (\User::isGuest()) ? 'user.login' : 'user.link';
+				$option = 'users';
+			}
+			else
+			{
+				$task   = (\User::isGuest()) ? 'login' : 'link';
+			}
 		}
 
-		$scope = '/index.php?option=com_login&task=' . $task . '&authenticator=' . $name;
+		$scope = '/index.php?option=com_' . $option . '&task=' . $task . '&authenticator=' . $name;
 
 		return $service . $scope;
 	}
