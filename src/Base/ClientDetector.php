@@ -69,7 +69,10 @@ class ClientDetector
 				// To determine the current environment, we'll simply iterate through the possible
 				// environments and look for the host that matches the host for this request we
 				// are currently processing here, then return back these environment's names.
-				if ((defined($const) && JPATH_BASE == constant($const)) || $this->request->segment(1) == $url)
+				if ((defined($const) && JPATH_BASE == constant($const))
+				 || $this->request->segment(1) == $url
+				 || $this->request->segment(1) == $client->name
+				 || $this->request->segment(1) == $client->url)
 				{
 					return $client;
 				}
