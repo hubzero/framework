@@ -119,6 +119,10 @@ class Select extends Field
 				{
 					$tmp->$index = (string) $value;
 				}
+				if (!$this->value && $index == 'selected')
+				{
+					$this->value = (string) $option['value'];
+				}
 			}
 
 			// Set some option attributes.
