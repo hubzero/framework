@@ -285,4 +285,16 @@ class Toolbar extends Obj
 			array_unshift($this->_buttonPath, $dir);
 		}
 	}
+
+	/**
+	 * Method to add a menu item. Alias for appendButton()
+	 *
+	 * @param  string  $name  Name of the menu item.
+	 * @param  string  $link  URL of the menu item.
+	 * @param  bool    True if the item is active, false otherwise.
+	 */
+	public function addEntry($name, $link = '', $active = false)
+	{
+		$this->appendButton($name, $link, $active);
+	}
 }
