@@ -5,14 +5,16 @@
  * @license    http://opensource.org/licenses/MIT MIT
  */
 
-namespace Hubzero\Facades;
+namespace Hubzero\Facades\Tests\Mock;
+
+use Hubzero\Facades\Facade;
 
 /**
- * Filesystem facade
+ * Mock Foo facade
  *
  * @codeCoverageIgnore
  */
-class Filesystem extends Facade
+class FooFacade extends Facade
 {
 	/**
 	 * Get the registered name.
@@ -21,6 +23,6 @@ class Filesystem extends Facade
 	 */
 	protected static function getAccessor()
 	{
-		return 'filesystem';
+		return 'foo';
 	}
 }

@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * Flash message facade
+ *
+ * @codeCoverageIgnore
  */
 class Notify extends Facade
 {

@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * HTML Helper facade
+ *
+ * @codeCoverageIgnore
  */
 class Html extends Facade
 {

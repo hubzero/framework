@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * Response facade
+ *
+ * @codeCoverageIgnore
  */
 class Response extends Facade
 {
@@ -17,7 +19,7 @@ class Response extends Facade
 	 * 
 	 * @return  string
 	 */
-	public static function getAccessor()
+	protected static function getAccessor()
 	{
 		return 'response';
 	}

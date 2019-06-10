@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * Document facade
+ *
+ * @codeCoverageIgnore
  */
 class Document extends Facade
 {

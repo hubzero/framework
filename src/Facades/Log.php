@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * Log facade
+ *
+ * @codeCoverageIgnore
  */
 class Log extends Facade
 {

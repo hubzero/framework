@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * Date facade
+ *
+ * @codeCoverageIgnore
  */
 class Date extends Facade
 {

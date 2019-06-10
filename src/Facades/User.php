@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * User facade
+ *
+ * @codeCoverageIgnore
  */
 class User extends Facade
 {

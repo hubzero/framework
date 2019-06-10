@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * Component loader facade
+ *
+ * @codeCoverageIgnore
  */
 class Component extends Facade
 {
@@ -17,7 +19,7 @@ class Component extends Facade
 	 *
 	 * @return  string
 	 */
-	public static function getAccessor()
+	protected static function getAccessor()
 	{
 		return 'component';
 	}
