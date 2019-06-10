@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * Config helper facade
+ *
+ * @codeCoverageIgnore
  */
 class Config extends Facade
 {

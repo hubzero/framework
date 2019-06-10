@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * App facade
+ *
+ * @codeCoverageIgnore
  */
 class App extends Facade
 {

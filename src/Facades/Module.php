@@ -17,7 +17,7 @@ class Module extends Facade
 	 *
 	 * @return  string
 	 */
-	public static function getAccessor()
+	protected static function getAccessor()
 	{
 		return 'module';
 	}

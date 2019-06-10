@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * Language helper facade
+ *
+ * @codeCoverageIgnore
  */
 class Lang extends Facade
 {

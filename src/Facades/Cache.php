@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * Cache helper facade
+ *
+ * @codeCoverageIgnore
  */
 class Cache extends Facade
 {

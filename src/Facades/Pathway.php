@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * Pathway facade
+ *
+ * @codeCoverageIgnore
  */
 class Pathway extends Facade
 {
@@ -17,7 +19,7 @@ class Pathway extends Facade
 	 *
 	 * @return  string
 	 */
-	public static function getAccessor()
+	protected static function getAccessor()
 	{
 		return 'pathway';
 	}

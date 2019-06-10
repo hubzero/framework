@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * Module loader facade
+ *
+ * @codeCoverageIgnore
  */
 class Plugin extends Facade
 {
@@ -17,7 +19,7 @@ class Plugin extends Facade
 	 *
 	 * @return  string
 	 */
-	public static function getAccessor()
+	protected static function getAccessor()
 	{
 		return 'plugin';
 	}

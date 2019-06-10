@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * Session facade
+ *
+ * @codeCoverageIgnore
  */
 class Session extends Facade
 {
@@ -17,7 +19,7 @@ class Session extends Facade
 	 *
 	 * @return  string
 	 */
-	public static function getAccessor()
+	protected static function getAccessor()
 	{
 		return 'session';
 	}
