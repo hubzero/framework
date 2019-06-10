@@ -320,6 +320,60 @@ class StrTest extends Basic
 	}
 
 	/**
+	 * Test cleanInsert
+	 *
+	 * @covers  \Hubzero\Utility\Str::cleanInsert
+	 * @return  void
+	 */
+	public function testCleanInsert()
+	{
+		$result = Str::cleanInsert(':incomplete', [
+			'clean'  => true,
+			'before' => ':',
+			'after'  => ''
+		]);
+		$this->assertEquals('', $result);
+
+		$result = Str::cleanInsert(':incomplete', [
+			'clean'  => [
+				'method'      => 'text',
+				'replacement' => 'complete'
+			],
+			'before' => ':',
+			'after'  => ''
+		]);
+		$this->assertEquals('complete', $result);
+
+		$result = Str::cleanInsert(':in.complete', [
+			'clean'  => true,
+			'before' => ':',
+			'after'  => ''
+		]);
+		$this->assertEquals('', $result);
+
+		$result = Str::cleanInsert(':in.complete and', [
+			'clean'  => true,
+			'before' => ':',
+			'after'  => ''
+		]);
+		$this->assertEquals('', $result);
+
+		$result = Str::cleanInsert(':in.complete or stuff', [
+			'clean'  => true,
+			'before' => ':',
+			'after'  => ''
+		]);
+		$this->assertEquals('stuff', $result);
+
+		$result = Str::cleanInsert('<p class=":missing" id=":missing">Text here</p>', [
+			'clean'  => 'html',
+			'before' => ':',
+			'after'  => ''
+		]);
+		$this->assertEquals('<p>Text here</p>', $result);
+	}
+
+	/**
 	 * Tests replacing &amp; with & for XHTML compliance
 	 *
 	 * @covers  \Hubzero\Utility\Str::ampReplace
@@ -397,5 +451,69 @@ class StrTest extends Basic
 		$result = Str::excerpt($str, '', 10);
 
 		$this->assertEquals($result, 'Cras mattis...');
+	}
+
+	/**
+	 * Tests highlight() method.
+	 *
+	 * @covers  \Hubzero\Utility\Str::highlight
+	 * @return  void
+	 */
+	public function testHighlight()
+	{
+		$text     = 'This is a test text';
+		$phrases  = ['This', 'text'];
+		$result   = Str::highlight($text, $phrases, ['format' => '<b>\1</b>']);
+		$expected = '<b>This</b> is a test <b>text</b>';
+
+		$this->assertEquals($expected, $result);
+
+		$phrases  = ['is', 'text'];
+		$result   = Str::highlight($text, $phrases, ['format' => '<b>\1</b>', 'regex' => "|\b%s\b|iu"]);
+		$expected = 'This <b>is</b> a test <b>text</b>';
+
+		$this->assertEquals($expected, $result);
+
+		$text    = 'This is a test text';
+		$phrases = null;
+		$result  = Str::highlight($text, $phrases, ['format' => '<b>\1</b>']);
+
+		$this->assertEquals($text, $result);
+
+		$text    = 'This is a (test) text';
+		$phrases = '(test';
+		$result  = Str::highlight($text, $phrases, ['format' => '<b>\1</b>']);
+
+		$this->assertEquals('This is a <b>(test</b>) text', $result);
+
+		$text     = 'Ich saß in einem Café am Übergang';
+		$expected = 'Ich <b>saß</b> in einem <b>Café</b> am <b>Übergang</b>';
+		$phrases  = ['saß', 'café', 'übergang'];
+		$result   = Str::highlight($text, $phrases, ['format' => '<b>\1</b>']);
+
+		$this->assertEquals($expected, $result);
+
+		// Test highlighting HTML
+		$text1 = '<p>strongbow isn&rsquo;t real cider</p>';
+		$text2 = '<p>strongbow <strong>isn&rsquo;t</strong> real cider</p>';
+		$text3 = '<img src="what-a-strong-mouse.png" alt="What a strong mouse!" />';
+		$text4 = 'What a strong mouse: <img src="what-a-strong-mouse.png" alt="What a strong mouse!" />';
+		$options = [
+			'format' => '<b>\1</b>',
+			'html'   => true
+		];
+		$expected = '<p><b>strong</b>bow isn&rsquo;t real cider</p>';
+
+		$this->assertEquals($expected, Str::highlight($text1, 'strong', $options));
+
+		$expected = '<p><b>strong</b>bow <strong>isn&rsquo;t</strong> real cider</p>';
+
+		$this->assertEquals($expected, Str::highlight($text2, 'strong', $options));
+		$this->assertEquals($text3, Str::highlight($text3, 'strong', $options));
+		$this->assertEquals($text3, Str::highlight($text3, ['strong', 'what'], $options));
+
+		$expected = '<b>What</b> a <b>strong</b> mouse: <img src="what-a-strong-mouse.png" alt="What a strong mouse!" />';
+
+		$this->assertEquals($expected, Str::highlight($text4, ['strong', 'what'], $options));
 	}
 }
