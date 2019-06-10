@@ -13,6 +13,7 @@ use Hubzero\Facades\Tests\Mock\Application;
 use Hubzero\Facades\Tests\Mock\Foo;
 use Hubzero\Facades\Tests\Mock\Bar;
 use Hubzero\Facades\Tests\Mock\FooFacade;
+use Hubzero\Facades\Tests\Mock\BadFacade;
 
 /**
  * Facade tests
@@ -67,6 +68,26 @@ class FacadeTest extends Basic
 	}
 
 	/**
+	 * Tests getAccessor() method
+	 *
+	 * @covers  \Hubzero\Facades\Facade::getAccessor
+	 * @return  void
+	 **/
+	public function testGetAccessor()
+	{
+		$foo = new Foo;
+
+		$app = new Application;
+		$app['foo'] = $foo;
+
+		BadFacade::setApplication($app);
+
+		$this->setExpectedException('RuntimeException');
+
+		BadFacade::bar();
+	}
+
+	/**
 	 * Test Facade calls the underlying application
 	 *
 	 * @covers  \Hubzero\Facades\Facade::getAccessor
@@ -83,6 +104,21 @@ class FacadeTest extends Basic
 		FooFacade::setApplication($app);
 
 		$this->assertEquals('baz', FooFacade::bar());
+
+		$argsCount = FooFacade::multiArg('one');
+		$this->assertEquals($argsCount, 1);
+
+		$argsCount = FooFacade::multiArg('one', 'two');
+		$this->assertEquals($argsCount, 2);
+
+		$argsCount = FooFacade::multiArg('one', 'two', 'three');
+		$this->assertEquals($argsCount, 3);
+
+		$argsCount = FooFacade::multiArg('one', 'two', 'three', 'four');
+		$this->assertEquals($argsCount, 4);
+
+		$argsCount = FooFacade::multiArg('one', 'two', 'three', 'four', 'five');
+		$this->assertEquals($argsCount, 5);
 	}
 
 	/**

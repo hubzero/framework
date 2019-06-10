@@ -23,4 +23,15 @@ class Foo
 	{
 		return 'baz';
 	}
+
+	/**
+	 * Get a count of the number of args passed
+	 *
+	 * @return  integer
+	 */
+	public function multiArg()
+	{
+		$args = func_get_args();
+		return count($args);
+	}
 }
