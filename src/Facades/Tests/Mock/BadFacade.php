@@ -7,20 +7,13 @@
 
 namespace Hubzero\Facades\Tests\Mock;
 
+use Hubzero\Facades\Facade;
+
 /**
- * Mock Bar
+ * Mock BadFacade
  *
  * @codeCoverageIgnore
  */
-class Bar
+class BadFacade extends Facade
 {
-	/**
-	 * Get the registered name.
-	 *
-	 * @return  string
-	 */
-	public function bar()
-	{
-		return 'zab';
-	}
 }
