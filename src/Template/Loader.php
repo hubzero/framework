@@ -240,11 +240,6 @@ class Loader
 					->whereEquals($e . '.type', 'template')
 					->whereRaw($e . '.`client_id` = `' . $s . '`.`client_id`');
 
-				if ($id)
-				{
-					$query->whereEquals($s . '.id', $id);
-				}
-
 				$query->order('home', 'desc');
 
 				$db->setQuery($query->toString());
@@ -290,10 +285,6 @@ class Loader
 		if (isset($templates[$id]))
 		{
 			$tmpl = $templates[$id];
-		}
-		else if (isset($templates[0]))
-		{
-			$tmpl = $templates[0];
 		}
 
 		if ($tmpl && file_exists($tmpl->path . DIRECTORY_SEPARATOR . 'index.php'))
