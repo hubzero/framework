@@ -9,6 +9,8 @@ namespace Hubzero\Facades;
 
 /**
  * Submenu facade
+ *
+ * @codeCoverageIgnore
  */
 class Submenu extends Facade
 {
@@ -17,20 +19,8 @@ class Submenu extends Facade
 	 *
 	 * @return  string
 	 */
-	public static function getAccessor()
+	protected static function getAccessor()
 	{
 		return 'submenu';
-	}
-
-	/**
-	 * Method to add a menu item to submenu.
-	 *
-	 * @param  string  $name  Name of the menu item.
-	 * @param  string  $link  URL of the menu item.
-	 * @param  bool    True if the item is active, false otherwise.
-	 */
-	public static function addEntry($name, $link = '', $active = false)
-	{
-		static::getRoot()->appendButton($name, $link, $active);
 	}
 }
