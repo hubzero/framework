@@ -64,6 +64,16 @@ class ClientDetector
 		{
 			if ($client = ClientManager::client($environment, true))
 			{
+				if ($client->name == 'cli')
+				{
+					if (php_sapi_name() == 'cli')
+					{
+						return $client;
+					}
+
+					continue;
+				}
+
 				$const = 'JPATH_' . strtoupper($environment);
 
 				// To determine the current environment, we'll simply iterate through the possible
