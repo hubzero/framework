@@ -37,7 +37,7 @@ class Repository extends Registry
 	{
 		if (!$loader)
 		{
-			$path = defined('PATH_APP') ? PATH_APP . DIRECTORY_SEPARATOR . 'config' : __DIR__;
+			$path = defined('PATH_APP') ? PATH_APP . DIRECTORY_SEPARATOR . 'config' : __DIR__ . 'config';
 			$loader = new FileLoader($path);
 		}
 		$this->loader = $loader;
