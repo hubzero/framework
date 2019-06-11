@@ -52,4 +52,37 @@ class ProcessorTest extends Basic
 
 		$result = Processor::instance('py');
 	}
+
+	/**
+	 * Tests getSupportedExtensions()
+	 *
+	 * @covers  \Hubzero\Config\Processor::getSupportedExtensions
+	 * @return  void
+	 **/
+	public function testGetSupportedExtensions()
+	{
+		$stub = $this->getMockForAbstractClass('Hubzero\Config\Processor');
+		$stub->expects($this->any())
+			->method('getSupportedExtensions')
+			->will($this->returnValue(array()));
+
+		$this->assertEquals(array(), $stub->getSupportedExtensions());
+	}
+
+	/**
+	 * Tests parse()
+	 *
+	 * @covers  \Hubzero\Config\Processor::parse
+	 * @return  void
+	 **/
+	public function testParse()
+	{
+		$stub = $this->getMockForAbstractClass('Hubzero\Config\Processor');
+		$stub->expects($this->any())
+			->method('parse')
+			->with($this->isType('string'))
+			->will($this->returnValue(array()));
+
+		$this->assertEquals(array(), $stub->parse(__DIR__ . '/Tests/Files/test.json'));
+	}
 }
