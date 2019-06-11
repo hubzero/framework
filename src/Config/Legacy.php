@@ -13,7 +13,7 @@ use Hubzero\Config\Exception\FileNotFoundException;
 /**
  * Repository class
  */
-class Legacy extends Registry
+class Legacy //extends Registry
 {
 	/**
 	 * The current client type (admin, site, api, etc).
@@ -229,7 +229,7 @@ class Legacy extends Registry
 			$path .= DIRECTORY_SEPARATOR . 'config'
 		}
 
-		$writer = new \Hubzero\Config\FileWriter(
+		$writer = new FileWriter(
 			$format,
 			$path
 		);

@@ -116,14 +116,15 @@ class FileLoader
 		}
 		catch (\Exception $e)
 		{
-			$loader = new Legacy();
+			$data = array();
+			/*$loader = new Legacy();
 
 			$data = $loader->toArray();
 
 			if (!empty($data))
 			{
 				$loader->split();
-			}
+			}*/
 		}
 
 		return $data;
