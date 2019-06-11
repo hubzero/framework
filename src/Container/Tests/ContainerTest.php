@@ -17,6 +17,21 @@ use Hubzero\Test\Basic;
 class ContainerTest extends Basic
 {
 	/**
+	 * Test the constructor sets values
+	 *
+	 * @covers  \Hubzero\Container\Container::__construct
+	 * @return  void
+	 **/
+	public function testConstructor()
+	{
+		$params = array('param' => 'value');
+
+		$container = new Container($params);
+
+		$this->assertSame($params['param'], $container['param']);
+	}
+
+	/**
 	 * Test setting and getting a string
 	 *
 	 * @covers  \Hubzero\Container\Container::set
@@ -150,5 +165,119 @@ class ContainerTest extends Basic
 		$this->setExpectedException('InvalidArgumentException');
 
 		$container->raw('lorem');
+	}
+
+	/**
+	 * Test that factory services are different
+	 *
+	 * @covers  \Hubzero\Container\Container::factory
+	 * @return  void
+	 **/
+	public function testServicesShouldBeDifferent()
+	{
+		$container = new Container();
+
+		$container['service'] = $container->factory(function () {
+			return new Service();
+		});
+
+		$serviceOne = $container['service'];
+
+		$this->assertInstanceOf(__NAMESPACE__ . '\Mock\Service', $serviceOne);
+
+		$serviceTwo = $container['service'];
+
+		$this->assertInstanceOf(__NAMESPACE__ . '\Mock\Service', $serviceTwo);
+
+		$this->assertNotSame($serviceOne, $serviceTwo);
+	}
+
+	/**
+	 * Test that extend() throws an exception when a key is undefined
+	 *
+	 * @covers  \Hubzero\Container\Container::extend
+	 * @return  void
+	 **/
+	public function testExtendThrowsExceptionWithUndefinedKey()
+	{
+		$container = new Container();
+
+		$this->setExpectedException('InvalidArgumentException');
+
+		$container->extend(
+			'lorem',
+			function ()
+			{
+				return 'ipsum';
+			}
+		);
+	}
+
+	/**
+	 * Test that extend() throws an exception when a definition isn't callable
+	 *
+	 * @covers  \Hubzero\Container\Container::extend
+	 * @return  void
+	 **/
+	public function testExtendThrowsExceptionWithInvalidDefinition()
+	{
+		$container = new Container();
+		$container['param'] = 'value';
+
+		$this->setExpectedException('InvalidArgumentException');
+
+		$container->extend(
+			'param',
+			function ()
+			{
+				return 'ipsum';
+			}
+		);
+	}
+
+	/**
+	 * Test that extend() throws an exception when an extension isn't callable
+	 *
+	 * @covers  \Hubzero\Container\Container::extend
+	 * @return  void
+	 **/
+	public function testExtendThrowsExceptionWithUncallableExtension()
+	{
+		$container = new Container();
+		$container['param'] = 'value';
+
+		$this->setExpectedException('InvalidArgumentException');
+
+		$container->extend(
+			'param',
+			'ipsum'
+		);
+	}
+
+	/**
+	 * Test extending a service
+	 *
+	 * @covers  \Hubzero\Container\Container::extend
+	 * @return  void
+	 **/
+	public function testExtendingService()
+	{
+		$container = new Container();
+		$container['foo'] = function ()
+		{
+			return 'foo';
+		};
+
+		$container['foo'] = $container->extend('foo', function ($foo, $app)
+		{
+			return "$foo.bar";
+		});
+
+		$container['foo'] = $container->extend('foo', function ($foo, $app)
+		{
+			return "$foo.baz";
+		});
+
+		$this->assertSame('foo.bar.baz', $container['foo']);
 	}
 }
