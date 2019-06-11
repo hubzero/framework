@@ -226,7 +226,7 @@ class Legacy //extends Registry
 		if (!$path)
 		{
 			$path  = defined('PATH_ROOT') ? PATH_ROOT : __DIR__;
-			$path .= DIRECTORY_SEPARATOR . 'config'
+			$path .= DIRECTORY_SEPARATOR . 'config';
 		}
 
 		$writer = new FileWriter(
