@@ -127,6 +127,8 @@ class Legacy extends Registry
 	 */
 	public function __construct($path = null)
 	{
+		$this->reset();
+
 		if (!$path)
 		{
 			$path = PATH_ROOT;

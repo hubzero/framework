@@ -30,9 +30,12 @@ class RegistryTest extends Basic
 	{
 		$data = new Registry();
 
+		// Test that default value is returned
 		$this->assertEquals($data->get('foo'), null);
 		$this->assertEquals($data->get('foo', 'one'), 'one');
+		$this->assertEquals($data->get('lorem.ipsum.dolor', 'baz'), 'baz');
 
+		// Test correct value is returned
 		$data->set('foo', 'bar');
 
 		$this->assertEquals($data->get('foo'), 'bar');
@@ -62,6 +65,11 @@ class RegistryTest extends Basic
 		$data->set('lorem.ipsum', array('dolor' => 'mit'));
 
 		$this->assertEquals($data->get('lorem.ipsum.dolor'), 'mit');
+
+		$data->set('lorem', array('ipsum' => 'dolor'));
+		$data->set('lorem.dolor.foo', 'bar');
+
+		$this->assertEquals($data->get('lorem.dolor.foo'), 'bar');
 	}
 
 	/**
@@ -162,6 +170,27 @@ class RegistryTest extends Basic
 		$data->reset();
 
 		$this->assertEquals($data->count(), 0);
+	}
+
+	/**
+	 * Tests the toString() method
+	 *
+	 * @covers  \Hubzero\Config\Registry::toString
+	 * @covers  \Hubzero\Config\Registry::__toString
+	 * @return  void
+	 **/
+	public function testToString()
+	{
+		$data = new Registry();
+
+		$data->set('foo', 'bar');
+		$data->set('bar', 'foo');
+		$data->set('lorem', new stdClass);
+		$data->set('lorem.ipsum', 'sham');
+
+		$str = $data->toString();
+
+		$this->assertEquals($str, '{"foo":"bar","bar":"foo","lorem":{"ipsum":"sham"}}');
 	}
 
 	/**
@@ -390,16 +419,32 @@ class RegistryTest extends Basic
 		$this->assertTrue($result);
 		$this->assertEquals($data->get('lorem.ipsum'), 'mit');
 		$this->assertTrue($data->has('cullen'));
+
+		// Test that empty values are discarded
+		$data = new Registry();
+		$data->set('foo', 'bar');
+		$data->set('bar', 'foo');
+
+		$data2 = new Registry();
+		$data2->set('bar', 'newfoo');
+		$data2->set('lorem', '');
+
+		$result = $data->merge($data2);
+
+		$this->assertTrue($result);
+		$this->assertEquals($data->get('lorem'), null);
 	}
 
 	/**
 	 * Tests the parse() method
 	 *
 	 * @covers  \Hubzero\Config\Registry::parse
+	 * @covers  \Hubzero\Config\Registry::read
 	 * @return  void
 	 **/
 	public function testParse()
 	{
+		// Parse from a string
 		$data = new Registry();
 
 		$json = '{"one":"bar","bar":"foo","lorem":{"ipsum":"sham"}}';
@@ -412,6 +457,7 @@ class RegistryTest extends Basic
 		$this->assertEquals($data->get('one'), 'bar');
 		$this->assertEquals($data->get('lorem.ipsum'), 'sham');
 
+		// Parse from an array
 		$data = new Registry();
 
 		$arr = array('one' => 'bar', 'bar' => 'foo', 'lorem' => array('ipsum' => 'sham'));
@@ -423,5 +469,18 @@ class RegistryTest extends Basic
 
 		$this->assertEquals($data->get('one'), 'bar');
 		$this->assertEquals($data->get('lorem.ipsum'), 'sham');
+
+		// Test parsing from a file
+		$data = new Registry();
+		$result = $data->parse(__DIR__ . '/Files/test.json');
+
+		$this->assertTrue($result);
+		$this->assertEquals($data->get('app.application_env'), 'development');
+
+		// Try parsing from an unsupported format
+		$data = new Registry();
+		$result = $data->parse(__DIR__ . '/Files/test.md');
+
+		$this->assertFalse($result);
 	}
 }

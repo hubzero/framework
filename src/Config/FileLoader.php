@@ -30,7 +30,17 @@ class FileLoader
 	 */
 	public function __construct($defaultPath)
 	{
-		$this->defaultPath  = $defaultPath;
+		$this->defaultPath = $defaultPath;
+	}
+
+	/**
+	 * Get the default path
+	 *
+	 * @return  string
+	 */
+	public function getDefaultPath()
+	{
+		return $this->defaultPath;
 	}
 
 	/**
@@ -48,7 +58,7 @@ class FileLoader
 		// as any environment folders with their specific configuration items.
 		try
 		{
-			$paths = $this->getPath($this->defaultPath);
+			$paths = $this->getPaths($this->defaultPath);
 
 			if (empty($paths))
 			{
@@ -61,13 +71,13 @@ class FileLoader
 				$info      = pathinfo($path);
 				$group     = isset($info['filename'])  ? strtolower($info['filename'])  : '';
 				$extension = isset($info['extension']) ? strtolower($info['extension']) : '';
+
 				if (!$extension || $extension == 'html')
 				{
 					continue;
 				}
-				$parser    = $this->getParser($extension);
 
-				$data[$group] = $parser->parse($path);
+				$data[$group] = $this->getParser($extension)->parse($path);
 			}
 
 			if (empty($data))
@@ -75,9 +85,10 @@ class FileLoader
 				throw new EmptyDirectoryException("Configuration directory: [" . $this->defaultPath . "] is empty");
 			}
 
+			// If a client is specified...
 			if ($client)
 			{
-				$paths = $this->getPath($this->defaultPath . DIRECTORY_SEPARATOR . $client);
+				$paths = $this->getPaths($this->defaultPath . DIRECTORY_SEPARATOR . $client);
 
 				foreach ($paths as $path)
 				{
@@ -85,19 +96,20 @@ class FileLoader
 					$info      = pathinfo($path);
 					$group     = isset($info['filename'])  ? strtolower($info['filename'])  : '';
 					$extension = isset($info['extension']) ? strtolower($info['extension']) : '';
+
 					if (!$extension || $extension == 'html')
 					{
 						continue;
 					}
-					$parser    = $this->getParser($extension);
 
 					if (!isset($data[$group]))
 					{
 						$data[$group] = array();
 					}
+
 					$data[$group] = array_replace_recursive(
 						$data[$group],
-						$parser->parse($path)
+						$this->getParser($extension)->parse($path)
 					);
 				}
 			}
@@ -105,24 +117,16 @@ class FileLoader
 		catch (\Exception $e)
 		{
 			$loader = new Legacy();
-			$loader->split();
 
 			$data = $loader->toArray();
+
+			if (!empty($data))
+			{
+				$loader->split();
+			}
 		}
 
 		return $data;
-	}
-
-	/**
-	 * Merge the items in the given file into the items.
-	 *
-	 * @param   array   $items
-	 * @param   string  $file
-	 * @return  array
-	 */
-	protected function mergeEnvironment(array $items, $file)
-	{
-		return array_replace_recursive($items, $this->getRequire($file));
 	}
 
 	/**
@@ -162,7 +166,7 @@ class FileLoader
 	 * @param   mixed  $path
 	 * @return  array
 	 */
-	protected function getPath($path)
+	protected function getPaths($path)
 	{
 		$paths = array();
 
@@ -171,7 +175,7 @@ class FileLoader
 		{
 			foreach ($path as $unverifiedPath)
 			{
-				$paths = array_merge($paths, $this->getPath($unverifiedPath));
+				$paths = array_merge($paths, $this->getPaths($unverifiedPath));
 			}
 
 			return $paths;
