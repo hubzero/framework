@@ -13,7 +13,7 @@ use Hubzero\Config\Exception\FileNotFoundException;
 /**
  * Repository class
  */
-class Legacy //extends Registry
+class Legacy extends Registry
 {
 	/**
 	 * The current client type (admin, site, api, etc).
