@@ -37,7 +37,8 @@ class Repository extends Registry
 	{
 		if (!$loader)
 		{
-			$loader = new \Hubzero\Config\FileLoader(PATH_APP . DS . 'config');
+			$path = defined('PATH_APP') ? PATH_APP . DIRECTORY_SEPARATOR . 'config' : __DIR__;
+			$loader = new FileLoader($path);
 		}
 		$this->loader = $loader;
 		$this->client = $client;

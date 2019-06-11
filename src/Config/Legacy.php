@@ -131,10 +131,10 @@ class Legacy extends Registry
 
 		if (!$path)
 		{
-			$path = PATH_ROOT;
+			$path = defined('PATH_ROOT') ? PATH_ROOT : __DIR__;
 		}
 
-		$this->file = $path . DS . 'configuration.php';
+		$this->file = $path . DIRECTORY_SEPARATOR . 'configuration.php';
 
 		if (file_exists($this->file))
 		{
@@ -196,7 +196,7 @@ class Legacy extends Registry
 
 		if (isset($config->tmp_path))
 		{
-			if (substr($config->tmp_path, strlen(PATH_ROOT)) == DS . 'tmp')
+			if (substr($config->tmp_path, strlen(PATH_ROOT)) == DIRECTORY_SEPARATOR . 'tmp')
 			{
 				$config->tmp_path = PATH_APP . substr($config->tmp_path, strlen(PATH_ROOT));
 			}
@@ -204,7 +204,7 @@ class Legacy extends Registry
 
 		if (isset($config->log_path))
 		{
-			if (substr($config->log_path, strlen(PATH_ROOT)) == DS . 'logs')
+			if (substr($config->log_path, strlen(PATH_ROOT)) == DIRECTORY_SEPARATOR . 'logs')
 			{
 				$config->log_path = PATH_APP . substr($config->log_path, strlen(PATH_ROOT));
 			}
@@ -223,7 +223,11 @@ class Legacy extends Registry
 	public function split($format = null, $path = null)
 	{
 		$format = $format ?: 'php';
-		$path   = $path   ?: PATH_APP . DS . 'config';
+		if (!$path)
+		{
+			$path  = defined('PATH_ROOT') ? PATH_ROOT : __DIR__;
+			$path .= DIRECTORY_SEPARATOR . 'config'
+		}
 
 		$writer = new \Hubzero\Config\FileWriter(
 			$format,
