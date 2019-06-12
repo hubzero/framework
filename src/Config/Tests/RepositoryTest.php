@@ -21,6 +21,7 @@ class RepositoryTest extends Basic
 	 * Tests the constructor sets loader and client
 	 *
 	 * @covers  \Hubzero\Config\Repository::__construct
+	 * @covers  \Hubzero\Config\Repository::setLoader
 	 * @covers  \Hubzero\Config\Repository::getLoader
 	 * @covers  \Hubzero\Config\Repository::setClient
 	 * @covers  \Hubzero\Config\Repository::getClient
@@ -60,6 +61,7 @@ class RepositoryTest extends Basic
 	/**
 	 * Tests get()
 	 *
+	 * @covers  \Hubzero\Config\Repository::load
 	 * @covers  \Hubzero\Config\Repository::get
 	 * @return  void
 	 **/
@@ -74,6 +76,7 @@ class RepositoryTest extends Basic
 		$this->assertEquals($data->get('foo', 'one'), 'one');
 		$this->assertEquals($data->get('lorem.ipsum.dolor', 'baz'), 'baz');
 		$this->assertEquals($data->get('app.application_env'), 'development');
+		$this->assertEquals($data->get('application_env'), 'development');
 
 		$loader = new FileLoader(__DIR__ . '/Files/Repository');
 
