@@ -48,14 +48,6 @@ class Plugin extends Obj
 	protected $_type = null;
 
 	/**
-	 * Container for component messages
-	 *
-	 * @var  array
-	 * @deprecated
-	 */
-	public $pluginMessageQueue = array();
-
-	/**
 	 * Affects constructor behavior. If true, language files will be loaded automatically.
 	 *
 	 * @var  boolean
@@ -125,96 +117,6 @@ class Plugin extends Obj
 		return $lang->load(strtolower($extension), $basePath, null, false, true)
 			|| $lang->load(strtolower($extension), PATH_APP . DS . 'plugins' . DS . $this->_type . DS . $this->_name, null, false, true)
 			|| $lang->load(strtolower($extension), PATH_CORE . DS . 'plugins' . DS . $this->_type . DS . $this->_name, null, false, true);
-	}
-
-	/**
-	 * Redirect
-	 *
-	 * @param   string  $url      The url to redirect to
-	 * @param   string  $msg      A message to display
-	 * @param   string  $msgType  Message type [error, success, warning]
-	 * @return  void
-	 * @deprecated
-	 */
-	public function redirect($url, $msg='', $msgType='')
-	{
-		if ($url)
-		{
-			$url = str_replace('&amp;', '&', $url);
-
-			//preserve plugin messages after redirect
-			if (count($this->pluginMessageQueue))
-			{
-				\App::get('session')->set('plugin.message.queue', $this->pluginMessageQueue);
-			}
-
-			\App::redirect($url, $msg, $msgType);
-		}
-	}
-
-	/**
-	 * Method to add a message to the component message que
-	 *
-	 * @param   string  $message  The message to add
-	 * @param   string  $type     The type of message to add
-	 * @return  object
-	 * @deprecated
-	 */
-	public function addPluginMessage($message, $type='message')
-	{
-		if (!count($this->pluginMessageQueue))
-		{
-			$session = \App::get('session');
-			$pluginMessage = $session->get('plugin.message.queue');
-			if (count($pluginMessage))
-			{
-				$this->pluginMessageQueue = $pluginMessage;
-				$session->set('plugin.message.queue', null);
-			}
-		}
-
-		//if message is somthing
-		if ($message != '')
-		{
-			$this->pluginMessageQueue[] = array(
-				'message' => $message,
-				'type'    => strtolower($type),
-				'option'  => $this->option,
-				'plugin'  => $this->_name
-			);
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Method to get component messages
-	 *
-	 * @return  array
-	 * @deprecated
-	 */
-	public function getPluginMessage()
-	{
-		if (!count($this->pluginMessageQueue))
-		{
-			$session = \App::get('session');
-			$pluginMessage = $session->get('plugin.message.queue');
-			if (count($pluginMessage))
-			{
-				$this->pluginMessageQueue = $pluginMessage;
-				$session->set('plugin.message.queue', null);
-			}
-		}
-
-		foreach ($this->pluginMessageQueue as $k => $cmq)
-		{
-			if ($cmq['option'] != $this->option)
-			{
-				$this->pluginMessageQueue[$k] = array();
-			}
-		}
-
-		return $this->pluginMessageQueue;
 	}
 
 	/**
