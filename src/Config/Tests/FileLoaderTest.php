@@ -65,18 +65,55 @@ class FileLoaderTest extends Basic
 		$expected['app']['application_env'] = 'production';
 		$expected['app']['editor'] = 'none';
 		$expected['app']['debug'] = '0';
+		$expected['session'] = array(
+			'cookie_domain' => '',
+			'cookie_path' => '',
+			'cookiesubdomains' => '0',
+			'lifetime' => '45',
+			'session_handler' => 'database'
+		);
 
 		$data = $loader->load('api');
 
 		$this->assertEquals($expected, $data);
 
-		// Try with a bad path
+		// Test with multiple paths
+		$path = array(
+			__DIR__ . '/Files/Repository',
+			__DIR__ . '/Files/Repository/api'
+		);
+
+		$loader = new FileLoader($path);
+
+		$data = $loader->load();
+
+		$this->assertEquals($expected, $data);
+
+		// Test with a bad path
 		$expected = array();
 		$path = __DIR__ . '/Foo';
 
 		$loader = new FileLoader($path);
 
 		$data = $loader->load();
+
+		$this->assertEquals($expected, $data);
+
+		// Test loading a specific file
+		$loader = new FileLoader(__DIR__ . '/Files/Repository/seo.php');
+
+		$data = $loader->load();
+
+		$expected = array(
+			'seo' => array(
+				'sef' => '1',
+				'sef_groups' => '0',
+				'sef_rewrite' => '1',
+				'sef_suffix' => '0',
+				'unicodeslugs' => '0',
+				'sitename_pagetitles' => '0'
+			)
+		);
 
 		$this->assertEquals($expected, $data);
 	}
