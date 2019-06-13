@@ -191,6 +191,10 @@ class RegistryTest extends Basic
 		$str = $data->toString();
 
 		$this->assertEquals($str, '{"foo":"bar","bar":"foo","lorem":{"ipsum":"sham"}}');
+
+		$str = (string)$data;
+
+		$this->assertEquals($str, '{"foo":"bar","bar":"foo","lorem":{"ipsum":"sham"}}');
 	}
 
 	/**
@@ -438,6 +442,7 @@ class RegistryTest extends Basic
 	/**
 	 * Tests the parse() method
 	 *
+	 * @covers  \Hubzero\Config\Registry::__construct
 	 * @covers  \Hubzero\Config\Registry::parse
 	 * @covers  \Hubzero\Config\Registry::read
 	 * @return  void
@@ -446,6 +451,10 @@ class RegistryTest extends Basic
 	{
 		// Parse from a string
 		$data = new Registry();
+
+		// `toObject()` returns the `$data` property which is set in the constructor
+		$this->assertTrue(is_object($data->toObject()));
+		$this->assertInstanceOf('stdClass', $data->toObject());
 
 		$json = '{"one":"bar","bar":"foo","lorem":{"ipsum":"sham"}}';
 
