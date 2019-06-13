@@ -108,7 +108,7 @@ class RepositoryTest extends Basic
 
 		$data['lorem'] = array('ipsum' => 'dolor');
 
-		$this->assertEquals($data->get('lorem.ipsum'), 'dolor');
+		$this->assertEquals($data->get('ipsum'), 'dolor');
 
 		$data->set('lorem.ipsum', array('dolor' => 'mit'));
 
