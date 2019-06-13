@@ -8,8 +8,6 @@
 namespace Hubzero\Config;
 
 use Hubzero\Error\Exception\InvalidArgumentException;
-use Hubzero\Filesystem\Adapter\Local;
-use Hubzero\Filesystem\Filesystem;
 use Hubzero\Utility\Arr;
 use stdClass;
 
@@ -270,27 +268,31 @@ class Registry implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \
 	/**
 	 * Load the contents of a file into the registry
 	 *
-	 * @param   string  $file     Path to file to load
-	 * @param   string  $format   Format of the file [optional: defaults to JSON]
-	 * @param   mixed   $options  Options used by the formatter
+	 * @param   string   $file  Path to file to load
 	 * @return  boolean  True on success
+	 * @throws  InvalidArgumentException
 	 */
 	public function read($file)
 	{
-		return with(new Filesystem(new Local))->read($file);
+		if (is_file($file))
+		{
+			return file_get_contents($file);
+		}
+
+		throw new InvalidArgumentException(sprintf('File does not exist at path %s', $file));
 	}
 
 	/**
 	 * Write the contents of the registry to a file
 	 *
-	 * @param   string  $file     Path to file to load
-	 * @param   string  $format   Format of the file [optional: defaults to JSON]
-	 * @param   mixed   $options  Options used by the formatter
+	 * @param   string   $file     Path to file to load
+	 * @param   string   $format   Format of the file [optional: defaults to JSON]
+	 * @param   mixed    $options  Options used by the formatter
 	 * @return  boolean  True on success
 	 */
 	public function write($file, $format = 'json', $options = array())
 	{
-		return with(new Filesystem(new Local))->write($file, $this->processor($format)->objectToString($this->data, $options));
+		return file_put_contents($file, $this->processor($format)->objectToString($this->data, $options));
 	}
 
 	/**
@@ -328,7 +330,6 @@ class Registry implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \
 
 				if (!$format)
 				{
-					//throw new InvalidArgumentException('JLIB_REGISTRY_EXCEPTION_LOAD_FORMAT_CLASS', 500);
 					return false;
 				}
 			}
@@ -381,7 +382,7 @@ class Registry implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \
 	/**
 	 * Transforms a namespace to an object
 	 *
-	 * @return  object   An an object holding the namespace data
+	 * @return  object  An an object holding the namespace data
 	 */
 	public function toObject()
 	{
