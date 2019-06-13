@@ -136,7 +136,7 @@ class Legacy extends Registry
 
 		$this->file = $path . DIRECTORY_SEPARATOR . 'configuration.php';
 
-		if (file_exists($this->file))
+		if ($this->exists())
 		{
 			$data = $this->read($this->file);
 			$data = \Hubzero\Utility\Arr::fromObject($data);
@@ -194,19 +194,22 @@ class Legacy extends Registry
 
 		$config = new \JConfig;
 
-		if (isset($config->tmp_path))
+		if (defined('PATH_ROOT') && defined('PATH_APP'))
 		{
-			if (substr($config->tmp_path, strlen(PATH_ROOT)) == DIRECTORY_SEPARATOR . 'tmp')
+			if (isset($config->tmp_path))
 			{
-				$config->tmp_path = PATH_APP . substr($config->tmp_path, strlen(PATH_ROOT));
+				if (substr($config->tmp_path, strlen(PATH_ROOT)) == DIRECTORY_SEPARATOR . 'tmp')
+				{
+					$config->tmp_path = PATH_APP . substr($config->tmp_path, strlen(PATH_ROOT));
+				}
 			}
-		}
 
-		if (isset($config->log_path))
-		{
-			if (substr($config->log_path, strlen(PATH_ROOT)) == DIRECTORY_SEPARATOR . 'logs')
+			if (isset($config->log_path))
 			{
-				$config->log_path = PATH_APP . substr($config->log_path, strlen(PATH_ROOT));
+				if (substr($config->log_path, strlen(PATH_ROOT)) == DIRECTORY_SEPARATOR . 'logs')
+				{
+					$config->log_path = PATH_APP . substr($config->log_path, strlen(PATH_ROOT));
+				}
 			}
 		}
 
