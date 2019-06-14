@@ -125,6 +125,9 @@ class QueryTest extends Database
 		$dbo   = $this->getMockDriver();
 		$query = new Query($dbo);
 
+		$result = $query->remove('users', null, null);
+		$this->assertFalse($result);
+
 		// Try to update an existing row
 		$query->remove('users', 'id', 1);
 
@@ -152,6 +155,37 @@ class QueryTest extends Database
 	}
 
 	/**
+	 * Test to make sure we can build a query with a raw WHERE statement
+	 *
+	 * @return  void
+	 **/
+	public function testBuildQueryWithRawWhere()
+	{
+		// Here's the query we're try to write...
+		$expected = "SELECT * FROM `users` WHERE LOWER(`name`)='awesome'";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users')
+		      ->whereRaw('LOWER(`name`)=?', ['awesome']);
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		$expected = "SELECT * FROM `users` WHERE `name` = 'foo' OR LOWER(`name`)='awesome'";
+
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users')
+		      ->whereEquals('name', 'foo')
+		      ->orWhereRaw('LOWER(`name`)=?', ['awesome']);
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+	}
+
+	/**
 	 * Test to make sure we can build a query with where like statements
 	 *
 	 * @return  void
@@ -167,6 +201,17 @@ class QueryTest extends Database
 		$query->select('*')
 		      ->from('users')
 		      ->whereLike('name', 'awesome');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		$expected = "SELECT * FROM `users` WHERE `name` LIKE '%awesome%' OR `name` LIKE '%amazing%'";
+
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users')
+		      ->whereLike('name', 'awesome')
+		      ->orWhereLike('name', 'amazing');
 
 		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
 	}
@@ -189,6 +234,17 @@ class QueryTest extends Database
 		      ->whereIsNull('name');
 
 		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		$expected = "SELECT * FROM `users` WHERE `name` = '' OR `name` IS NULL";
+
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users')
+		      ->whereEquals('name', '')
+		      ->orWhereIsNull('name');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
 	}
 
 	/**
@@ -207,6 +263,71 @@ class QueryTest extends Database
 		$query->select('*')
 		      ->from('users')
 		      ->whereIsNotNull('name');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		$expected = "SELECT * FROM `users` WHERE `name` = 'bar' OR `name` IS NOT NULL";
+
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users')
+		      ->whereEquals('name', 'bar')
+		      ->orWhereIsNotNull('name');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+	}
+
+	/**
+	 * Test to make sure we can build a query with where IS NULL statements
+	 *
+	 * @return  void
+	 **/
+	public function testBuildQueryWithWhereIn()
+	{
+		// Here's the query we're try to write...
+		$expected = "SELECT * FROM `users` WHERE `name` IN ('one','two','three')";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users')
+		      ->whereIn('name', ['one', 'two', 'three']);
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		$expected = "SELECT * FROM `users` WHERE `name` = 'amazing' OR `name` IN ('one','two','three')";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users')
+		      ->whereEquals('name', 'amazing')
+		      ->orWhereIn('name', ['one', 'two', 'three']);
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		$expected = "SELECT * FROM `users` WHERE `name` NOT IN ('one','two','three')";
+
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users')
+		      ->whereNotIn('name', ['one', 'two', 'three']);
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		$expected = "SELECT * FROM `users` WHERE `name` = 'amazing' OR `name` NOT IN ('one','two','three')";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('users')
+		      ->whereEquals('name', 'amazing')
+		      ->orWhereNotIn('name', ['one', 'two', 'three']);
 
 		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
 	}
@@ -425,6 +546,59 @@ class QueryTest extends Database
 		      ->clear('from')
 		      ->clear('where')
 		      ->from('groups');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+	}
+
+	/**
+	 * Test to make sure we can build a query with LIMIT
+	 *
+	 * @return  void
+	 **/
+	public function testBuildQueryLimitStart()
+	{
+		// Here's the query we're try to write...
+		$expected = "SELECT * FROM `groups` LIMIT 10";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('groups')
+		      ->limit(10);
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		$query->start(5);
+
+		$expected = "SELECT * FROM `groups` LIMIT 5,10";
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+	}
+
+	/**
+	 * Test to make sure we can build a query with ORDER BY
+	 *
+	 * @return  void
+	 **/
+	public function testBuildQueryOrder()
+	{
+		// Here's the query we're try to write...
+		$expected = "SELECT * FROM `groups` ORDER BY `id` ASC";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->select('*')
+		      ->from('groups')
+		      ->order('id', 'asc');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		$query->unorder()
+			->order('name', 'desc');
+
+		$expected = "SELECT * FROM `groups` ORDER BY `name` DESC";
 
 		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
 	}
