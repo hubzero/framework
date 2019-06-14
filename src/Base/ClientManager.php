@@ -75,7 +75,7 @@ class ClientManager
 		// If no client id has been passed return the whole array
 		if (is_null($id))
 		{
-			return self::$_clients;
+			return self::all();
 		}
 
 		// Are we looking for client information by id or by name?
@@ -144,5 +144,25 @@ class ClientManager
 		self::$_clients[$client->id] = clone $client;
 
 		return true;
+	}
+
+	/**
+	 * Get all client data
+	 *
+	 * @return  mixed
+	 */
+	public static function all()
+	{
+		return self::$_clients;
+	}
+
+	/**
+	 * Reset the client list
+	 *
+	 * @return  void
+	 */
+	public static function reset()
+	{
+		self::$_clients = null;
 	}
 }
