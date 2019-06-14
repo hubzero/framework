@@ -28,6 +28,22 @@ class ClientManagerTest extends Basic
 	);
 
 	/**
+	 * Test reset() and all()
+	 *
+	 * @covers  \Hubzero\Base\ClientManager::reset
+	 * @covers  \Hubzero\Base\ClientManager::all
+	 * @return  void
+	 **/
+	public function testReset()
+	{
+		ClientManager::reset();
+
+		$all = ClientManager::all();
+
+		$this->assertEquals($all, null);
+	}
+
+	/**
 	 * Test client()
 	 *
 	 * @covers  \Hubzero\Base\ClientManager::client
