@@ -26,6 +26,8 @@ class DetectorTest extends Basic
 	 * @covers  \Hubzero\Browser\Detector::name
 	 * @covers  \Hubzero\Browser\Detector::version
 	 * @covers  \Hubzero\Browser\Detector::platform
+	 * @covers  \Hubzero\Browser\Detector::major
+	 * @covers  \Hubzero\Browser\Detector::minor
 	 * @covers  \Hubzero\Browser\Detector::_setPlatform
 	 * @return  void
 	 **/
@@ -41,6 +43,14 @@ class DetectorTest extends Basic
 			$this->assertEquals(strtolower($userAgentString->browser), $browser->name());
 			$this->assertEquals($userAgentString->browserVersion, $browser->version());
 			$this->assertEquals($userAgentString->os, $browser->platform());
+
+			list($major, $minor) = explode('.', $userAgentString->browserVersion);
+
+			$this->assertEquals(intval($major), $browser->major());
+			$this->assertEquals(intval($major), $browser->version('major'));
+
+			$this->assertEquals(intval($minor), $browser->minor());
+			$this->assertEquals(intval($minor), $browser->version('minor'));
 		}
 	}
 
