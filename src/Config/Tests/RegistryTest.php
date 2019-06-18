@@ -70,6 +70,15 @@ class RegistryTest extends Basic
 		$data->set('lorem.dolor.foo', 'bar');
 
 		$this->assertEquals($data->get('lorem.dolor.foo'), 'bar');
+
+		$data = new Registry();
+		$data->set('dinosaur', new stdClass);
+		$data->set('dinosaur.therapod.tyrannosaurid', 'rex');
+		$data->set('dinosaur.therapod.raptor', '');
+
+		$this->assertInstanceOf('stdClass', $data->get('dinosaur.therapod'));
+		$this->assertEquals($data->get('dinosaur.therapod.tyrannosaurid'), 'rex');
+		$this->assertEquals($data->get('dinosaur.therapod.raptor', 'velociraptor'), 'velociraptor');
 	}
 
 	/**
@@ -491,5 +500,60 @@ class RegistryTest extends Basic
 		$result = $data->parse(__DIR__ . '/Files/test.md');
 
 		$this->assertFalse($result);
+
+		// Test parsing from constructor
+		$arr = array('one' => 'bar', 'bar' => 'foo', 'lorem' => array('ipsum' => 'sham'));
+
+		$data = new Registry($arr);
+
+		$this->assertEquals($data->get('one'), 'bar');
+		$this->assertEquals($data->get('lorem.ipsum'), 'sham');
+
+		$json = '{"three":"jelly","four":"jam","hair":{"head":"eyebrows"}}';
+
+		$data = new Registry($json);
+
+		$this->assertEquals($data->get('three'), 'jelly');
+		$this->assertEquals($data->get('hair.head'), 'eyebrows');
+
+		// Try parsing from an unsupported format
+		$data = new Registry();
+		$result = $data->parse(__DIR__ . '/Files/test.md');
+
+		$this->assertFalse($result);
+
+		// Try reading a nonexistant file
+		$data = new Registry();
+
+		$this->setExpectedException('Hubzero\\Error\\Exception\\InvalidArgumentException');
+
+		$data->read(__DIR__ . '/Fles/test.md');
+	}
+
+	/**
+	 * Tests the __clone() method
+	 *
+	 * @covers  \Hubzero\Config\Registry::__clone
+	 * @return  void
+	 **/
+	public function testClone()
+	{
+		$data = new Registry();
+
+		$data->set('foo', 'bar');
+		$data->set('bar', 'foo');
+		$data->set('lorem', new stdClass);
+		$data->set('lorem.ipsum', 'sham');
+
+		$expected = $data->toString();
+
+		$evilclone = clone $data;
+
+		$this->assertInstanceOf(Registry::class, $evilclone);
+
+		$this->assertTrue(isset($evilclone['lorem']));
+		$this->assertEquals($evilclone->get('lorem.ipsum'), 'sham');
+
+		$this->assertEquals($evilclone->toString(), $expected);
 	}
 }
