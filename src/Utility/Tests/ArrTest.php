@@ -74,6 +74,23 @@ class ArrTest extends Basic
 			$this->assertTrue(is_int($val), 'Value returned was not an integer');
 			$this->assertEquals($val, (int)$dflt[$key]);
 		}
+
+		// In this case, the return value should be `array($dflt2)`
+		$data2 = new stdClass;
+		$data2->one = '1';
+
+		$dflt2 = 555;
+
+		Arr::toInteger($data2, $dflt2);
+
+		$this->assertTrue(is_array($data2), 'Value returned was not an array');
+		$this->assertFalse(empty($data2), 'Value returned was an empty array');
+
+		foreach ($data2 as $key => $val)
+		{
+			$this->assertTrue(is_int($val), 'Value returned was not an integer');
+			$this->assertEquals($val, (int)$dflt2);
+		}
 	}
 
 	/**
@@ -508,5 +525,135 @@ class ArrTest extends Basic
 
 		$this->assertNotEquals($result, $arrs);
 		$this->assertCount(2, $result);
+	}
+
+	/**
+	 * Tests pivot method
+	 *
+	 * @covers  \Hubzero\Utility\Arr::pivot
+	 * @return  void
+	 **/
+	public function testPivot()
+	{
+		$arrs = array(
+			array(
+				'id' => 1,
+				'name' => 'Joe',
+				'age' => 27
+			),
+			'name' => 'Mark'
+		);
+
+		$item = new stdClass;
+		$item->id = 4;
+		$item->name = 'Jane';
+		$item->age = 20;
+
+		$arrs[] = $item;
+
+		$result = Arr::pivot($arrs, 'name');
+
+		$expected = array(
+			'Joe' => array(
+				'id' => 1,
+				'name' => 'Joe',
+				'age' => 27
+			),
+			'Mark' => 'name',
+			'Jane' => $item
+		);
+
+		$this->assertEquals($result, $expected);
+	}
+
+	/**
+	 * Tests sortObjects method
+	 *
+	 * @covers  \Hubzero\Utility\Arr::sortObjects
+	 * @covers  \Hubzero\Utility\Arr::_sortObjects
+	 * @return  void
+	 **/
+	public function testSortObjects()
+	{
+		$arr = array();
+
+		$item1 = new stdClass;
+		$item1->id = 1;
+		$item1->name = 'Mark';
+		$item1->age = 20;
+
+		$item2 = new stdClass;
+		$item2->id = 2;
+		$item2->name = 'Jane';
+		$item2->age = 30;
+
+		$item3 = new stdClass;
+		$item3->id = 3;
+		$item3->name = 'Bill';
+		$item3->age = 25;
+
+		$item4 = new stdClass;
+		$item4->id = 4;
+		$item4->name = 'dave';
+		$item4->age = 55;
+
+		$item5 = new stdClass;
+		$item5->id = 5;
+		$item5->name = 'David';
+		$item5->age = 19;
+
+		$arr[] = $item1;
+		$arr[] = $item2;
+		$arr[] = $item3;
+		$arr[] = $item4;
+		$arr[] = $item5;
+
+		$result = Arr::sortObjects($arr, 'name');
+
+		$expected = array(
+			$item3,
+			$item5,
+			$item2,
+			$item1,
+			$item4
+		);
+
+		$this->assertEquals($result, $expected);
+
+		$result = Arr::sortObjects($arr, 'name', -1);
+
+		$expected = array_reverse($expected);
+
+		$this->assertEquals($result, $expected);
+
+		$result = Arr::sortObjects($arr, 'name', 1, false);
+
+		$expected = array(
+			$item3,
+			$item4,
+			$item5,
+			$item2,
+			$item1
+		);
+
+		$this->assertEquals($result, $expected);
+
+		$result = Arr::sortObjects($arr, 'name', -1, false);
+
+		$expected = array_reverse($expected);
+
+		$this->assertEquals($result, $expected);
+
+		$result = Arr::sortObjects($arr, 'age');
+
+		$expected = array(
+			$item5,
+			$item1,
+			$item3,
+			$item2,
+			$item4
+		);
+
+		$this->assertEquals($result, $expected);
 	}
 }
