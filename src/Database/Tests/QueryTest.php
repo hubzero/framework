@@ -468,6 +468,46 @@ class QueryTest extends Database
 	}
 
 	/**
+	 * Test to make sure we can build an INSERT statement
+	 *
+	 * @return  void
+	 **/
+	public function testBuildInsert()
+	{
+		// Here's the query we're trying to write...
+		$expected = "INSERT INTO `users` (`name`) VALUES ('danger')";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->insert('users')
+			->values(array(
+				'name' => 'danger'
+			));
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		if ($dbo->getConnection()->getAttribute(\PDO::ATTR_DRIVER_NAME) == 'sqlite')
+		{
+			$expected = "INSERT OR IGNORE INTO `users` (`name`) VALUES ('awesome')";
+		}
+		else
+		{
+			$expected = "INSERT IGNORE INTO `users` (`name`) VALUES ('awesome')";
+		}
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->insert('users', true)
+			->values(array(
+				'name' => 'awesome'
+			));
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+	}
+
+	/**
 	 * Test to make sure that fetch properly caches a query
 	 *
 	 * @return  void
@@ -542,10 +582,77 @@ class QueryTest extends Database
 
 		$query->select('*')
 		      ->from('users')
+		      ->join('groups', 'created_by', 'id', 'inner')
 		      ->whereIsNotNull('name')
+		      ->group('cn', 'id')
+		      ->having('foo', '=', 3)
 		      ->clear('from')
 		      ->clear('where')
+		      ->clear('join')
+		      ->clear('group')
+		      ->clear('having')
 		      ->from('groups');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		// Here's the query we're try to write...
+		$expected = "SELECT id FROM `users` WHERE `name` IS NOT NULL";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->select('name')
+		      ->from('users')
+		      ->whereIsNotNull('name')
+		      ->deselect()
+		      ->select('id');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		// Here's the query we're try to write...
+		$expected = "INSERT INTO `users` (`name`) VALUES ('Jimmy')";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->insert('groups')
+		      ->values(array('cn' => 'lorem'))
+		      ->clear('insert')
+		      ->clear('values')
+		      ->insert('users')
+		      ->values(array('name' => 'Jimmy'));
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		// Here's the query we're try to write...
+		$expected = "DELETE FROM `users` WHERE `name` = 'Frank'";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->delete('groups')
+		      ->whereEquals('cn', 'lorem')
+		      ->clear('delete')
+		      ->clear('where')
+		      ->delete('users')
+		      ->whereEquals('name', 'Frank');
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		// Here's the query we're try to write...
+		$expected = "UPDATE `users` SET `name` = 'Frank' WHERE `id` = '2'";
+
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$query->update('groups')
+		      ->set(array('cn' => 'lorem'))
+		      ->whereEquals('cn', 'lorem')
+		      ->clear('update')
+		      ->clear('where')
+		      ->update('users')
+		      ->set(array('name' => 'Frank'))
+		      ->whereEquals('id', 2);
 
 		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
 	}
@@ -577,6 +684,106 @@ class QueryTest extends Database
 	}
 
 	/**
+	 * Test that START is an integer
+	 *
+	 * @return  void
+	 **/
+	public function testNonNumericStart()
+	{
+		$dbo = $this->getMockDriver();
+
+		$query = new Query($dbo);
+		$query->select('*')
+		      ->from('groups')
+		      ->start('beginning');
+
+		$expected = "SELECT * FROM `groups`";
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		// NOTE: We directly test the Syntax class as the `start()` method on
+		//       the Query class casts values as integers.
+		$syntax = '\\Hubzero\\Database\\Syntax\\' . ucfirst($dbo->getSyntax());
+		$syntax = new $syntax($dbo);
+
+		$this->setExpectedException('InvalidArgumentException');
+
+		$syntax->setStart('beginning');
+	}
+
+	/**
+	 * Test that START is greater than or equal to zero
+	 *
+	 * @return  void
+	 **/
+	public function testNegativeStart()
+	{
+		$dbo = $this->getMockDriver();
+
+		$query = new Query($dbo);
+
+		$this->setExpectedException('InvalidArgumentException');
+
+		$query->select('*')
+		      ->from('groups')
+		      ->start(-50);
+
+		/*
+		$syntax = '\\Hubzero\\Database\\Syntax\\' . ucfirst($dbo->getSyntax());
+		$syntax = new $syntax($dbo);
+
+		$this->setExpectedException('InvalidArgumentException');
+
+		$syntax->setStart(-50);
+		*/
+	}
+
+	/**
+	 * Test that LIMIT is an integer
+	 *
+	 * @return  void
+	 **/
+	public function testNonNumericLimit()
+	{
+		$dbo   = $this->getMockDriver();
+
+		$query = new Query($dbo);
+		$query->select('*')
+		      ->from('groups')
+		      ->limit('all');
+
+		$expected = "SELECT * FROM `groups`";
+
+		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		// NOTE: We directly test the Syntax class as the `limit()` method on
+		//       the Query class casts values as integers.
+		$syntax = '\\Hubzero\\Database\\Syntax\\' . ucfirst($dbo->getSyntax());
+		$syntax = new $syntax($dbo);
+
+		$this->setExpectedException('InvalidArgumentException');
+
+		$syntax->setLimit('all');
+	}
+
+	/**
+	 * Test that LIMIT is greater than or equal to zero
+	 *
+	 * @return  void
+	 **/
+	public function testNegativeLimit()
+	{
+		$dbo   = $this->getMockDriver();
+		$query = new Query($dbo);
+
+		$this->setExpectedException('InvalidArgumentException');
+
+		$query->select('*')
+		      ->from('groups')
+		      ->limit(-50);
+	}
+
+	/**
 	 * Test to make sure we can build a query with ORDER BY
 	 *
 	 * @return  void
@@ -601,5 +808,13 @@ class QueryTest extends Database
 		$expected = "SELECT * FROM `groups` ORDER BY `name` DESC";
 
 		$this->assertEquals($expected, str_replace("\n", ' ', $query->toString()), 'Query did not build the expected result');
+
+		// Test that an exception is thrown if order is not asc or desc
+		$this->setExpectedException('InvalidArgumentException');
+
+		$query = new Query($dbo);
+		$query->select('*')
+		      ->from('groups')
+		      ->order('id', 'foo');
 	}
 }
