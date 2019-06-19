@@ -575,7 +575,7 @@ class Mysql
 	 **/
 	public function buildDelete()
 	{
-		return 'DELETE FROM' . $this->connection->quoteName($this->delete);
+		return 'DELETE FROM ' . $this->connection->quoteName($this->delete);
 	}
 
 	/**
