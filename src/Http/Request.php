@@ -9,6 +9,8 @@ namespace Hubzero\Http;
 
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\Request as BaseRequest;
+use Hubzero\Spam\Honeypot;
+use App;
 
 /**
  * Request handler replaces the default PHP global variables 
@@ -186,7 +188,7 @@ class Request extends BaseRequest
 	public function getInt($key, $default = 0, $hash = 'input')
 	{
 		$str = $this->getVar($key, $default, $hash);
-		$str = is_array($str) ? implode('', $str) : $str;
+		$str = is_array($str) ? self::_flatten('', $str) : $str;
 		preg_match('/-?[0-9]+/', $str, $matches);
 		$result = @ $matches[0];
 		return (!is_null($result) ? (int) $result : $default);
@@ -217,7 +219,7 @@ class Request extends BaseRequest
 	public function getFloat($name, $default = 0.0, $hash = 'input')
 	{
 		$result = $this->getVar($key, $default, $hash);
-		$result = is_array($result) ? implode('', $result) : $result;
+		$result = is_array($result) ? self::_flatten('', $result) : $result;
 		return preg_replace(static::$filters['float'], '', $result);
 	}
 
@@ -246,7 +248,7 @@ class Request extends BaseRequest
 	public function getWord($key, $default = null, $hash = 'input')
 	{
 		$result = $this->getVar($key, $default, $hash);
-		$result = is_array($result) ? implode('', $result) : $result;
+		$result = is_array($result) ? self::_flatten('', $result) : $result;
 		return preg_replace(static::$filters['word'], '', $result);
 	}
 
@@ -261,7 +263,7 @@ class Request extends BaseRequest
 	public function getCmd($key = null, $default = null, $hash = 'input')
 	{
 		$result = $this->getVar($key, $default, $hash);
-		$result = is_array($result) ? implode('', $result) : $result;
+		$result = is_array($result) ? self::_flatten('', $result) : $result;
 		$result = (string) preg_replace(static::$filters['cmd'], '', $result);
 		return ltrim($result, '.');
 	}
@@ -290,7 +292,7 @@ class Request extends BaseRequest
 	public function getString($name, $default = null, $hash = 'input')
 	{
 		$result = $this->getVar($name, $default, $hash);
-		$result = is_array($result) ? implode('', $result) : $result;
+		$result = is_array($result) ? self::_flatten('', $result) : $result;
 		return (string) $result;
 	}
 
@@ -699,22 +701,26 @@ class Request extends BaseRequest
 			switch ($type)
 			{
 				case 'int':
+					$new_state = self::_flatten('', $new_state);
 					$new_state = intval($new_state);
 					break;
 				case 'word':
+					$new_state = (string) self::_flatten('', $new_state);
 					$new_state = preg_replace('/[^A-Z_]/i', '', $new_state);
 					break;
 				case 'cmd':
+					$new_state = (string) self::_flatten('', $new_state);
 					$new_state = preg_replace('/[^A-Z0-9_\.-]/i', '', $new_state);
 					break;
 				case 'bool':
 					$new_state = (bool) $new_state;
 					break;
 				case 'float':
-					$new_state = preg_replace('/-?[0-9]+(\.[0-9]+)?/', '', $new_state);
+					$new_state = (string) self::_flatten('', $new_state);
+					$new_state = (float) preg_replace('/-?[0-9]+(\.[0-9]+)?/', '', $new_state);
 					break;
 				case 'string':
-					$new_state = (string) $new_state;
+					$new_state = (string) self::_flatten('', $new_state);
 					break;
 				case 'array':
 					$new_state = (array) $new_state;
@@ -732,6 +738,39 @@ class Request extends BaseRequest
 		}
 
 		return $new_state;
+	}
+
+	/**
+	 * Flatten a multi-dimensional array
+	 *
+	 * @param   string   $separator
+	 * @param   mixed    $arrayvar
+	 * @return  string
+	 */
+	private function _flatten($separator, $arrayvar)
+	{
+		$out = '';
+
+		if (is_array($arrayvar))
+		{
+			foreach ($arrayvar as $av)
+			{
+				if (is_array($av))
+				{
+					$out .= self::_flatten($separator, $av); // Recursive Use of the Array
+				}
+				else
+				{
+					$out .= $separator . $av;
+				}
+			}
+		}
+		else
+		{
+			$out .= $separator . $arrayvar;
+		}
+
+		return $out;
 	}
 
 	/**
