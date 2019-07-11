@@ -196,4 +196,30 @@ class Map extends Relational
 
 		return true;
 	}
+
+	/**
+	 * Remove a user from an access groups
+	 *
+	 * @param   mixed    $user_id   Integer
+	 * @param   mixed    $group_id  Integer or array of integers
+	 * @return  boolean
+	 */
+	public static function removeUserFromGroup($user_id, $group_id)
+	{
+		$group_id = (is_array($group_id) ? $group_id : array($group_id));
+
+		$blank = self::blank();
+
+		$query = $blank->getQuery()
+			->delete($blank->getTableName())
+			->whereEquals('user_id', $user_id)
+			->whereIn('group_id', $group_id);
+
+		if (!$query->execute())
+		{
+			return false;
+		}
+
+		return true;
+	}
 }
