@@ -58,7 +58,7 @@ class Util
 
 		$path = self::normalizePath($path);
 
-		if (PATH_ROOT != '' && strpos($path, self::normalizePath(PATH_ROOT)) !== 0)
+		if (PATH_ROOT != '' && strpos($path, self::normalizePath(PATH_ROOT)) !== 0 && strpos($path, self::normalizePath(PATH_CORE)) !== 0)
 		{
 			// Don't translate
 			throw new PathViolationException('Snooping out of bounds @ ' . $path);
