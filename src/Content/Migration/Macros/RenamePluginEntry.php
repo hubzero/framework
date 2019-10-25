@@ -38,8 +38,8 @@ class RenamePluginEntry extends Macro
 		$query = $this->db->getQuery()
 			->select($pk)
 			->from($table)
-			->whereEquals('folder', $folder);
-			->whereEquals('element', $element);
+			->whereEquals('folder', $folder)
+			->whereEquals('element', $element)
 			->toString();
 
 		// First, make sure the plugin exists
