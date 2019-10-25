@@ -293,18 +293,15 @@ class Arguments
 			}
 
 			// Check for existence
-			if (!class_exists($namespace))
+			if (!class_exists($namespace) && !empty($paths))
 			{
-				if (!empty($paths))
+				foreach ($paths as $path)
 				{
-					foreach ($paths as $path)
+					$path = strtolower($path);
+					if (file_exists($path . '.php'))
 					{
-						$path = strtolower($path);
-						if (file_exists($path . '.php'))
-						{
-							require_once $path . '.php';
-							break;
-						}
+						require_once $path . '.php';
+						break;
 					}
 				}
 			}
