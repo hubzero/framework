@@ -31,8 +31,13 @@ class ArgumentsServiceProvider extends Middleware
 
 			// Register namespace for App commands and component commands
 			// @FIXME: neither of these work yet...
-			Arguments::registerNamespace('\App\Commands');
-			Arguments::registerNamespace('\Components\{$1}\Cli\Commands');
+			Arguments::registerNamespace('\App\Commands', [
+				PATH_APP . '/commands',
+			]);
+			Arguments::registerNamespace('\Components\{$1}\Commands', [
+				PATH_APP . '/components/com_{$1}/commands',
+				PATH_CORE . '/components/com_{$1}/commands'
+			]);
 
 			return new Arguments($argv);
 		};

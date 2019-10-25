@@ -214,9 +214,9 @@ class Arguments
 	 * @param   string  $namespace  The namespace location to use
 	 * @return  $this
 	 **/
-	public static function registerNamespace($namespace)
+	public static function registerNamespace($namespace, $paths = array())
 	{
-		self::$commandNamespaces[] = $namespace;
+		self::$commandNamespaces[$namespace] = (array)$paths;
 	}
 
 	/**
@@ -245,7 +245,7 @@ class Arguments
 			}
 		}
 
-		foreach (self::$commandNamespaces as $namespace)
+		foreach (self::$commandNamespaces as $namespace => $paths)
 		{
 			// Check if we're targeting a namespaced command
 			$bits = [];
@@ -267,6 +267,13 @@ class Arguments
 				if (strpos($namespace, "{\$$loc}"))
 				{
 					$namespace = str_replace("{\$$loc}", $bits[$i], $namespace);
+					if (!empty($paths))
+					{
+						foreach ($paths as $p => $path)
+						{
+							$paths[$p] = str_replace("{\$$loc}", $bits[$i], $path);
+						}
+					}
 					unset($bits[$i]);
 				}
 			}
@@ -275,9 +282,33 @@ class Arguments
 			if (count($bits) > 0)
 			{
 				$namespace .= '\\' . implode('\\', $bits);
+
+				if (!empty($paths))
+				{
+					foreach ($paths as $p => $path)
+					{
+						$paths[$p] .= '/' . implode('/', $bits);
+					}
+				}
 			}
 
 			// Check for existence
+			if (!class_exists($namespace))
+			{
+				if (!empty($paths))
+				{
+					foreach ($paths as $path)
+					{
+						$path = strtolower($path);
+						if (file_exists($path . '.php'))
+						{
+							require_once $path . '.php';
+							break;
+						}
+					}
+				}
+			}
+
 			if (class_exists($namespace))
 			{
 				$class = $namespace;
