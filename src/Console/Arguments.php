@@ -212,6 +212,7 @@ class Arguments
 	 * Registers a location to look for commands
 	 *
 	 * @param   string  $namespace  The namespace location to use
+	 * @param   array   $paths      Optional paths to load from
 	 * @return  $this
 	 **/
 	public static function registerNamespace($namespace, $paths = array())
