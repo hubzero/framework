@@ -533,7 +533,6 @@ class Rule extends Relational
 
 					$user = $xuser->get('username');
 				}
-
 				if (self::isBasedOnUsername($password, $user))
 				{
 					$fail[] = $rule['failuremsg'];
@@ -694,31 +693,6 @@ class Rule extends Relational
 	 */
 	public static function isBasedOnUsername($word, $username)
 	{
-		$word     = self::normalize($word);
-		$username = self::normalize($username);
-
-		$words   = array();
-		$words[] = $username;
-		$words[] = strrev($username);
-
-		foreach ($words as $w)
-		{
-			if (empty($w))
-			{
-				continue;
-			}
-
-			if (empty($word))
-			{
-				continue;
-			}
-
-			if (strpos($w, $word) !== false)
-			{
-				return true;
-			}
-		}
-
-		return false;
+		return preg_match("/$username/", $word);
 	}
 }
