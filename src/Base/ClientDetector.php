@@ -15,6 +15,12 @@ use Hubzero\Http\Request;
  * Inspired by Laravel's environment detector
  * http://laravel.com
  */
+/**
+ * Client detector
+ *
+ * Inspired by Laravel's environment detector
+ * http://laravel.com
+ */
 class ClientDetector
 {
 	/**
@@ -33,54 +39,58 @@ class ClientDetector
 	}
 
 	/**
-	 * Detect the application's current environment.
+	 * Detect the application's current client.
 	 *
-	 * @param   array|string  $environments
-	 * @param   array|null    $consoleArgs
-	 * @return  string
+	 * @param   array  $environments
+	 * @return  object
 	 */
-	public function detect($environments, $consoleArgs = null)
+	public function detect($environments)
 	{
-		if ($consoleArgs)
+		if ($this->detectConsoleEnvironment($environments))
 		{
-			return $this->detectConsoleEnvironment($environments, $consoleArgs);
+			return ClientManager::client('cli', true);
 		}
 
 		return $this->detectWebEnvironment($environments);
 	}
 
 	/**
-	 * Set the application environment for a web request.
+	 * Determine client for a web request.
 	 *
-	 * @param   mixed   $environments  array|string
-	 * @return  string
-	 * @todo    Base off URI instead of Joomla path constant
+	 * @param   array   $environments
+	 * @return  object
 	 */
 	protected function detectWebEnvironment($environments)
 	{
 		$default = ClientManager::client('site', true);
 
+		// To determine the current client, we'll simply iterate through the possible
+		// clients and look for the one that matches the path for the request we
+		// are currently processing here, then return back that client.
 		foreach ($environments as $environment => $url)
 		{
 			if ($client = ClientManager::client($environment, true))
 			{
 				if ($client->name == 'cli')
 				{
-					if (php_sapi_name() == 'cli')
-					{
-						return $client;
-					}
-
 					continue;
 				}
 
+				// Legacy check based on file path
+				//    Ex: JPATH_API would be set from ROOT/api/index.php
+				// @TODO: Remove need for this code
 				$const = 'JPATH_' . strtoupper($environment);
 
-				// To determine the current environment, we'll simply iterate through the possible
-				// environments and look for the host that matches the host for this request we
-				// are currently processing here, then return back these environment's names.
-				if ((defined($const) && JPATH_BASE == constant($const))
-				 || $this->request->segment(1) == $url
+				if (defined($const)
+				 && defined('JPATH_BASE')
+				 && JPATH_BASE == constant($const))
+				{
+					return $client;
+				}
+
+				// Check based on request path
+				//    Ex: http://somehub.org/api
+				if ($this->request->segment(1) == $url
 				 || $this->request->segment(1) == $client->name
 				 || $this->request->segment(1) == $client->url)
 				{
@@ -93,41 +103,13 @@ class ClientDetector
 	}
 
 	/**
-	 * Set the application environment from command-line arguments.
+	 * Determine if the client is command-line
 	 *
-	 * @param   mixed   $environments
-	 * @param   array   $args
-	 * @return  string
+	 * @param   array   $environments
+	 * @return  bool
 	 */
-	protected function detectConsoleEnvironment($environments, array $args)
+	protected function detectConsoleEnvironment($environments)
 	{
-		// First we will check if an environment argument was passed via console arguments
-		// and if it was that automatically overrides as the environment. Otherwise, we
-		// will check the environment as a "web" request like a typical HTTP request.
-		if (!is_null($value = $this->getEnvironmentArgument($args)))
-		{
-			return reset(array_slice(explode('=', $value), 1));
-		}
-
-		return $this->detectWebEnvironment($environments);
-	}
-
-	/**
-	 * Get the enviornment argument from the console.
-	 *
-	 * @param   array  $args
-	 * @return  mixed  string|null
-	 */
-	protected function getEnvironmentArgument(array $args)
-	{
-		foreach ($args as $k => $v)
-		{
-			if (substr($v, 0, strlen('--env')) == '--env')
-			{
-				return $v;
-			}
-		}
-
-		return null;
+		return (php_sapi_name() == 'cli');
 	}
 }
