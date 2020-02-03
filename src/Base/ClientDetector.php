@@ -15,12 +15,6 @@ use Hubzero\Http\Request;
  * Inspired by Laravel's environment detector
  * http://laravel.com
  */
-/**
- * Client detector
- *
- * Inspired by Laravel's environment detector
- * http://laravel.com
- */
 class ClientDetector
 {
 	/**
@@ -46,12 +40,12 @@ class ClientDetector
 	 */
 	public function detect($environments)
 	{
-		if ($this->detectConsoleEnvironment($environments))
+		if ($this->detectConsoleClient($environments))
 		{
 			return ClientManager::client('cli', true);
 		}
 
-		return $this->detectWebEnvironment($environments);
+		return $this->detectWebClient($environments);
 	}
 
 	/**
@@ -60,7 +54,7 @@ class ClientDetector
 	 * @param   array   $environments
 	 * @return  object
 	 */
-	protected function detectWebEnvironment($environments)
+	protected function detectWebClient($environments)
 	{
 		$default = ClientManager::client('site', true);
 
@@ -108,7 +102,7 @@ class ClientDetector
 	 * @param   array   $environments
 	 * @return  bool
 	 */
-	protected function detectConsoleEnvironment($environments)
+	protected function detectConsoleClient($environments)
 	{
 		return (php_sapi_name() == 'cli');
 	}
