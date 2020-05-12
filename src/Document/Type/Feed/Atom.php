@@ -1,29 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @copyright Copyright 2005-2014 Open Source Matters, Inc.
- * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Document\Type\Feed;
@@ -65,7 +44,9 @@ class Atom extends Renderer
 		$now  = new Date('now');
 		$data = $this->doc;
 
-		$uri = App::get('request')->root();
+		$url = App::get('request')->root();
+
+		$tz = new \DateTimeZone(App::get('config')->get('offset'));
 
 		$syndicationURL = App::get('router')->url('&format=feed&type=atom');
 
@@ -78,7 +59,7 @@ class Atom extends Renderer
 			$data->title = App::get('language')->txt('JPAGETITLE', $data->title, App::get('config')->get('sitename'));
 		}
 
-		$feed_title = htmlspecialchars($title, ENT_COMPAT, 'UTF-8');
+		$feed_title = htmlspecialchars($data->title, ENT_COMPAT, 'UTF-8');
 
 		$feed  = "<feed xmlns=\"http://www.w3.org/2005/Atom\" ";
 		if ($data->language != "")
@@ -173,8 +154,7 @@ class Atom extends Renderer
 			}
 			if ($data->items[$i]->enclosure != null)
 			{
-				$feed .= "		<link rel=\"enclosure\" href=\"" . $data->items[$i]->enclosure->url . "\" type=\""
-					. $data->items[$i]->enclosure->type . "\"  length=\"" . $data->items[$i]->enclosure->length . "\" />\n";
+				$feed .= "		<link rel=\"enclosure\" href=\"" . $data->items[$i]->enclosure->url . "\" type=\"" . $data->items[$i]->enclosure->type . "\"  length=\"" . $data->items[$i]->enclosure->length . "\" />\n";
 			}
 			$feed .= "	</entry>\n";
 		}

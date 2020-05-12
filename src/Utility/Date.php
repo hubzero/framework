@@ -1,33 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Utility;
@@ -104,7 +79,7 @@ class Date extends DateTime
 	 * @return  void
 	 * @throws  Exception
 	 */
-	public function __construct($date = 'now', $tz = null)
+	public function __construct($date = 'now', $tz = null, $ignoreDst = false)
 	{
 		// Create the base GMT and server time zone objects.
 		if (empty(self::$gmt) || empty(self::$stz))
@@ -113,23 +88,8 @@ class Date extends DateTime
 			self::$stz = new DateTimeZone(@date_default_timezone_get());
 		}
 
-		// If the time zone object is not set, attempt to build it.
-		if (!($tz instanceof DateTimeZone))
-		{
-			if ($tz === null)
-			{
-				$tz = self::$gmt;
-			}
-			elseif (is_numeric($tz))
-			{
-				// Translate from offset.
-				$tz = new DateTimeZone(self::$offsets[(string) $tz]);
-			}
-			elseif (is_string($tz))
-			{
-				$tz = new DateTimeZone($tz);
-			}
-		}
+		$tz = self::getTimeZoneObject($tz, $ignoreDst);
+
 
 		// If the date is numeric assume a unix timestamp and convert it.
 		date_default_timezone_set('UTC');
@@ -262,9 +222,63 @@ class Date extends DateTime
 	 * @param   mixed   $tz    Time zone to be used for the date.
 	 * @return  object
 	 */
-	public static function of($date = 'now', $tz = null)
+	public static function of($date = 'now', $tz = null, $ignoreDst = false)
 	{
-		return new self($date, $tz);
+		return new self($date, $tz, $ignoreDst);
+	}
+
+	/**
+	 * Get TimeZone object for setting the timezone on the provided time.
+	 *
+	 * @param   mixed   $tz    Time zone in either string, offset number, or a TimeZone object.
+	 * @param	boolean	$ignoreDst	if set to true, will prevent the date from converting to DST.
+	 * @return	object
+	 */
+	public static function getTimeZoneObject($tz, $ignoreDst = false)
+	{
+		// If the time zone object is not set, attempt to build it.
+		if (!($tz instanceof DateTimeZone))
+		{
+			if ($tz === null)
+			{
+				$tz = self::$gmt;
+			}
+			elseif (is_numeric($tz))
+			{
+				// Translate from offset.
+				$tz = new DateTimeZone(self::$offsets[(string) $tz]);
+			}
+			elseif (is_string($tz))
+			{
+				$tz = new DateTimeZone($tz);
+			}
+		}
+
+		if ($ignoreDst)
+		{
+			$lastYear = self::of('-1 year')->toUnix();
+			$currentDate = self::of('now')->toUnix();
+			$transitions = $tz->getTransitions($lastYear, $currentDate);
+			$offsets = array_reduce($transitions, function($carry, $transition){
+				if (empty($transition['isdst']))
+				{
+					$carry[] = $transition['offset'];
+				}
+				return $carry;
+			});
+
+			if (!empty($offsets))
+			{
+				$offset = $offsets[0];
+				if (abs($offset) > 0)
+				{
+					// convert seconds to hours
+					$offset = $offset / 3600;
+				}
+				$tz = new DateTimeZone($offset);
+			}
+		}
+		return $tz;
 	}
 
 	/**
@@ -430,17 +444,29 @@ class Date extends DateTime
 	 * @param   string  $format  The date format specification string (see {@link PHP_MANUAL#date})
 	 * @return  string
 	 */
-	public function toLocal($format='')
+	public function toLocal($format='', $ignoreDst = false)
 	{
 		$format = $format ?: self::$format;
 
 		// get timezone idenfier from user setting otherwise user system
 		$tz = \User::getParam('timezone', \Config::get('offset'));
 
-		// set our timezone
-		$this->setTimezone(new DateTimeZone($tz));
-
 		// format date
+		return $this->toTimeZone($tz, $format, $ignoreDst);
+	}
+
+	/**
+	 * Function to explicitly convert a date to the timezone and format provided.
+	 * @param   mixed  $timeZone The numeric key on the Date static offsets array (a short list of common timezones) 
+	 * 		or a timezone string accepted by the TimeZone PHP object (see {@link PHP_MANUAL#timezones})
+	 * @param   string  $format  The date format specification string (see {@link PHP_MANUAL#date})
+	 * @return  string
+	 */
+	public function toTimeZone($timeZone, $format = null, $ignoreDst = false)
+	{
+		$format = $format ?: parent::$format;
+		$timeZone = self::getTimeZoneObject($timeZone, $ignoreDst);
+		$this->setTimezone($timeZone);
 		return $this->format($format, true);
 	}
 
@@ -556,7 +582,7 @@ class Date extends DateTime
 		// Determine which period we should use, based on the number of seconds lapsed.
 		// If the difference divided by the seconds is more than 1, we use that. Eg 1 year / 1 decade = 0.1, so we move on
 		// Go from decades backwards to seconds
-		for ($val = sizeof($lengths) - 1; ($val >= 0) && (($number = $difference / $lengths[$val]) <= 1); $val--)
+		for ($val = count($lengths) - 1; ($val >= 0) && (($number = $difference / $lengths[$val]) <= 1); $val--)
 		{
 			// Do nothing...
 		}

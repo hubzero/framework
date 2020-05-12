@@ -1,32 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Html\Builder;
@@ -136,7 +112,7 @@ class Behavior
 			$data['scripts'] = array();
 
 			// We can't reset the script data with $document->setHeadData($data); and then
-			// use $document->addScript() because JDocument will ignore the empty array we
+			// use $document->addScript() because Document will ignore the empty array we
 			// just set $data['scripts'] to and keep the old data. So, all we'd end up
 			// doing is appending items. SO, we populate a new array and set the head data
 			// to that.
@@ -189,6 +165,57 @@ class Behavior
 		}
 
 		Asset::script('assets/hubzero.js', true, true);
+
+		self::$loaded[__METHOD__] = true;
+	}
+
+	/**
+	 * Add MathJax resources
+	 *
+	 * @return  void
+	 */
+	public static function math()
+	{
+		if (isset(self::$loaded[__METHOD__]))
+		{
+			return;
+		}
+
+		$path = Asset::script('assets/MathJax/MathJax.js', true, true, true);
+		Document::addScriptDeclaration('
+		(function() {
+			var script = document.createElement("script");
+			script.type = "text/javascript";
+			script.src = "' . $path . '";
+			var config = `
+			MathJax.Hub.Config({
+				extensions: ["tex2jax.js"],
+				jax: ["input/TeX", "output/HTML-CSS"],
+				"HTML-CSS": {
+						preferredFont: "TeX", 
+						availableFonts: ["STIX","TeX"], 
+						linebreaks: { automatic:true }, 
+						EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+				},
+				tex2jax:{
+						inlineMath: [ ["$$", "$$"] ], // , ["\\\\(","\\\\)"]
+						displayMath: [ ["$$$","$$$"], ["\\[", "\\]"] ],
+						processEscapes: true,
+						ignoreClass: "tex2jax_ignore|dno"
+				},
+				TeX: {
+					extensions: ["autoload-all.js", "mediawiki-texvc.js"],
+					noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+					Macros: { href: "{}" }
+				},
+				messageStyle: "none",
+				styles: { ".MathJax_Display, .MathJax_Preview, .MathJax_Preview > *": { "background": "inherit" } }
+			});`;
+			if (window.opera) { script.innerHTML = config; }
+			else { script.text = config; }
+			document.getElementsByTagName("head")[0].appendChild(script);
+		})();
+		');
 
 		self::$loaded[__METHOD__] = true;
 	}
@@ -380,7 +407,6 @@ class Behavior
 		$opt['offset']			= (isset($params['offset']) && (is_array($params['offset']))) ? $params['offset'] : null;
 		if (!isset($opt['offset']))
 		{
-			// Supporting offsets parameter which was working in mootools 1.2 (Joomla!1.5)
 			$opt['offset']		= (isset($params['offsets']) && (is_array($params['offsets']))) ? $params['offsets'] : null;
 		}
 		$opt['showDelay']		= (isset($params['showDelay'])) ? (int) $params['showDelay'] : null;
@@ -556,7 +582,7 @@ class Behavior
 		// Attach multiselect to document
 		App::get('document')->addScriptDeclaration(
 			"jQuery(document).ready(function($){
-				new Joomla.JMultiSelect('" . $id . "');
+				new Hubzero.MultiSelect('" . $id . "');
 			});"
 		);
 

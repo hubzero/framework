@@ -1,34 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Sam Wilson <samwilson@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
- * @since     Class available since release 2.0.0
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Database;
@@ -129,7 +103,7 @@ class Query
 	 *
 	 * @var  string
 	 **/
-	private $type = null;
+	protected $type = null;
 
 	/**
 	 * Constructs a new query instance
@@ -168,6 +142,29 @@ class Query
 	public static function purgeCache()
 	{
 		self::$cache = array();
+	}
+
+	/**
+	 * Empties a query clause of current values
+	 *
+	 * @param   string  $clause  [select, update, insert, delete, from, join, set, values, where, group, having, order]
+	 * @return  $this
+	 * @since   2.2.15
+	 **/
+	public function clear($clause = '')
+	{
+		if (!$clause)
+		{
+			$this->reset();
+		}
+		else
+		{
+			$clause = 'reset' . ucfirst(strtolower($clause));
+
+			$this->syntax->$clause();
+		}
+
+		return $this;
 	}
 
 	/**
@@ -284,6 +281,62 @@ class Query
 	}
 
 	/**
+	 * Defines a table INNER join to be performed for the query
+	 *
+	 * @param   string  $table     The table join
+	 * @param   string  $leftKey   The left side of the join condition
+	 * @param   string  $rightKey  The right side of the join condition
+	 * @return  $this
+	 **/
+	public function innerJoin($table, $leftKey, $rightKey)
+	{
+		$this->syntax->setJoin($table, $leftKey, $rightKey, 'inner');
+		return $this;
+	}
+
+	/**
+	 * Defines a table FULL OUTER join to be performed for the query
+	 *
+	 * @param   string  $table     The table join
+	 * @param   string  $leftKey   The left side of the join condition
+	 * @param   string  $rightKey  The right side of the join condition
+	 * @return  $this
+	 **/
+	public function fullJoin($table, $leftKey, $rightKey)
+	{
+		$this->syntax->setJoin($table, $leftKey, $rightKey, 'full');
+		return $this;
+	}
+
+	/**
+	 * Defines a table LEFT join to be performed for the query
+	 *
+	 * @param   string  $table     The table join
+	 * @param   string  $leftKey   The left side of the join condition
+	 * @param   string  $rightKey  The right side of the join condition
+	 * @return  $this
+	 **/
+	public function leftJoin($table, $leftKey, $rightKey)
+	{
+		$this->syntax->setJoin($table, $leftKey, $rightKey, 'left');
+		return $this;
+	}
+
+	/**
+	 * Defines a table RIGHT join to be performed for the query
+	 *
+	 * @param   string  $table     The table join
+	 * @param   string  $leftKey   The left side of the join condition
+	 * @param   string  $rightKey  The right side of the join condition
+	 * @return  $this
+	 **/
+	public function rightJoin($table, $leftKey, $rightKey)
+	{
+		$this->syntax->setJoin($table, $leftKey, $rightKey, 'right');
+		return $this;
+	}
+
+	/**
 	 * Applies a where clause to the pending query
 	 *
 	 * @param   string  $column    The column to which the clause will apply
@@ -377,6 +430,36 @@ class Query
 	}
 
 	/**
+	 * Applies a simple where not in clause to the pending query
+	 *
+	 * @param   string  $column  The column to which the clause will apply
+	 * @param   array   $value   The values to which the column will be evaluated
+	 * @param   int     $depth   The depth level of the clause, for sub clauses
+	 * @return  $this
+	 * @since   2.0.0
+	 **/
+	public function whereNotIn($column, $values, $depth = 0)
+	{
+		$this->where($column, 'NOT IN', $values, 'and', $depth);
+		return $this;
+	}
+
+	/**
+	 * Applies a simple where not in clause to the pending query
+	 *
+	 * @param   string  $column  The column to which the clause will apply
+	 * @param   array   $value   The values to which the column will be evaluated
+	 * @param   int     $depth   The depth level of the clause, for sub clauses
+	 * @return  $this
+	 * @since   2.0.0
+	 **/
+	public function orWhereNotIn($column, $values, $depth = 0)
+	{
+		$this->where($column, 'NOT IN', $values, 'or', $depth);
+		return $this;
+	}
+
+	/**
 	 * Applies a simple where like clause to the pending query
 	 *
 	 * @param   string  $column  The column to which the clause will apply
@@ -403,6 +486,62 @@ class Query
 	public function orWhereLike($column, $value, $depth = 0)
 	{
 		$this->where($column, 'LIKE', "%{$value}%", 'or', $depth);
+		return $this;
+	}
+
+	/**
+	 * Applies an AND where is null clause to the pending query
+	 *
+	 * @param   string  $column  The column to which the clause will apply
+	 * @param   int     $depth   The depth level of the clause, for sub clauses
+	 * @return  $this
+	 * @since   2.2.15
+	 **/
+	public function whereIsNull($column, $depth = 0)
+	{
+		$this->where($column, 'IS', null, 'and', $depth);
+		return $this;
+	}
+
+	/**
+	 * Applies a OR where is null clause to the pending query
+	 *
+	 * @param   string  $column  The column to which the clause will apply
+	 * @param   int     $depth   The depth level of the clause, for sub clauses
+	 * @return  $this
+	 * @since   2.2.15
+	 **/
+	public function orWhereIsNull($column, $depth = 0)
+	{
+		$this->where($column, 'IS', null, 'or', $depth);
+		return $this;
+	}
+
+	/**
+	 * Applies an AND where is not null clause to the pending query
+	 *
+	 * @param   string  $column  The column to which the clause will apply
+	 * @param   int     $depth   The depth level of the clause, for sub clauses
+	 * @return  $this
+	 * @since   2.2.15
+	 **/
+	public function whereIsNotNull($column, $depth = 0)
+	{
+		$this->where($column, 'IS NOT', null, 'and', $depth);
+		return $this;
+	}
+
+	/**
+	 * Applies a OR where is not null clause to the pending query
+	 *
+	 * @param   string  $column  The column to which the clause will apply
+	 * @param   int     $depth   The depth level of the clause, for sub clauses
+	 * @return  $this
+	 * @since   2.2.15
+	 **/
+	public function orWhereIsNotNull($column, $depth = 0)
+	{
+		$this->where($column, 'IS NOT', null, 'or', $depth);
 		return $this;
 	}
 

@@ -1,32 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   hubzero-cms
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Form\Fields;
@@ -65,7 +41,6 @@ class Radio extends Field
 
 		// Get the field options.
 		$options = $this->getOptions();
-
 		$found = false;
 
 		$html[] = '<ul>';
@@ -83,11 +58,21 @@ class Radio extends Field
 				$found = true;
 			}
 
+			// Add data attributes
+			$dataAttributes = '';
+			foreach ($option as $field => $value)
+			{
+				$dataField = strtolower(substr($field, 0, 4));
+				if ($dataField == 'data')
+				{
+					$dataAttributes .= ' ' . $field . '="' . $value . '"';
+				}
+			}
 			// Initialize some JavaScript option attributes.
 			$onclick = !empty($option->onclick) ? ' onclick="' . $option->onclick . '"' : '';
 
 			$html[] = '<li>';
-			$html[] = '<input type="radio" id="' . $this->id . $i . '" name="' . $this->name . '" value="' . htmlspecialchars($option->value, ENT_COMPAT, 'UTF-8') . '"' . $checked . $class . $onclick . $disabled . '/>';
+			$html[] = '<input type="radio" id="' . $this->id . $i . '" name="' . $this->name . '" value="' . htmlspecialchars($option->value, ENT_COMPAT, 'UTF-8') . '"' . $checked . $class . $onclick . $disabled . $dataAttributes . '/>';
 			$html[] = '<label for="' . $this->id . $i . '"' . $class . '>' . App::get('language')->alt($option->text, preg_replace('/[^a-zA-Z0-9_\-]/', '_', $this->fieldname)) . '</label>';
 			$html[] = '</li>';
 		}
@@ -139,6 +124,14 @@ class Radio extends Field
 				(string) $option['value'], trim((string) $label), 'value', 'text',
 				((string) $option['disabled'] == 'true')
 			);
+			foreach ($option->attributes() as $index => $value)
+			{
+				$dataCheck = strtolower(substr($index, 0, 4));
+				if ($dataCheck == 'data')
+				{
+					$tmp->$index = (string) $value;
+				}
+			}
 
 			// Set some option attributes.
 			$tmp->class = (string) $option['class'];

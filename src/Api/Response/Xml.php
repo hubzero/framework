@@ -1,33 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Nicholas J. Kisseberth <nkissebe@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Api\Response;
@@ -37,6 +12,11 @@ namespace Hubzero\Api\Response;
  */
 class Xml
 {
+	/**
+	 * No error
+	 */
+	const XML_ERROR_NONE = null;
+
 	/**
 	 * Error message type for depth
 	 */
@@ -68,7 +48,7 @@ class Xml
 	 * @param   boolean  $show_declaration  Show XML doctype declaration
 	 * @return  string   XML
 	 */
-	public function encode($mixed, $tag='root', $attributes='', $depth = 1, $show_declaration = true)
+	public static function encode($mixed, $tag='root', $attributes='', $depth = 1, $show_declaration = true)
 	{
 		$declaration = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
 
@@ -96,15 +76,15 @@ class Xml
 
 		$sp = (!empty($attributes)) ? ' ' : '';
 
-		if (in_array($element_type, array('object','a-array')))
+		if (in_array($element_type, array('object', 'a-array')))
 		{
 			$xml_element_type = 'object';
 		}
-		else if (in_array($element_type, array('double','integer')))
+		else if (in_array($element_type, array('double', 'integer')))
 		{
 			$xml_element_type = 'number';
 		}
-		else if (in_array($element_type, array('array','boolean','string')))
+		else if (in_array($element_type, array('array', 'boolean', 'string')))
 		{
 			$xml_element_type = $element_type;
 		}
@@ -209,7 +189,7 @@ class Xml
 	 * @param   integer  $id  Error number
 	 * @return  integer
 	 */
-	public function last_error($id)
+	public static function last_error($id)
 	{
 		static $last_error = 0;
 
@@ -227,7 +207,7 @@ class Xml
 	 * @param   string  $xml  XML
 	 * @return  mixed   Array or object
 	 */
-	public function decode($xml)
+	public static function decode($xml)
 	{
 		$p = xml_parser_create();
 

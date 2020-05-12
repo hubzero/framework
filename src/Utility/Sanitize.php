@@ -1,33 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Utility;
@@ -171,7 +146,7 @@ class Sanitize
 		for ($i = 1, $count = count($params); $i < $count; $i++)
 		{
 			$str = preg_replace('/<' . $params[$i] . '\b[^>]*>/i', '', $str);
-			$str = preg_replace('/<\/' . $params[$i] . '[^>]*>/i', '', $str);
+			$str = preg_replace('/<[\\\]*\/' . $params[$i] . '[^>]*>/i', '', $str);
 		}
 		return $str;
 	}
@@ -304,90 +279,151 @@ class Sanitize
 	 * @param   array   $options  Array of key => value pairs
 	 * @return  string
 	 */
-	public static function html($text, $options=array())
+	public static function html($text, $options = [])
+	{
+		$config = self::_buildHtmlPurifierConfig($options);
+		$htmlPurifierWhitelist  = $config->getHTMLDefinition(true);
+
+		self::_addElementsToHtmlPurifierWhitelist($htmlPurifierWhitelist);
+		self::_addAttributesToHtmlPurifierWhitelist($htmlPurifierWhitelist);
+
+		$purifier = new \HTMLPurifier($config);
+
+		return $purifier->purify($text);
+	}
+
+	/**
+	 * Builds HTML purification configuration
+	 *
+	 * @param    array    $options   Custom purifier configuration options
+	 * @return   object   $config    HTML purifier configuration
+	 */
+	protected static function _buildHtmlPurifierConfig($options)
 	{
 		$config = \HTMLPurifier_Config::createDefault();
-		$config->set('AutoFormat.Linkify', false);
-		$config->set('AutoFormat.RemoveEmpty', true);
-		$config->set('AutoFormat.RemoveEmpty.RemoveNbsp', false);
-		$config->set('Output.CommentScriptContents', false);
-		$config->set('Output.TidyFormat', true);
-		$config->set('Attr.AllowedFrameTargets', array('_blank'));
-		$config->set('Attr.EnableID', true);
-		$config->set('HTML.AllowedCommentsRegexp', '/./');
+		$root = str_replace(['http://', 'https://', '.'], ['', '', '\.'], \App::get('request')->root());
+		$defaultSettings = [
+			'AutoFormat.Linkify' => false,
+			'AutoFormat.RemoveEmpty' => true,
+			'AutoFormat.RemoveEmpty.RemoveNbsp' => false,
+			'Output.CommentScriptContents' => false,
+			'Output.TidyFormat' => true,
+			'Attr.AllowedFrameTargets' => ['_blank'],
+			'Attr.EnableID' => true,
+			'HTML.AllowedCommentsRegexp' => '/./',
+			'HTML.SafeIframe' => true,
+			'URI.SafeIframeRegexp' => "%^(https?:)?//(www\.youtube(?:-nocookie)?\.com/embed/|player\.vimeo\.com/video/|$root)%",
+		];
+		$combinedSettings = array_merge($defaultSettings, $options);
 
-		$config->set('HTML.SafeIframe', true);
-		// Allow YouTube, Vimeo, and calls to same domain
-		$root = str_replace(array('http://', 'https://', '.'), array('', '', '\.'), \App::get('request')->root());
-		$config->set('URI.SafeIframeRegexp', '%^(https?:)?//(www\.youtube(?:-nocookie)?\.com/embed/|player\.vimeo\.com/video/|' . $root . ')%');
+		self::_findOrCreateClientSerializerDirectory($combinedSettings);
 
-		$path = PATH_APP . DS . 'cache' . DS . (isset(\App::get('client')->alias) ? \App::get('client')->alias : \App::get('client')->name) . DS . 'htmlpurifier';
-		if (!is_dir($path))
+		foreach ($combinedSettings as $setting => $value)
 		{
-			if (!\App::get('filesystem')->makeDirectory($path))
-			{
-				$path = '';
-			}
+			$config->set($setting, $value);
 		}
 
-		if ($path)
+		return $config;
+	}
+
+	/**
+	 * Finds or creates client serializer directory
+	 *
+	 * @param    array   $purifierConfigSettings   HTML purifier configuration settings
+	 * @return   void
+	 */
+	protected static function _findOrCreateClientSerializerDirectory($purifierConfigSettings)
+	{
+		$client = \App::get('client');
+		$clientAlias = isset($client->alias) ? $client->alias : $client->name;
+		$clientSerializerPath = PATH_APP . "/cache/$clientAlias/htmlpurifier";
+
+		if (!is_dir($clientSerializerPath))
 		{
-			$config->set('Cache.SerializerPath', $path);
+			\App::get('filesystem')->makeDirectory($clientSerializerPath);
 		}
 
-		if (!empty($options))
+		if (is_dir($clientSerializerPath))
 		{
-			foreach ($options as $key => $val)
-			{
-				$config->set($key, $val);
-			}
+			$purifierConfigSettings['Cache.SerializerPath'] = $clientSerializerPath;
 		}
+	}
 
-		// allow style tags
-		$def  = $config->getHTMLDefinition(true);
-		$form = $def->addElement('style', 'Block', 'Flow', 'Common', array());
+	/**
+	 * Adds elements to HTML purifier whitelist
+	 *
+	 * @param    object   $htmlPurifierWhitelist HTML purifier whitelist
+	 * @return   void
+	 */
+	protected static function _addElementsToHtmlPurifierWhitelist($htmlPurifierWhitelist)
+	{
+		$styleElement = [
+			'name' => 'style',
+			'contentSet' => 'Block',
+			'allowedChildren' => 'Flow',
+			'attributeCollection' => 'Common',
+			'attributes' => [],
+			'excludes' => []
+		];
 
-		// Add usemap attribute to img tag
-		$def->addAttribute('img', 'usemap', 'CDATA');
-
-		// Add map tag
-		$map = $def->addElement(
-			'map', // name
-			'Block', // content set
-			'Flow', // allowed children
-			'Common', // attribute collection
-			array( // attributes
+		$mapElement = [
+			'name' => 'map',
+			'contentSet' => 'Block',
+			'allowedChildren' => 'Flow',
+			'attributeCollection' => 'Common',
+			'attributes' => [
 				'name'  => 'CDATA',
 				'id'    => 'ID',
 				'title' => 'CDATA',
-			)
-		);
-		$map->excludes = array('map' => true);
+			],
+			'excludes' => ['map' => true]
+		];
 
-		// Add area tag
-		$area = $def->addElement(
-			'area', // name
-			'Block', // content set
-			'Empty', // don't allow children
-			'Common', // attribute collection
-			array( // attributes
+		$areaElement = [
+			'name' => 'area',
+			'contentSet' => 'Block',
+			'allowedChildren' => 'Empty',
+			'attributeCollection' => 'Common',
+			'attributes' => [
 				'name'      => 'CDATA',
 				'id'        => 'ID',
 				'alt'       => 'Text',
 				'coords'    => 'CDATA',
 				'accesskey' => 'Character',
-				'nohref'    => new \HTMLPurifier_AttrDef_Enum(array('nohref')),
+				'nohref'    => new \HTMLPurifier_AttrDef_Enum(['nohref']),
 				'href'      => 'URI',
-				'shape'     => new \HTMLPurifier_AttrDef_Enum(array('rect','circle','poly','default')),
+				'shape'     => new \HTMLPurifier_AttrDef_Enum(['rect','circle','poly','default']),
 				'tabindex'  => 'Number',
-				'target'    => new \HTMLPurifier_AttrDef_Enum(array('_blank','_self','_target','_top'))
-			)
-		);
-		$area->excludes = array('area' => true);
+				'target'    => new \HTMLPurifier_AttrDef_Enum(['_blank','_self','_target','_top'])
+			],
+			'excludes' => ['area' => true]
+		];
 
-		// purify text & return
-		$purifier = new \HTMLPurifier($config);
-		return $purifier->purify($text);
+		$elementSettings = [$styleElement, $mapElement, $areaElement];
+
+		foreach ($elementSettings as $settings)
+		{
+			$element = $htmlPurifierWhitelist->addElement(
+				$settings['name'],
+				$settings['contentSet'],
+				$settings['allowedChildren'],
+				$settings['attributeCollection'],
+				$settings['attributes']
+			);
+
+			$element->excludes = $settings['excludes'];
+		}
+	}
+
+	/**
+	 * Adds attributes to HTML purifier whitelist
+	 *
+	 * @param    object   $htmlPurifierWhitelist HTML purifier whitelist
+	 * @return   void
+	 */
+	protected static function _addAttributesToHtmlPurifierWhitelist($htmlPurifierWhitelist)
+	{
+		$htmlPurifierWhitelist->addAttribute('img', 'usemap', 'CDATA');
 	}
 
 	/**

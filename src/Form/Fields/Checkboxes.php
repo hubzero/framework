@@ -1,32 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   hubzero-cms
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Form\Fields;
@@ -36,7 +12,7 @@ use Hubzero\Html\Builder\Select as Dropdown;
 use App;
 
 /**
- * Form Field class for the Joomla Platform.
+ * Form Field class.
  * Displays options as a list of check boxes.
  * Multiselect may be forced to be true.
  */
@@ -87,6 +63,17 @@ class Checkboxes extends Field
 			$class = !empty($option->class) ? ' class="' . $option->class . '"' : '';
 			$disabled = !empty($option->disable) ? ' disabled="disabled"' : '';
 
+			// Add data attributes
+			$dataAttributes = '';
+			foreach ($option as $field => $value)
+			{
+				$dataField = strtolower(substr($field, 0, 4));
+				if ($dataField == 'data')
+				{
+					$dataAttributes .= ' ' . $field . '="' . $value . '"';
+				}
+			}
+
 			if ($checked)
 			{
 				foreach ($values as $k => $v)
@@ -103,7 +90,8 @@ class Checkboxes extends Field
 			$onclick = !empty($option->onclick) ? ' onclick="' . $option->onclick . '"' : '';
 
 			$html[] = '<li>';
-			$html[] = '<input type="checkbox" id="' . $this->id . $i . '" name="' . $this->name . '"' . ' value="' . htmlspecialchars($option->value, ENT_COMPAT, 'UTF-8') . '"' . $checked . $class . $onclick . $disabled . '/>';
+			$html[] = '<input type="checkbox" id="' . $this->id . $i . '" name="' . $this->name . '"' .
+				' value="' . htmlspecialchars($option->value, ENT_COMPAT, 'UTF-8') . '"' . $checked . $class . $onclick . $disabled . $dataAttributes . '/>';
 
 			$html[] = '<label for="' . $this->id . $i . '"' . $class . '>' . App::get('language')->txt($option->text) . '</label>';
 			$html[] = '</li>';
@@ -158,6 +146,16 @@ class Checkboxes extends Field
 			$tmp = Dropdown::option((string) $option['value'], trim((string) $label), 'value', 'text',
 				((string) $option['disabled'] == 'true')
 			);
+
+			// Add data attributes
+			foreach ($option->attributes() as $index => $value)
+			{
+				$dataCheck = strtolower(substr($index, 0, 4));
+				if ($dataCheck == 'data')
+				{
+					$tmp->$index = (string) $value;
+				}
+			}
 
 			// Set some option attributes.
 			$tmp->class = (string) $option['class'];

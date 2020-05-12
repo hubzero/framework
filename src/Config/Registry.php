@@ -1,40 +1,13 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Config;
 
 use Hubzero\Error\Exception\InvalidArgumentException;
-use Hubzero\Filesystem\Adapter\Local;
-use Hubzero\Filesystem\Filesystem;
 use Hubzero\Utility\Arr;
 use stdClass;
 
@@ -295,27 +268,31 @@ class Registry implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \
 	/**
 	 * Load the contents of a file into the registry
 	 *
-	 * @param   string  $file     Path to file to load
-	 * @param   string  $format   Format of the file [optional: defaults to JSON]
-	 * @param   mixed   $options  Options used by the formatter
+	 * @param   string   $file  Path to file to load
 	 * @return  boolean  True on success
+	 * @throws  InvalidArgumentException
 	 */
 	public function read($file)
 	{
-		return with(new Filesystem(new Local))->read($file);
+		if (is_file($file))
+		{
+			return file_get_contents($file);
+		}
+
+		throw new InvalidArgumentException(sprintf('File does not exist at path %s', $file));
 	}
 
 	/**
 	 * Write the contents of the registry to a file
 	 *
-	 * @param   string  $file     Path to file to load
-	 * @param   string  $format   Format of the file [optional: defaults to JSON]
-	 * @param   mixed   $options  Options used by the formatter
+	 * @param   string   $file     Path to file to load
+	 * @param   string   $format   Format of the file [optional: defaults to JSON]
+	 * @param   mixed    $options  Options used by the formatter
 	 * @return  boolean  True on success
 	 */
 	public function write($file, $format = 'json', $options = array())
 	{
-		return with(new Filesystem(new Local))->write($file, $this->processor($format)->objectToString($this->data, $options));
+		return file_put_contents($file, $this->processor($format)->objectToString($this->data, $options));
 	}
 
 	/**
@@ -353,7 +330,6 @@ class Registry implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \
 
 				if (!$format)
 				{
-					//throw new InvalidArgumentException('JLIB_REGISTRY_EXCEPTION_LOAD_FORMAT_CLASS', 500);
 					return false;
 				}
 			}
@@ -406,7 +382,7 @@ class Registry implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \
 	/**
 	 * Transforms a namespace to an object
 	 *
-	 * @return  object   An an object holding the namespace data
+	 * @return  object  An an object holding the namespace data
 	 */
 	public function toObject()
 	{
@@ -471,12 +447,12 @@ class Registry implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \
 
 			if ($recursive && ((is_array($v) && Arr::isAssociative($v)) || is_object($v)))
 			{
-				if (!isset($parent->$k))
+				if (!isset($parent->$k) || !is_object($parent->$k))
 				{
 					$parent->$k = new stdClass;
 				}
 
-				$this->bind($parent->$k, $v);
+				$this->bind($parent->$k, $v, $recursive, $allowNull);
 				continue;
 			}
 
@@ -539,11 +515,6 @@ class Registry implements \JsonSerializable, \ArrayAccess, \IteratorAggregate, \
 	public function flatten($separator = null)
 	{
 		$array = array();
-
-		if (empty($separator))
-		{
-			$separator = $this->separator;
-		}
 
 		$this->toFlatten($separator, $this->data, $array);
 

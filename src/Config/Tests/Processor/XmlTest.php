@@ -1,30 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
- *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
- *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Config\Tests\Processor;
@@ -79,6 +57,10 @@ class XmlTest extends Basic
 		<setting name="sef_groups" type="integer">0</setting>
 		<setting name="feed_limit" type="integer">10</setting>
 		<setting name="feed_email" type="string">author</setting>
+		<setting name="ratelimit" type="array">
+			<setting name="short" type="double">500.1</setting>
+			<setting name="long" type="double">5000.7</setting>
+		</setting>
 	</setting>
 	<setting name="seo" type="object">
 		<setting name="sef" type="integer">1</setting>
@@ -112,6 +94,10 @@ class XmlTest extends Basic
 		$data->app->sef_groups = 0;
 		$data->app->feed_limit = 10;
 		$data->app->feed_email = "author";
+		$data->app->ratelimit = array(
+			'short' => 500.1,
+			'long' => 5000.7
+		);
 
 		$data->seo = new stdClass();
 		$data->seo->sef = 1;
@@ -181,6 +167,7 @@ class XmlTest extends Basic
 	 * Tests the objectToString() method.
 	 *
 	 * @covers  \Hubzero\Config\Processor\Xml::objectToString
+	 * @covers  \Hubzero\Config\Processor\Xml::getXmlChildren
 	 * @return  void
 	 **/
 	public function testObjectToString()
@@ -206,6 +193,7 @@ class XmlTest extends Basic
 	 * Tests the stringToObject() method.
 	 *
 	 * @covers  \Hubzero\Config\Processor\Xml::stringToObject
+	 * @covers  \Hubzero\Config\Processor\Xml::getValueFromNode
 	 * @return  void
 	 **/
 	public function testStringToObject()

@@ -1,33 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Component;
@@ -41,8 +16,6 @@ use stdClass;
 
 /**
  * Component helper class
- *
- * Largely inspired by Joomla's JComponentHelper class.
  */
 class Loader
 {
@@ -122,10 +95,10 @@ class Loader
 			$result->path = '';
 
 			$paths = array(
-				PATH_APP . DS . 'components' . DS . substr($result->option, 4),
-				PATH_APP . DS . 'components' . DS . $result->option,
-				PATH_CORE . DS . 'components' . DS . substr($result->option, 4),
-				PATH_CORE . DS . 'components' . DS . $result->option
+				PATH_APP . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . substr($result->option, 4),
+				PATH_APP . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . $result->option,
+				PATH_CORE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . substr($result->option, 4),
+				PATH_CORE . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . $result->option
 			);
 
 			foreach ($paths as $path)
@@ -149,6 +122,10 @@ class Loader
 	 */
 	public function canonical($option)
 	{
+		if (is_array($option))
+		{
+			$option = implode('', $option);
+		}
 		$option = preg_replace('/[^A-Z0-9_\.-]/i', '', $option);
 		if (substr($option, 0, strlen('com_')) != 'com_')
 		{
@@ -166,13 +143,16 @@ class Loader
 	 */
 	public function render($option, $params = array())
 	{
+		$client = (isset($this->app['client']->alias) ? $this->app['client']->alias : $this->app['client']->name);
+
 		// Load template language files.
 		$lang = $this->app['language'];
 		if ($this->app->has('template'))
 		{
 			$template = $this->app['template']->template;
-			$lang->load('tpl_' . $template, JPATH_BASE, null, false, true);
-			$lang->load('tpl_' . $template, JPATH_THEMES . DS . $template, null, false, true);
+
+			$lang->load('tpl_' . $template, PATH_APP . DIRECTORY_SEPARATOR . 'bootstrap' . DIRECTORY_SEPARATOR . $client . DIRECTORY_SEPARATOR . 'language', null, false, true);
+			$lang->load('tpl_' . $template, $this->app['template']->path, null, false, true);
 		}
 
 		if (empty($option))
@@ -192,12 +172,10 @@ class Loader
 		// Build the component path.
 		$file   = substr($option, 4);
 
-		$client = (isset($this->app['client']->alias) ? $this->app['client']->alias : $this->app['client']->name);
-
 		// Get component path
-		define('PATH_COMPONENT', $this->path($option) . DS . $client);
-		define('PATH_COMPONENT_SITE', $this->path($option) . DS . 'site');
-		define('PATH_COMPONENT_ADMINISTRATOR', $this->path($option) . DS . 'admin');
+		define('PATH_COMPONENT', $this->path($option) . DIRECTORY_SEPARATOR . $client);
+		define('PATH_COMPONENT_SITE', $this->path($option) . DIRECTORY_SEPARATOR . 'site');
+		define('PATH_COMPONENT_ADMINISTRATOR', $this->path($option) . DIRECTORY_SEPARATOR . 'admin');
 
 		// Legacy compatibility
 		// @TODO: Deprecate this!
@@ -205,7 +183,7 @@ class Loader
 		define('JPATH_COMPONENT_SITE', PATH_COMPONENT_SITE);
 		define('JPATH_COMPONENT_ADMINISTRATOR', PATH_COMPONENT_ADMINISTRATOR);
 
-		$path      = PATH_COMPONENT . DS . $file . '.php';
+		$path      = PATH_COMPONENT . DIRECTORY_SEPARATOR . $file . '.php';
 		$namespace = '\\Components\\' . ucfirst(substr($option, 4)) . '\\' . ucfirst($client) . '\\Bootstrap';
 		$found     = false;
 
@@ -220,8 +198,8 @@ class Loader
 
 				// Infer the appropriate language path and load from there
 				$file  = with(new \ReflectionClass($namespace))->getFileName();
-				$bits  = explode(DS, $file);
-				$local = implode(DS, array_slice($bits, 0, -1));
+				$bits  = explode(DIRECTORY_SEPARATOR, $file);
+				$local = implode(DIRECTORY_SEPARATOR, array_slice($bits, 0, -1));
 
 				// Load local language files
 				$lang->load($option, $local, null, false, true);
@@ -332,10 +310,10 @@ class Loader
 				$paths = array();
 				if (!is_null($version))
 				{
-					$paths[] = $this->path($option) . DS . strtolower($client) . DS . 'routerv' . $version . '.php';
+					$paths[] = $this->path($option) . DIRECTORY_SEPARATOR . strtolower($client) . DIRECTORY_SEPARATOR . 'routerv' . $version . '.php';
 				}
-				$paths[] = $this->path($option) . DS . strtolower($client) . DS . 'router.php';
-				$paths[] = $this->path($option) . DS . 'router.php';
+				$paths[] = $this->path($option) . DIRECTORY_SEPARATOR . strtolower($client) . DIRECTORY_SEPARATOR . 'router.php';
+				$paths[] = $this->path($option) . DIRECTORY_SEPARATOR . 'router.php';
 
 				// Use the custom routing handler if it exists
 				foreach ($paths as $path)

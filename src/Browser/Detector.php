@@ -1,32 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2009-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @copyright Copyright 2009-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Browser;
@@ -96,22 +72,374 @@ class Detector
 	 * @var  array  Known robots.
 	 */
 	protected $robots = array(
-		/* The most common ones. */
-		'Googlebot',
-		'msnbot',
+		'Googlebot\/',
+		'Googlebot-Mobile',
+		'Googlebot-Image',
+		'Googlebot-News',
+		'Googlebot-Video',
+		'AdsBot-Google([^-]|$)',
+		'AdsBot-Google-Mobile',
+		'Feedfetcher-Google',
+		'Mediapartners \(Googlebot\)',
+		'APIs-Google',
+		'bingbot',
 		'Slurp',
-		'Yahoo',
-		/* The rest alphabetically. */
+		'[wW]get',
+		'curl',
+		'LinkedInBot',
+		'Python-urllib',
+		'python-requests',
+		'libwww',
+		'httpunit',
+		'nutch',
+		'Go-http-client',
+		'phpcrawl',
+		'msnbot',
+		'jyxobot',
+		'FAST-WebCrawler',
+		'FAST Enterprise Crawler',
+		'BIGLOTRON',
+		'convera',
+		'seekbot',
+		'Gigablast',
+		'exabot',
+		'GingerCrawler',
+		'webmon ',
+		'grub.org',
+		'UsineNouvelleCrawler',
+		'antibot',
+		'netresearchserver',
+		'speedy',
+		'fluffy',
+		'bibnum.bnf',
+		'findlink',
+		'msrbot',
+		'panscient',
+		'yacybot',
+		'AISearchBot',
+		'ips-agent',
+		'tagoobot',
+		'MJ12bot',
+		'woriobot',
+		'yanga',
+		'buzzbot',
+		'mlbot',
+		'YandexBot',
+		'yandex.com\/bots',
+		'purebot',
+		'Linguee Bot',
+		'CyberPatrol',
+		'voilabot',
+		'Baiduspider',
+		'citeseerxbot',
+		'spbot',
+		'twengabot',
+		'postrank',
+		'scribdbot',
+		'page2rss',
+		'sitebot',
+		'linkdex',
+		'Adidxbot',
+		'blekkobot',
+		'ezooms',
+		'dotbot',
+		'Mail.RU_Bot',
+		'discobot',
+		'heritrix',
+		'findthatfile',
+		'europarchive.org',
+		'NerdByNature.Bot',
+		'sistrix crawler',
+		'Ahrefs(Bot|SiteAudit)',
+		'fuelbot',
+		'CrunchBot',
+		'centurybot9',
+		'IndeedBot',
+		'mappydata',
+		'woobot',
+		'ZoominfoBot',
+		'PrivacyAwareBot',
+		'Multiviewbot',
+		'SWIMGBot',
+		'Grobbot',
+		'eright',
+		'Apercite',
+		'semanticbot',
+		'Aboundex',
+		'domaincrawler',
+		'wbsearchbot',
+		'summify',
+		'CCBot',
+		'edisterbot',
+		'seznambot',
+		'ec2linkfinder',
+		'gslfbot',
+		'aiHitBot',
+		'intelium_bot',
+		'facebookexternalhit',
+		'Yeti',
+		'RetrevoPageAnalyzer',
+		'lb-spider',
+		'Sogou',
+		'lssbot',
+		'careerbot',
+		'wotbox',
+		'wocbot',
+		'ichiro',
+		'DuckDuckBot',
+		'lssrocketcrawler',
+		'drupact',
+		'webcompanycrawler',
+		'acoonbot',
+		'openindexspider',
+		'gnam gnam spider',
+		'web-archive-net.com.bot',
+		'backlinkcrawler',
+		'coccoc',
+		'integromedb',
+		'content crawler spider',
+		'toplistbot',
+		'it2media-domain-crawler',
+		'ip-web-crawler.com',
+		'siteexplorer.info',
+		'elisabot',
+		'proximic',
+		'changedetection',
+		'arabot',
+		'WeSEE:Search',
+		'niki-bot',
+		'CrystalSemanticsBot',
+		'rogerbot',
+		'360Spider',
+		'psbot',
+		'InterfaxScanBot',
+		'CC Metadata Scaper',
+		'g00g1e.net',
+		'GrapeshotCrawler',
+		'urlappendbot',
+		'brainobot',
+		'fr-crawler',
+		'binlar',
+		'SimpleCrawler',
+		'Twitterbot',
+		'cXensebot',
+		'smtbot',
+		'bnf.fr_bot',
+		'A6-Indexer',
+		'ADmantX',
+		'Facebot',
+		'OrangeBot\/',
+		'memorybot',
+		'AdvBot',
+		'MegaIndex',
+		'SemanticScholarBot',
+		'ltx71',
+		'nerdybot',
+		'xovibot',
+		'BUbiNG',
+		'Qwantify',
+		'archive.org_bot',
+		'Applebot',
+		'TweetmemeBot',
+		'crawler4j',
+		'findxbot',
+		'S[eE][mM]rushBot',
+		'yoozBot',
+		'lipperhey',
+		'Y!J',
+		'Domain Re-Animator Bot',
+		'AddThis',
+		'Screaming Frog SEO Spider',
+		'MetaURI',
+		'Scrapy',
+		'Livelap[bB]ot',
+		'OpenHoseBot',
+		'CapsuleChecker',
+		'collection@infegy.com',
+		'IstellaBot',
+		'DeuSu\/',
+		'betaBot',
+		'Cliqzbot\/',
+		'MojeekBot\/',
+		'netEstate NE Crawler',
+		'SafeSearch microdata crawler',
+		'Gluten Free Crawler\/',
+		'Sonic',
+		'Sysomos',
+		'Trove',
+		'deadlinkchecker',
+		'Slack-ImgProxy',
+		'Embedly',
+		'RankActiveLinkBot',
+		'iskanie',
+		'SafeDNSBot',
+		'SkypeUriPreview',
+		'Veoozbot',
+		'Slackbot',
+		'redditbot',
+		'datagnionbot',
+		'Google-Adwords-Instant',
+		'adbeat_bot',
+		'WhatsApp',
+		'contxbot',
+		'pinterest',
+		'electricmonk',
+		'GarlikCrawler',
+		'BingPreview\/',
+		'vebidoobot',
+		'FemtosearchBot',
+		'Yahoo Link Preview',
+		'MetaJobBot',
+		'DomainStatsBot',
+		'mindUpBot',
+		'Daum\/',
+		'Jugendschutzprogramm-Crawler',
+		'Xenu Link Sleuth',
+		'Pcore-HTTP',
+		'moatbot',
+		'KosmioBot',
+		'pingdom',
+		'PhantomJS',
+		'Gowikibot',
+		'PiplBot',
+		'Discordbot',
+		'TelegramBot',
+		'Jetslide',
+		'newsharecounts',
+		'James BOT',
+		'Barkrowler',
+		'TinEye',
+		'SocialRankIOBot',
+		'trendictionbot',
+		'Ocarinabot',
+		'epicbot',
+		'Primalbot',
+		'DuckDuckGo-Favicons-Bot',
+		'GnowitNewsbot',
+		'Leikibot',
+		'LinkArchiver',
+		'YaK\/',
+		'PaperLiBot',
+		'Digg Deeper',
+		'dcrawl',
+		'Snacktory',
+		'AndersPinkBot',
+		'Fyrebot',
+		'EveryoneSocialBot',
+		'Mediatoolkitbot',
+		'Luminator-robots',
+		'ExtLinksBot',
+		'SurveyBot',
+		'NING\/',
+		'okhttp',
+		'Nuzzel',
+		'omgili',
+		'PocketParser',
+		'YisouSpider',
+		'um-LN',
+		'ToutiaoSpider',
+		'MuckRack',
+		'Jamie\'s Spider',
+		'AHC\/',
+		'NetcraftSurveyAgent',
+		'Laserlikebot',
+		'Apache-HttpClient',
+		'AppEngine-Google',
+		'Jetty',
+		'Upflow',
+		'Thinklab',
+		'Traackr.com',
+		'Twurly',
+		'Mastodon',
+		'http_get',
+		'DnyzBot',
+		'botify',
+		'007ac9 Crawler',
+		'BehloolBot',
+		'BrandVerity',
+		'check_http',
+		'BDCbot',
+		'ZumBot',
+		'EZID',
+		'ICC-Crawler',
+		'ArchiveBot',
+		'^LCC ',
+		'filterdb.iss.net\/crawler',
+		'BLP_bbot',
+		'BomboraBot',
+		'Buck\/',
+		'Companybook-Crawler',
+		'Genieo',
+		'magpie-crawler',
+		'MeltwaterNews',
+		'Moreover',
+		'newspaper\/',
+		'ScoutJet',
+		'(^| )sentry\/',
+		'StorygizeBot',
+		'UptimeRobot',
+		'OutclicksBot',
+		'seoscanners',
+		'Hatena',
+		'Google Web Preview',
+		'MauiBot',
+		'AlphaBot',
+		'SBL-BOT',
+		'IAS crawler',
+		'adscanner',
+		'Netvibes',
+		'acapbot',
+		'Baidu-YunGuanCe',
+		'bitlybot',
+		'blogmuraBot',
+		'Bot.AraTurka.com',
+		'bot-pge.chlooe.com',
+		'BoxcarBot',
+		'BTWebClient',
+		'ContextAd Bot',
+		'Digincore bot',
+		'Disqus',
+		'Feedly',
+		'Fetch\/',
+		'Fever',
+		'Flamingo_SearchEngine',
+		'FlipboardProxy',
+		'g2reader-bot',
+		'imrbot',
+		'K7MLWCBot',
+		'Kemvibot',
+		'Landau-Media-Spider',
+		'linkapediabot',
+		'vkShare',
+		'Siteimprove.com',
+		'BLEXBot\/',
+		'DareBoost',
+		'ZuperlistBot\/',
+		'Miniflux\/',
+		'Feedspotbot\/',
+		'Diffbot\/',
+		'SEOkicks',
+		'tracemyfile',
+		'Nimbostratus-Bot',
+		'zgrab',
+		'PR-CY.RU',
+		'AdsTxtCrawler',
+		'Datafeedwatch',
+		'Zabbix',
+		'TangibleeBot',
+		'google-xrawler',
+		'axios',
+		'Amazon CloudFront',
+		'Pulsepoint',
+		'alexa',
 		'Arachnoidea',
 		'ArchitextSpider',
 		'Ask Jeeves',
 		'B-l-i-t-z-Bot',
-		'Baiduspider',
 		'BecomeBot',
 		'cfetch',
 		'ConveraCrawler',
 		'ExtractorPro',
-		'FAST-WebCrawler',
 		'FDSE robot',
 		'fido',
 		'geckobot',
@@ -141,7 +469,7 @@ class Detector
 		'Ultraseek',
 		'ViolaBot',
 		'webbandit',
-		'www.almaden.ibm.com/cs/crawler',
+		'www\.almaden\.ibm\.com\/cs\/crawler',
 		'ZyBorg'
 	);
 
@@ -167,6 +495,11 @@ class Detector
 		'bmp'
 	);
 
+	/**
+	 * List of browser regex
+	 *
+	 * @var  array
+	 */
 	protected $regexes = array(
 		array(
 			'regex'    => '|Opera[/ ]([0-9.]+)|',
@@ -497,7 +830,10 @@ class Detector
 				{
 					$this->browser  = strtolower($regex['name']);
 					$this->platform = ($regex['platform'] ? $regex['platform'] : $this->platform);
-					$this->mobile   = $regex['mobile'];
+					if (!$this->mobile)
+					{
+						$this->mobile   = $regex['mobile'];
+					}
 
 					if (isset($regex['version']))
 					{
@@ -540,7 +876,7 @@ class Detector
 		// use this order since some navigator user agents will put 'macintosh' in the navigator user agent string
 		// which would make the nt test register true
 		$a_mobile = array(
-			'ios', 'android', 'blackberry os', 'windows', 'symbian os', 'web os'
+			'ios', 'android', 'blackberry os', 'symbian os', 'web os' //, 'windows'
 		);
 
 		$a_mac = array(
@@ -769,17 +1105,6 @@ class Detector
 	}
 
 	/**
-	 * Sets the current browser.
-	 *
-	 * @param   string  $browser  The browser to set as current.
-	 * @return  void
-	 */
-	public function setBrowser($browser)
-	{
-		$this->browser = $browser;
-	}
-
-	/**
 	 * Retrieve the current browser.
 	 *
 	 * @return  string  The current browser.
@@ -847,78 +1172,6 @@ class Detector
 	}
 
 	/**
-	 * Returns the server protocol in use on the current server.
-	 *
-	 * @return  string  The HTTP server protocol version.
-	 */
-	public function protocol()
-	{
-		if (isset($_SERVER['SERVER_PROTOCOL']))
-		{
-			if (($pos = strrpos($_SERVER['SERVER_PROTOCOL'], '/')))
-			{
-				return substr($_SERVER['SERVER_PROTOCOL'], $pos + 1);
-			}
-		}
-
-		return null;
-	}
-
-	/**
-	 * Determines if a browser can display a given MIME type.
-	 *
-	 * Note that  image/jpeg and image/pjpeg *appear* to be the same
-	 * entity, but Mozilla doesn't seem to want to accept the latter.
-	 * For our purposes, we will treat them the same.
-	 *
-	 * @param   string  $mimetype  The MIME type to check.
-	 * @return  boolean  True if the browser can display the MIME type.
-	 */
-	public function isViewable($mimetype)
-	{
-		$mimetype = strtolower($mimetype);
-		list ($type, $subtype) = explode('/', $mimetype);
-
-		if (!empty($this->accept))
-		{
-			$wildcard_match = false;
-
-			if (strpos($this->accept, $mimetype) !== false)
-			{
-				return true;
-			}
-
-			if (strpos($this->accept, '*/*') !== false)
-			{
-				$wildcard_match = true;
-
-				if ($type != 'image')
-				{
-					return true;
-				}
-			}
-
-			// Deal with Mozilla pjpeg/jpeg issue
-			if ($this->isBrowser('mozilla') && ($mimetype == 'image/pjpeg') && (strpos($this->accept, 'image/jpeg') !== false))
-			{
-				return true;
-			}
-
-			if (!$wildcard_match)
-			{
-				return false;
-			}
-		}
-
-		if (!$this->hasFeature('images') || ($type != 'image'))
-		{
-			return false;
-		}
-
-		return (in_array($subtype, $this->images));
-	}
-
-	/**
 	 * Determine if the given browser is the same as the current.
 	 *
 	 * @param   string  $browser  The browser to check.
@@ -926,6 +1179,7 @@ class Detector
 	 */
 	public function isBrowser($browser)
 	{
+		$browser = strtolower($browser);
 		return ($this->browser === $browser);
 	}
 
@@ -938,7 +1192,8 @@ class Detector
 	{
 		foreach ($this->robots as $robot)
 		{
-			if (strpos($this->agent, $robot) !== false)
+			//if (strpos($this->agent, $robot) !== false)
+			if (preg_match('/' . $robot . '/', $this->agent))
 			{
 				return true;
 			}
@@ -955,15 +1210,5 @@ class Detector
 	public function isMobile()
 	{
 		return $this->mobile;
-	}
-
-	/**
-	 * Determine if we are using a secure (SSL) connection.
-	 *
-	 * @return  boolean  True if using SSL, false if not.
-	 */
-	public function isSecure()
-	{
-		return ((isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on')) || getenv('SSL_PROTOCOL_VERSION'));
 	}
 }

@@ -1,33 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Config;
@@ -152,14 +127,16 @@ class Legacy extends Registry
 	 */
 	public function __construct($path = null)
 	{
+		$this->reset();
+
 		if (!$path)
 		{
-			$path = PATH_ROOT;
+			$path = defined('PATH_ROOT') ? PATH_ROOT : __DIR__;
 		}
 
-		$this->file = $path . DS . 'configuration.php';
+		$this->file = $path . DIRECTORY_SEPARATOR . 'configuration.php';
 
-		if ($this->file)
+		if ($this->exists())
 		{
 			$data = $this->read($this->file);
 			$data = \Hubzero\Utility\Arr::fromObject($data);
@@ -217,19 +194,22 @@ class Legacy extends Registry
 
 		$config = new \JConfig;
 
-		if (isset($config->tmp_path))
+		if (defined('PATH_ROOT') && defined('PATH_APP'))
 		{
-			if (substr($config->tmp_path, strlen(PATH_ROOT)) == DS . 'tmp')
+			if (isset($config->tmp_path))
 			{
-				$config->tmp_path = PATH_APP . substr($config->tmp_path, strlen(PATH_ROOT));
+				if (substr($config->tmp_path, strlen(PATH_ROOT)) == DIRECTORY_SEPARATOR . 'tmp')
+				{
+					$config->tmp_path = PATH_APP . substr($config->tmp_path, strlen(PATH_ROOT));
+				}
 			}
-		}
 
-		if (isset($config->log_path))
-		{
-			if (substr($config->log_path, strlen(PATH_ROOT)) == DS . 'logs')
+			if (isset($config->log_path))
 			{
-				$config->log_path = PATH_APP . substr($config->log_path, strlen(PATH_ROOT));
+				if (substr($config->log_path, strlen(PATH_ROOT)) == DIRECTORY_SEPARATOR . 'logs')
+				{
+					$config->log_path = PATH_APP . substr($config->log_path, strlen(PATH_ROOT));
+				}
 			}
 		}
 
@@ -246,9 +226,13 @@ class Legacy extends Registry
 	public function split($format = null, $path = null)
 	{
 		$format = $format ?: 'php';
-		$path   = $path   ?: PATH_APP . DS . 'config';
+		if (!$path)
+		{
+			$path  = defined('PATH_ROOT') ? PATH_ROOT : __DIR__;
+			$path .= DIRECTORY_SEPARATOR . 'config';
+		}
 
-		$writer = new \Hubzero\Config\FileWriter(
+		$writer = new FileWriter(
 			$format,
 			$path
 		);

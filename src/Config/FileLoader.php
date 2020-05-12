@@ -1,33 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Config;
@@ -55,7 +30,17 @@ class FileLoader
 	 */
 	public function __construct($defaultPath)
 	{
-		$this->defaultPath  = $defaultPath;
+		$this->defaultPath = $defaultPath;
+	}
+
+	/**
+	 * Get the default path
+	 *
+	 * @return  string
+	 */
+	public function getDefaultPath()
+	{
+		return $this->defaultPath;
 	}
 
 	/**
@@ -73,7 +58,7 @@ class FileLoader
 		// as any environment folders with their specific configuration items.
 		try
 		{
-			$paths = $this->getPath($this->defaultPath);
+			$paths = $this->getPaths($this->defaultPath);
 
 			if (empty($paths))
 			{
@@ -86,13 +71,13 @@ class FileLoader
 				$info      = pathinfo($path);
 				$group     = isset($info['filename'])  ? strtolower($info['filename'])  : '';
 				$extension = isset($info['extension']) ? strtolower($info['extension']) : '';
+
 				if (!$extension || $extension == 'html')
 				{
 					continue;
 				}
-				$parser    = $this->getParser($extension);
 
-				$data[$group] = $parser->parse($path);
+				$data[$group] = $this->getParser($extension)->parse($path);
 			}
 
 			if (empty($data))
@@ -100,9 +85,10 @@ class FileLoader
 				throw new EmptyDirectoryException("Configuration directory: [" . $this->defaultPath . "] is empty");
 			}
 
+			// If a client is specified...
 			if ($client)
 			{
-				$paths = $this->getPath($this->defaultPath . DIRECTORY_SEPARATOR . $client);
+				$paths = $this->getPaths($this->defaultPath . DIRECTORY_SEPARATOR . $client);
 
 				foreach ($paths as $path)
 				{
@@ -110,19 +96,20 @@ class FileLoader
 					$info      = pathinfo($path);
 					$group     = isset($info['filename'])  ? strtolower($info['filename'])  : '';
 					$extension = isset($info['extension']) ? strtolower($info['extension']) : '';
+
 					if (!$extension || $extension == 'html')
 					{
 						continue;
 					}
-					$parser    = $this->getParser($extension);
 
 					if (!isset($data[$group]))
 					{
 						$data[$group] = array();
 					}
+
 					$data[$group] = array_replace_recursive(
 						$data[$group],
-						$parser->parse($path)
+						$this->getParser($extension)->parse($path)
 					);
 				}
 			}
@@ -130,24 +117,16 @@ class FileLoader
 		catch (\Exception $e)
 		{
 			$loader = new Legacy();
-			$loader->split();
 
 			$data = $loader->toArray();
+
+			if (!empty($data))
+			{
+				$loader->split();
+			}
 		}
 
 		return $data;
-	}
-
-	/**
-	 * Merge the items in the given file into the items.
-	 *
-	 * @param   array   $items
-	 * @param   string  $file
-	 * @return  array
-	 */
-	protected function mergeEnvironment(array $items, $file)
-	{
-		return array_replace_recursive($items, $this->getRequire($file));
 	}
 
 	/**
@@ -187,7 +166,7 @@ class FileLoader
 	 * @param   mixed  $path
 	 * @return  array
 	 */
-	protected function getPath($path)
+	protected function getPaths($path)
 	{
 		$paths = array();
 
@@ -196,7 +175,7 @@ class FileLoader
 		{
 			foreach ($path as $unverifiedPath)
 			{
-				$paths = array_merge($paths, $this->getPath($unverifiedPath));
+				$paths = array_merge($paths, $this->getPaths($unverifiedPath));
 			}
 
 			return $paths;

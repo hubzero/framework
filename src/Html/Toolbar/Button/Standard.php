@@ -1,29 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @copyright Copyright 2005-2014 Open Source Matters, Inc.
- * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Html\Toolbar\Button;
@@ -33,8 +12,6 @@ use Hubzero\Html\Builder\Behavior;
 
 /**
  * Renders a standard button
- *
- * Inspired by Joomla's JButtonStandard class
  */
 class Standard extends Button
 {
@@ -58,10 +35,23 @@ class Standard extends Button
 	public function fetchButton($type = 'Standard', $name = '', $text = '', $task = '', $list = true)
 	{
 		$i18n_text = \Lang::txt($text);
-		$class  = $this->fetchIconClass($name);
-		$doTask = $this->_getCommand($text, $task, $list);
+		$class = $this->fetchIconClass($name);
+		$message = $this->_getCommand($text, $task, $list);
 
-		$html  = "<a href=\"#\" onclick=\"$doTask\" class=\"toolbar\" data-title=\"$i18n_text\">\n";
+		$cls = 'toolbar toolbar-submit';
+
+		$attr   = array();
+		$attr[] = 'data-title="' . $i18n_text . '"';
+		$attr[] = 'data-task="' . $task . '"';
+
+		if ($list)
+		{
+			$cls .= ' toolbar-list';
+
+			$attr[] = ' data-message="' . $message . '"';
+		}
+
+		$html  = "<a href=\"#\" class=\"$cls\" " . implode(' ', $attr) . ">\n";
 		$html .= "<span class=\"$class\">\n";
 		$html .= "$i18n_text\n";
 		$html .= "</span>\n";
@@ -92,7 +82,7 @@ class Standard extends Button
 	 * @param   string   $name  The task name as seen by the user
 	 * @param   string   $task  The task used by the application
 	 * @param   boolean  $list  True is requires a list confirmation.
-	 * @return  string   JavaScript command string
+	 * @return  string
 	 */
 	protected function _getCommand($name, $task, $list)
 	{
@@ -101,15 +91,6 @@ class Standard extends Button
 		$message = \Lang::txt('JLIB_HTML_PLEASE_MAKE_A_SELECTION_FROM_THE_LIST');
 		$message = addslashes($message);
 
-		if ($list)
-		{
-			$cmd = "if (document.adminForm.boxchecked.value==0){alert('$message');}else{ Joomla.submitbutton('$task')}";
-		}
-		else
-		{
-			$cmd = "Joomla.submitbutton('$task')";
-		}
-
-		return $cmd;
+		return $message;
 	}
 }

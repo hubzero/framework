@@ -1,30 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
- *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
- *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Config\Tests\Processor;
@@ -78,6 +56,9 @@ sef_suffix=0
 sef_groups=0
 feed_limit=10
 feed_email="author"
+gzip=true
+unicodeslugs=false
+version=2.2
 
 [seo]
 sef=1
@@ -109,6 +90,9 @@ sitename_pagetitles=0';
 		$data->app->sef_groups = 0;
 		$data->app->feed_limit = 10;
 		$data->app->feed_email = "author";
+		$data->app->gzip = true;
+		$data->app->unicodeslugs = false;
+		$data->app->version = 2.2;
 
 		$data->seo = new stdClass();
 		$data->seo->sef = 1;
@@ -179,6 +163,7 @@ sitename_pagetitles=0';
 	 * Tests the objectToString() method.
 	 *
 	 * @covers  \Hubzero\Config\Processor\Ini::objectToString
+	 * @covers  \Hubzero\Config\Processor\Ini::getValueAsINI
 	 * @return  void
 	 **/
 	public function testObjectToString()
@@ -216,5 +201,33 @@ sitename_pagetitles=0';
 		$result = $this->processor->stringToObject($this->str, array('processSections' => true));
 
 		$this->assertEquals($this->obj, $result);
+
+		// Test that a string gets converted as expected
+		$result = $this->processor->stringToObject($this->str, array('processSections' => false));
+
+		$data = new stdClass();
+		$data->application_env = "development";
+		$data->editor = "ckeditor";
+		$data->list_limit = 25;
+		$data->helpurl = "English (GB) - HUBzero help";
+		$data->debug = 1;
+		$data->debug_lang = 0;
+		$data->sef = 1;
+		$data->sef_rewrite = 1;
+		$data->sef_suffix = 0;
+		$data->sef_groups = 0;
+		$data->feed_limit = 10;
+		$data->feed_email = "author";
+		$data->gzip = true;
+		$data->unicodeslugs = false;
+		$data->version = 2.2;
+		$data->sef = 1;
+		$data->sef_groups = 0;
+		$data->sef_rewrite = 1;
+		$data->sef_suffix = 0;
+		$data->unicodeslugs = 0;
+		$data->sitename_pagetitles = 0;
+
+		$this->assertEquals($data, $result);
 	}
 }

@@ -1,33 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @copyright Copyright 2005-2014 Open Source Matters, Inc.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Form;
@@ -167,7 +142,11 @@ class Helper
 	 */
 	protected static function loadClass($entity, $type)
 	{
-		$class = __NAMESPACE__ . '\\' . ucfirst($entity) . 's' . '\\' . ucfirst($type);
+		$parts = explode('_', $type);
+		$parts = array_map('ucfirst', $parts);
+		$parts = implode('\\', $parts);
+
+		$class = __NAMESPACE__ . '\\' . ucfirst($entity) . 's' . '\\' . $parts;
 
 		if (class_exists($class))
 		{
@@ -177,12 +156,32 @@ class Helper
 		// Get the field search path array.
 		$paths = self::addPath($entity);
 
+		// If the type is complex, add the base type to the paths.
+		if ($pos = strpos($type, '_'))
+		{
+
+			// Add the complex type prefix to the paths.
+			for ($i = 0, $n = count($paths); $i < $n; $i++)
+			{
+				// Derive the new path.
+				$path = $paths[$i] . '/' . strtolower(substr($type, 0, $pos));
+
+				// If the path does not exist, add it.
+				if (!in_array($path, $paths))
+				{
+					$paths[] = $path;
+				}
+			}
+			// Break off the end of the complex type.
+			$type = substr($type, $pos + 1);
+		}
+
 		// Try to find the class file.
 		$type = strtolower($type) . '.php';
 
 		foreach ($paths as $path)
 		{
-			if ($file = \Filesystem::find($path, $type))
+			if ($file = self::find($path, $type))
 			{
 				require_once $file;
 
@@ -195,6 +194,43 @@ class Helper
 
 		// Check for all if the class exists.
 		return class_exists($class) ? $class : false;
+	}
+
+	/**
+	 * Searches the directory paths for a given file.
+	 *
+	 * @param   mixed   $paths  An path string or array of path strings to search in
+	 * @param   string  $file   The file name to look for.
+	 * @return  mixed   Full path and name for the target file, or false if file not found.
+	 */
+	protected static function find($paths, $file)
+	{
+		$paths = is_array($paths) ? $paths : array($paths);
+
+		foreach ($paths as $path)
+		{
+			$fullname = $path . DIRECTORY_SEPARATOR . $file;
+
+			// Is the path based on a stream?
+			if (strpos($path, '://') === false)
+			{
+				// Not a stream, so do a realpath() to avoid directory
+				// traversal attempts on the local file system.
+				$path     = realpath($path);
+				$fullname = realpath($fullname);
+			}
+
+			// The substr() check added to make sure that the realpath()
+			// results in a directory registered so that
+			// non-registered directories are not accessible via directory
+			// traversal attempts.
+			if (file_exists($fullname) && substr($fullname, 0, strlen($path)) == $path)
+			{
+				return $fullname;
+			}
+		}
+
+		return false;
 	}
 
 	/**

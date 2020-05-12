@@ -1,29 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @copyright Copyright 2005-2014 Open Source Matters, Inc.
- * @license   http://www.gnu.org/licenses/gpl-2.0.html GPLv2
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Html\Toolbar\Button;
@@ -33,15 +12,13 @@ use Hubzero\Html\Builder\Behavior;
 
 /**
  * Renders a popup window button
- *
- * Inspired by Joomla's JButtonPopup class
  */
 class Popup extends Button
 {
 	/**
 	 * Button type
 	 *
-	 * @var    string
+	 * @var  string
 	 */
 	protected $_name = 'Popup';
 
@@ -63,11 +40,11 @@ class Popup extends Button
 	{
 		Behavior::modal();
 
-		$text   = \Lang::txt($text);
-		$class  = $this->fetchIconClass($name);
-		$doTask = $this->_getCommand($name, $url, $width, $height, $top, $left);
+		$text  = \Lang::txt($text);
+		$class = $this->fetchIconClass($name);
+		$url   = $this->_getCommand($name, $url, $width, $height, $top, $left);
 
-		$html  = "<a data-title=\"$text\" class=\"modal\" href=\"$doTask\" rel=\"{size: {width: $width, height: $height}, onClose: function() {" . $onClose . "}}\">\n";
+		$html  = "<a data-title=\"$text\" class=\"modal\" href=\"$url\" data-width=\"$width\" data-height=\"$height\" rel=\"{size: {width: $width, height: $height}, onClose: function() {" . $onClose . "}}\">\n";
 		$html .= "<span class=\"$class\">\n";
 		$html .= "$text\n";
 		$html .= "</span>\n";
@@ -81,7 +58,7 @@ class Popup extends Button
 	 *
 	 * @param   string  $type  Button type
 	 * @param   string  $name  Button name
-	 * @return  string	Button CSS Id
+	 * @return  string  Button CSS Id
 	 */
 	public function fetchId($type, $name)
 	{
@@ -97,13 +74,17 @@ class Popup extends Button
 	 * @param   integer  $height  Unused formerly height.
 	 * @param   integer  $top     Unused formerly top attribute.
 	 * @param   integer  $left    Unused formerly left attribure.
-	 * @return  string   JavaScript command string
+	 * @return  string   Command string
 	 */
 	protected function _getCommand($name, $url, $width, $height, $top, $left)
 	{
 		if (substr($url, 0, 4) !== 'http')
 		{
-			$url = rtrim(\Request::base(), '/') . '/' . ltrim($url, '/');
+			$root = rtrim(\Request::root(true), '/');
+			if (substr($url, 0, strlen($root)) != $root)
+			{
+				$url = $root . '/' . ltrim($url, '/');
+			}
 		}
 
 		return $url;

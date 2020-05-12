@@ -1,34 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Sam Wilson <samwilson@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
- * @since     Class available since release 2.0.0
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Database\Driver;
@@ -37,6 +11,7 @@ use Hubzero\Database\Driver;
 use Hubzero\Database\Query;
 use Hubzero\Database\Exception\ConnectionFailedException;
 use Hubzero\Database\Exception\QueryFailedException;
+use Hubzero\Database\Exception\UnsupportedEngineException;
 
 /**
  * Pdo database driver
@@ -45,13 +20,6 @@ use Hubzero\Database\Exception\QueryFailedException;
  */
 class Pdo extends Driver
 {
-	/**
-	 * The name of the driver
-	 *
-	 * @var	string
-	 */
-	public $name = 'pdo';
-
 	/**
 	 * Constructs a new database object based on the given params
 	 *
@@ -70,19 +38,25 @@ class Pdo extends Driver
 		// Try to connect
 		try
 		{
-			// Add "extra" options as needed
-			$extras = [];
-
-			// Check if we're trying to make an SSL connection
-			if (isset($options['ssl_ca']) && $options['ssl_ca'] && $options['host'] != 'localhost')
+			// Make sure the DSN is set
+			if (!isset($options['dsn']) || !$options['dsn'])
 			{
-				$extras[PDO::MYSQL_ATTR_SSL_CA] = $options['ssl_ca'];
+				throw new ConnectionFailedException('DSN for PDO connection not set.', 500);
+			}
+
+			// Make sure extra PDO options array is set
+			if (!isset($options['extras']))
+			{
+				$options['extras'] = [];
 			}
 
 			// Establish connection string
-			$parameters  = "mysql:host={$options['host']};charset=utf8";
-			$parameters .= ($options['select']) ? ";dbname={$options['database']}" : '';
-			$this->setConnection(new \PDO($parameters, $options['user'], $options['password'], $extras));
+			$this->setConnection(new \PDO(
+				(string)$options['dsn'],
+				(string)$options['user'],
+				(string)$options['password'],
+				(array)$options['extras']
+			));
 		}
 		catch (\PDOException $e)
 		{
@@ -96,17 +70,6 @@ class Pdo extends Driver
 		parent::__construct($options);
 
 		// @FIXME: Set sql_mode to non_strict mode?
-	}
-
-	/**
-	 * Destroys the connection
-	 *
-	 * @return  void
-	 * @since   2.0.0
-	 */
-	public function __destruct()
-	{
-		$this->connection = null;
 	}
 
 	/**
@@ -351,17 +314,23 @@ class Pdo extends Driver
 	}
 
 	/**
-	 * Gets the database collation in use by sampling a text field of a table in the database
+	 * Gets the database collation in use
 	 *
 	 * @return  string|bool
 	 * @since   2.0.0
 	 */
 	public function getCollation()
 	{
-		$this->setQuery('SHOW FULL COLUMNS FROM #__users');
-		$array = $this->loadAssocList();
+		// Attempt to get the database collation by accessing the server system variable.
+		$this->setQuery('SHOW VARIABLES LIKE "collation_database"');
+		$result = $this->loadObject();
 
-		return $array['2']['Collation'];
+		if (property_exists($result, 'Value'))
+		{
+			return $result->Value;
+		}
+
+		return false;
 	}
 
 	/**
@@ -390,7 +359,7 @@ class Pdo extends Driver
 	}
 
 	/**
-	 * Retrieves field information about the given tables
+	 * Retrieves field information about the given table
 	 *
 	 * @param   string  $table     The name of the database table
 	 * @param   bool    $typeOnly  True (default) to only return field types
@@ -436,7 +405,7 @@ class Pdo extends Driver
 	{
 		// Get the details columns information
 		$this->setQuery('SHOW KEYS FROM ' . $this->quoteName($table));
-		$keys = $this->loadObjectList();
+		$keys = $this->loadObjectList('Key_name');
 
 		return $keys;
 	}
@@ -558,7 +527,7 @@ class Pdo extends Driver
 	 */
 	public function tableHasField($table, $field)
 	{
-		$this->setQuery( 'SHOW FIELDS FROM ' . $table );
+		$this->setQuery('SHOW FIELDS FROM ' . $table);
 		$fields = $this->loadObjectList('Field');
 
 		if (!is_array($fields))
@@ -579,15 +548,14 @@ class Pdo extends Driver
 	 */
 	public function tableHaskey($table, $key)
 	{
-		$this->setQuery('SHOW KEYS FROM ' . $table);
-		$keys = $this->loadObjectList('Key_name');
+		$keys = $this->getTableKeys($table);
 
 		if (!is_array($keys))
 		{
 			return false;
 		}
 
-		return (in_array($key, array_keys($keys))) ? true : false;
+		return isset($keys[$key]);
 	}
 
 	/**
@@ -627,6 +595,32 @@ class Pdo extends Driver
 		$this->setQuery('SHOW TABLE STATUS WHERE Name = ' . str_replace('#__', $this->tablePrefix, $this->quote($table, false)));
 
 		return ($info = $this->loadObjectList()) ? $info[0]->Engine : false;
+	}
+
+	/**
+	 * Set the database engine of the given table
+	 *
+	 * @param   string  $table   The table for which to retrieve the engine type
+	 * @param   string  $engine  The engine type to set
+	 * @return  bool
+	 * @since   2.2.15
+	 **/
+	public function setEngine($table, $engine)
+	{
+		$supported = ['innodb', 'myisam', 'archive', 'merge', 'memory', 'csv', 'federated'];
+
+		if (!in_array(strtolower($engine), $supported))
+		{
+			throw new UnsupportedEngineException(sprintf(
+				'Unsupported engine type of "%s" specified. Engine type must be one of %s',
+				$engine,
+				implode(', ', $supported)
+			));
+		}
+
+		$this->setQuery('ALTER TABLE ' . str_replace('#__', $this->tablePrefix, $this->quote($table, false)) . " ENGINE = " . $this->quote($engine));
+
+		return $this->db->query();
 	}
 
 	/**
@@ -792,8 +786,7 @@ class Pdo extends Driver
 	 */
 	public function setUTF()
 	{
-		// @FIXME: This should be handled by the syntax class!
-		//return $this->connection->exec("SET NAMES 'utf8'");
+		return false;
 	}
 
 	/**

@@ -1,39 +1,15 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Christopher Smoak <csmoak@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Api\Doc;
 
 use ReflectionClass;
 use phpDocumentor\Reflection\DocBlock;
+use App;
 
 /**
  * Documentation Generator Class
@@ -127,7 +103,14 @@ class Generator
 		}
 
 		// get developer params to get cache expiration
-		$developerParams = \App::get('component')->params('com_developer');
+		if (App::has('component'))
+		{
+			$developerParams = App::get('component')->params('com_developer');
+		}
+		else
+		{
+			$developerParams = new \Hubzero\Config\Registry();
+		}
 		$cacheExpiration = $developerParams->get('doc_expiration', 720);
 
 		// cache file
@@ -169,9 +152,10 @@ class Generator
 
 		// create cache folder
 		$cacheFile = PATH_APP . DS . 'cache' . DS . 'api' . DS . 'documentation.json';
-		if (!\App::get('filesystem')->exists(dirname($cacheFile)))
+
+		if (App::has('filesystem') && !App::get('filesystem')->exists(dirname($cacheFile)))
 		{
-			\App::get('filesystem')->makeDirectory(dirname($cacheFile));
+			App::get('filesystem')->makeDirectory(dirname($cacheFile));
 		}
 
 		// save cache file
@@ -185,16 +169,32 @@ class Generator
 	 */
 	private function discoverComponentSections()
 	{
-		// group by component
-		foreach (glob(PATH_CORE . DS . 'components' . DS . 'com_*' . DS . 'api') as $path)
+		$loader = null;
+		if (App::has('component'))
 		{
-			// get component
-			$pieces = explode(DS, $path);
-			array_pop($pieces);
-			$component = str_replace('com_', '', array_pop($pieces));
+			$loader = App::get('component');
+		}
 
-			// add all matching files to section
-			$this->sections[$component] = glob($path . DS . 'controllers' . DS . '*.php');
+		$roots = array(PATH_CORE, PATH_APP);
+
+		// group by component
+		foreach ($roots as $base)
+		{
+			foreach (glob($base . DS . 'components' . DS . 'com_*' . DS . 'api') as $path)
+			{
+				// get component
+				$pieces = explode(DS, $path);
+				array_pop($pieces);
+				$component = str_replace('com_', '', array_pop($pieces));
+
+				if ($loader && !$loader->isEnabled('com_' . $component))
+				{
+					continue;
+				}
+
+				// add all matching files to section
+				$this->sections[$component] = glob($path . DS . 'controllers' . DS . '*.php');
+			}
 		}
 	}
 
@@ -212,7 +212,7 @@ class Generator
 		// loop through each component grouping
 		foreach ($sections as $component => $files)
 		{
-			// if we dont have an array for that component lets create it
+			// if we dont have an array for that component let's create it
 			if (!isset($output[$component]))
 			{
 				$output[$component] = [];
@@ -221,6 +221,10 @@ class Generator
 			// loop through each file
 			foreach ($files as $file)
 			{
+				if (!preg_match('/(.*)v[0-9]+_[0-9]+.php$/', $file))
+				{
+					continue;
+				}
 				$output[$component] = array_merge($output[$component], $this->processFile($file));
 			}
 		}
@@ -284,6 +288,12 @@ class Generator
 				continue;
 			}
 
+			$controller = basename($file);
+			$controller = preg_replace('#\.[^.]*$#', '', $controller);
+			$parts = explode('v', $controller);
+			$v = array_pop($parts);
+			$controller = implode('v', $parts);
+
 			// Create endpoint data array
 			$endpoint = array(
 				//'name'        => substr($method->getName(), 0, -4),
@@ -294,6 +304,7 @@ class Generator
 				'uri'         => '',
 				'parameters'  => array(),
 				'_metadata'   => array(
+					'controller' => $controller,
 					'component' => $component,
 					'version'   => $version,
 					'method'    => $method->getName()
@@ -320,6 +331,16 @@ class Generator
 
 					$endpoint['parameters'][] = (array) $parameter;
 					continue;
+				}
+
+				if ($name == 'uri')
+				{
+					$content = str_replace(['{component}', '{controller}'], [$component, $controller], $content);
+
+					if ($controller == $component)
+					{
+						$content = str_replace($component . '/' . $controller, $component, $content);
+					}
 				}
 
 				if ($name == 'uri' && $method->getName() == 'indexTask')
@@ -376,8 +397,8 @@ class Generator
 			$parts['namespace']  = $parts[0];
 			$parts['component']  = $parts[1];
 			$parts['client']     = $parts[2];
-			$parts['controller'] = $parts[3];
-			$b = explode('v', $parts[3]);
+			$parts['controller'] = $parts[4];
+			$b = explode('v', $parts[4]);
 			$parts['version']    = end($b);//$parts[4];
 			return $parts;
 		}

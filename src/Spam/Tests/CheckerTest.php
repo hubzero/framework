@@ -1,30 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * This file is part of: The HUBzero(R) Platform for Scientific Collaboration
- *
- * The HUBzero(R) Platform for Scientific Collaboration (HUBzero) is free
- * software: you can redistribute it and/or modify it under the terms of
- * the GNU Lesser General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any
- * later version.
- *
- * HUBzero is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPLv3
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Spam\Tests;
@@ -32,6 +10,7 @@ namespace Hubzero\Spam\Tests;
 use Hubzero\Test\Basic;
 use Hubzero\Spam\Checker;
 use Hubzero\Spam\Tests\Mock\Detector;
+use Hubzero\Spam\Tests\Mock\DetectorException;
 use Hubzero\Spam\StringProcessor\NoneStringProcessor;
 use Hubzero\Spam\StringProcessor\NativeStringProcessor;
 
@@ -43,6 +22,7 @@ class CheckerTest extends Basic
 	/**
 	 * Tests for setting and getting a StringProcessor
 	 *
+	 * @covers  \Hubzero\Spam\Checker::__construct
 	 * @covers  \Hubzero\Spam\Checker::setStringProcessor
 	 * @covers  \Hubzero\Spam\Checker::getStringProcessor
 	 * @return  void
@@ -80,6 +60,7 @@ class CheckerTest extends Basic
 	 * Test to get a registered detector
 	 *
 	 * @covers  \Hubzero\Spam\Checker::getDetector
+	 * @covers  \Hubzero\Spam\Checker::classSimpleName
 	 * @return  void
 	 **/
 	public function testGetDetector()
@@ -135,6 +116,8 @@ class CheckerTest extends Basic
 	 * Test the check() method
 	 *
 	 * @covers  \Hubzero\Spam\Checker::check
+	 * @covers  \Hubzero\Spam\Checker::prepareData
+	 * @covers  \Hubzero\Spam\Checker::mark
 	 * @return  void
 	 **/
 	public function testCheck()
@@ -142,11 +125,13 @@ class CheckerTest extends Basic
 		$service = new Checker();
 		$service->registerDetector(new Detector());
 
+		// This should NOT be caught as spam
 		$result = $service->check('Maecenas sed diam eget risus varius blandit sit amet non magna.');
 
 		$this->assertInstanceOf('Hubzero\Spam\Result', $result);
 		$this->assertFalse($result->isSpam());
 
+		// This should be caught as spam
 		$result = $service->check('Maecenas sed diam eget risus varius spam blandit sit amet non magna.');
 
 		$this->assertInstanceOf('Hubzero\Spam\Result', $result);
@@ -155,5 +140,22 @@ class CheckerTest extends Basic
 		$messages = $result->getMessages();
 		$this->assertTrue(is_array($messages));
 		$this->assertTrue(in_array('Text contained the word "spam".', $messages));
+
+		// Make sure string processors do their job
+		$service->setStringProcessor(new NativeStringProcessor());
+
+		$result = $service->check("Maecenas sed diam eget risus varius sp\nam blandit sit amet non magna.");
+
+		$this->assertInstanceOf('Hubzero\Spam\Result', $result);
+		$this->assertTrue($result->isSpam());
+
+		// Make sure exceptions are caught and passed as error messages
+		$service->registerDetector(new DetectorException());
+
+		$result = $service->check('Maecenas sed diam eget risus varius spam blandit sit amet non magna.');
+
+		$error = $service->getError();
+
+		$this->assertEquals($error, 'I always throw an exception.');
 	}
 }

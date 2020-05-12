@@ -1,33 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Module;
@@ -370,7 +345,7 @@ class Loader
 	public function getLayoutPath($module, $layout = 'default')
 	{
 		$template = $this->app['template']->template;
-		$path     = ($this->app['template']->protected ? PATH_CORE : PATH_APP) . DS . 'templates';
+		$path     = dirname($this->app['template']->path);
 		$default  = $layout;
 
 		if (strpos($layout, ':') !== false)
@@ -456,11 +431,10 @@ class Loader
 				->whereEquals('e.enabled', 1);
 
 			$now = with(new Date('now'))->toSql();
-			$nullDate = $db->getNullDate();
 
 			$query
-				->whereEquals('m.publish_up', $nullDate, 1)->orWhere('m.publish_up', '<=', $now, 1)->resetDepth()
-				->whereEquals('m.publish_down', $nullDate, 1)->orWhere('m.publish_down', '>=', $now, 1)->resetDepth();
+				->where('m.publish_up', 'IS', null, 'and', 1)->orWhere('m.publish_up', '<=', $now, 1)->resetDepth()
+				->where('m.publish_down', 'IS', null, 'and', 1)->orWhere('m.publish_down', '>=', $now, 1)->resetDepth();
 
 			$query
 				->whereIn('m.access', $user->getAuthorisedViewLevels())
@@ -649,7 +623,7 @@ class Loader
 				$ret = $cache->get(
 					array($cacheparams->class, $cacheparams->method),
 					$cacheparams->methodparams,
-					$module->id . $view_levels . \Request::getVar('Itemid', null, 'default', 'INT'),
+					$module->id . $view_levels . \Request::getInt('Itemid', 0),
 					$wrkarounds,
 					$wrkaroundoptions
 				);
@@ -725,10 +699,10 @@ class Loader
 		$unprefixed = substr($module, 4);
 
 		$paths = array(
-			PATH_APP . DS . 'modules' . DS . $prefixed . DS . $prefixed . '.php',
 			PATH_APP . DS . 'modules' . DS . $unprefixed . DS . $unprefixed . '.php',
-			PATH_CORE . DS . 'modules' . DS . $prefixed . DS . $prefixed . '.php',
-			PATH_CORE . DS . 'modules' . DS . $unprefixed . DS . $unprefixed . '.php'
+			PATH_APP . DS . 'modules' . DS . $prefixed . DS . $prefixed . '.php',
+			PATH_CORE . DS . 'modules' . DS . $unprefixed . DS . $unprefixed . '.php',
+			PATH_CORE . DS . 'modules' . DS . $prefixed . DS . $prefixed . '.php'
 		);
 
 		foreach ($paths as $path)

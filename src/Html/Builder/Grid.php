@@ -1,33 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Html\Builder;
@@ -68,11 +43,11 @@ class Grid
 
 		if ($toggle)
 		{
-			$html = '<a class="state grid_' . $bool . ' hasTip" title="' . $title . '" rel="{\'id\':\'cb' . $i . '\', \'task\':\'' . $task . '\'}" href="#toggle"><span>' . $title . '</span></a>';
+			$html = '<a class="grid-action grid-boolean state grid_' . $bool . ' hasTip" title="' . $title . '" data-id="cb' . $i . '" data-task="' . $task . '" href="#toggle"><span>' . $title . '</span></a>';
 		}
 		else
 		{
-			$html = '<a class="state grid_' . $bool . '"><span>' . $title . '</span></a>';
+			$html = '<a class="grid-action grid-boolean state grid_' . $bool . '"><span>' . $title . '</span></a>';
 		}
 
 		return $html;
@@ -91,6 +66,9 @@ class Grid
 	 */
 	public static function sort($title, $order, $direction = 'asc', $selected = 0, $task = null, $new_direction = 'asc')
 	{
+		// Load the behavior.
+		self::behavior();
+
 		$direction = strtolower($direction);
 		$index = intval($direction == 'desc');
 
@@ -103,7 +81,7 @@ class Grid
 			$direction = ($direction == 'desc') ? 'asc' : 'desc';
 		}
 
-		$html  = '<a href="#" onclick="Joomla.tableOrdering(\'' . $order . '\',\'' . $direction . '\',\'' . $task . '\');return false;" title="' . Lang::txt('JGLOBAL_CLICK_TO_SORT_THIS_COLUMN') . '" class="';
+		$html  = '<a href="#" data-order="' . $order . '" data-direction="' . $direction . '" data-task="' . $task . '" title="' . Lang::txt('JGLOBAL_CLICK_TO_SORT_THIS_COLUMN') . '" class="grid-order ';
 		if ($order == $selected)
 		{
 			$html .= 'active ' . ($direction == 'desc' ? 'asc' : 'desc') . ' ';
@@ -130,7 +108,7 @@ class Grid
 			return '';
 		}
 
-		return '<input type="checkbox" id="cb' . $rowNum . '" name="' . $name . '[]" value="' . $recId . '" onclick="Joomla.isChecked(this.checked);" title="' . Lang::txt('JGRID_CHECKBOX_ROW_N', ($rowNum + 1)) . '" />';
+		return '<input type="checkbox" id="cb' . $rowNum . '" name="' . $name . '[]" value="' . $recId . '" class="checkbox-toggle" title="' . Lang::txt('JGRID_CHECKBOX_ROW_N', ($rowNum + 1)) . '" />';
 	}
 
 	/**
@@ -178,12 +156,13 @@ class Grid
 	/**
 	 * Method to create a clickable icon to change the state of an item
 	 *
-	 * @param   mixed    $value   Either the scalar value or an object (for backward compatibility, deprecated)
-	 * @param   integer  $i       The index
-	 * @param   string   $prefix  An optional prefix for the task
+	 * @param   mixed    $value     Either the scalar value or an object (for backward compatibility, deprecated)
+	 * @param   integer  $i         The index
+	 * @param   string   $prefix    An optional prefix for the task
+	 * @param   string   $checkbox  Checkbox ID prefix
 	 * @return  string
 	 */
-	/*public static function published($value, $i, $prefix = '')
+	/*public static function published($value, $i, $prefix = '', $checkbox = 'cb')
 	{
 		if (is_object($value))
 		{
@@ -194,7 +173,7 @@ class Grid
 		$alt    = $value ? Lang::txt('JPUBLISHED') : Lang::txt('JUNPUBLISHED');
 		$action = $value ? Lang::txt('JLIB_HTML_UNPUBLISH_ITEM') : Lang::txt('JLIB_HTML_PUBLISH_ITEM');
 
-		$href = '<a href="#" class="state ' . ($value ? 'publish' : 'unpublish') . '" onclick="return listItemTask(\'cb' . $i . '\',\'' . $prefix . $task . '\')" title="' . $action . '"><span>' . $alt . '</span></a>';
+		$href = '<a href="#toggle" class="grid-action grid-state state ' . ($value ? 'publish' : 'unpublish') . '" data-id="' . $checkbox . $i . '" data-task="' . $prefix . $task . '" title="' . $action . '"><span>' . $alt . '</span></a>';
 
 		return $href;
 	}*/
@@ -268,7 +247,7 @@ class Grid
 			$state,
 			'filter_state',
 			array(
-				'list.attr'   => 'class="inputbox" size="1" onchange="Joomla.submitform();"',
+				'list.attr'   => 'class="inputbox filter filter-submit" size="1"',
 				'list.select' => $filter_state,
 				'option.key'  => null
 			)
@@ -278,17 +257,17 @@ class Grid
 	/**
 	 * Method to create an icon for saving a new ordering in a grid
 	 *
-	 * @param   array   $rows   The array of rows of rows
-	 * @param   string  $image  The image
-	 * @param   string  $task   The task to use, defaults to save order
-	 *
+	 * @param   array   $rows  The array of rows of rows
+	 * @param   string  $cls   Classname to apply
+	 * @param   string  $task  The task to use, defaults to save order
 	 * @return  string
-	 *
-	 * @since   11.1
 	 */
-	public static function order($rows, $image = 'save.png', $task = 'saveorder')
+	public static function order($rows, $cls = 'saveoder', $task = 'saveorder')
 	{
-		$href = '<a href="javascript:saveorder(' . (count($rows) - 1) . ', \'' . $task . '\')" class="saveorder" title="' . Lang::txt('JLIB_HTML_SAVE_ORDER') . '"><span>' . Lang::txt('JLIB_HTML_SAVE_ORDER') . '</span></a>';
+		// Load the behavior.
+		self::behavior();
+
+		$href = '<a href="#" data-rows="' . (count($rows) - 1) . '" data-task="' . $task . '" class="grid-order-save ' . $cls . '" title="' . Lang::txt('JLIB_HTML_SAVE_ORDER') . '"><span>' . Lang::txt('JLIB_HTML_SAVE_ORDER') . '</span></a>';
 
 		return $href;
 	}
@@ -329,7 +308,7 @@ class Grid
 		if (!$loaded)
 		{
 			// Add the behavior to the document head.
-			\App::get('document')->addScriptDeclaration(
+			/*\App::get('document')->addScriptDeclaration(
 				'jQuery(document).ready(function($){
 					$("a.move_up, a.move_down, a.grid_true, a.grid_false, a.trash")
 						.on("click", function(){
@@ -351,7 +330,9 @@ class Grid
 							}
 					});
 				});'
-			);
+			);*/
+
+			Behavior::framework();
 
 			$loaded = true;
 		}
@@ -619,6 +600,9 @@ class Grid
 	 */
 	public static function action($i, $task, $prefix = '', $text = '', $active_title = '', $inactive_title = '', $tip = false, $active_class = '', $inactive_class = '', $enabled = true, $translate = true, $checkbox = 'cb')
 	{
+		// Load the behavior.
+		self::behavior();
+
 		if (is_array($prefix))
 		{
 			$options = $prefix;
@@ -641,8 +625,8 @@ class Grid
 
 		if ($enabled)
 		{
-			$html[] = '<a class="jgrid' . ($tip ? ' hasTip' : '') . '"';
-			$html[] = ' href="javascript:void(0);" onclick="return listItemTask(\'' . $checkbox . $i . '\',\'' . $prefix . $task . '\')"';
+			$html[] = '<a class="grid-action' . ($tip ? ' hasTip' : '') . '"';
+			$html[] = ' href="#" data-id="' . $checkbox . $i . '" data-task="' . $prefix . $task . '"';
 			$html[] = ' title="' . addslashes(htmlspecialchars($translate ? Lang::txt($active_title) : $active_title, ENT_COMPAT, 'UTF-8')) . '">';
 			$html[] = '<span class="state ' . $active_class . '">';
 			$html[] = $text ? ('<span class="text">' . ($translate ? Lang::txt($text):$text) . '</span>') : '';
@@ -651,7 +635,7 @@ class Grid
 		}
 		else
 		{
-			$html[] = '<a class="jgrid' . ($tip ? ' hasTip' : '') . '"';
+			$html[] = '<a class="grid-action' . ($tip ? ' hasTip' : '') . '"';
 			$html[] = ' title="' . addslashes(htmlspecialchars($translate ? Lang::txt($inactive_title) : $inactive_title, ENT_COMPAT, 'UTF-8')) . '">';
 			$html[] = '<span class="state ' . $inactive_class . '">';
 			$html[] = $text ? ('<span class="text">' . ($translate ? Lang::txt($text) : $text) . '</span>') :'';

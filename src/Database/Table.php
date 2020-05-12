@@ -1,33 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2009-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2009-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Database;
@@ -599,6 +574,8 @@ abstract class Table extends Obj
 			return false;
 		}
 
+		\Event::trigger('system.onContentSave', array($this->getTableName(), $this));
+
 		// If the table is not set to track assets return true.
 		if (!$this->_trackAssets)
 		{
@@ -881,12 +858,25 @@ abstract class Table extends Obj
 			return false;
 		}
 
+		$columns = $this->getFields();
+
+		$data = [];
+		foreach ($columns as $name => $column)
+		{
+			// We want to get the default values from the
+			// table's schema, rather than assuming
+			if ($name == 'checked_out_time' || $name == 'checked_out')
+			{
+				$data[$name] = $column->Default;
+			}
+		}
+
 		// Check the row in by primary key.
 		$query = $this->_db->getQuery();
 		$query->update($this->_tbl);
 		$query->set(array(
-			'checked_out' => 0,
-			'checked_out_time' => $this->_db->getNullDate()
+			'checked_out' => $data['checked_out'],
+			'checked_out_time' => $data['checked_out_time']
 		));
 		$query->whereEquals($this->_tbl_key, $pk);
 		$this->_db->setQuery($query->toString());
@@ -900,8 +890,8 @@ abstract class Table extends Obj
 		}
 
 		// Set table values in the object.
-		$this->checked_out = 0;
-		$this->checked_out_time = '';
+		$this->checked_out = $data['checked_out'];
+		$this->checked_out_time = $data['checked_out_time'];
 
 		return true;
 	}

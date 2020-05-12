@@ -1,34 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Sam Wilson <samwilson@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
- * @since     Class available since release 2.0.0
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Database;
@@ -43,6 +17,7 @@ use Hubzero\Database\Relationship\ManyShiftsToMany;
 
 use Hubzero\Error\Exception\BadMethodCallException;
 use Hubzero\Error\Exception\RuntimeException;
+use Hubzero\Utility\Date;
 
 /**
  * Database ORM base class
@@ -174,6 +149,13 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 * @var  string
 	 **/
 	protected $table = null;
+
+	/**
+	 * An alias to apply to the table for initial query building
+	 *
+	 * @var  string
+	 **/
+	protected $tableAlias = null;
 
 	/**
 	 * The table namespace
@@ -446,6 +428,18 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		{
 			return $this->makeAcquaintance($name)->getRelationship($name);
 		}
+	}
+
+	/**
+	 * Sets attributes (i.e. fields) on the model
+	 *
+	 * @param   array|string  $key    The key to set, or array of key/value pairs
+	 * @param   mixed         $value  The value to set if key is string
+	 * @return  $this
+	 */
+	public function __set($key, $value)
+	{
+		return $this->set($key, $value);
 	}
 
 	/**
@@ -744,7 +738,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 
 				if (!isset($this->$property))
 				{
-					$this->$property = Html::content('prepare', $this->get($field, ''));
+					$this->$property = \Hubzero\Html\Builder\Content::prepare($this->get($field, ''));
 				}
 
 				return $this->$property;
@@ -818,9 +812,11 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 * @return  $this
 	 * @since   2.0.0
 	 **/
-	private function newQuery()
+	public function newQuery()
 	{
-		$this->query = $this->getQuery()->select('*')->from($this->getTableName());
+		$select = ($this->getTableAlias() ? $this->getTableAlias() . '.' : '') . '*';
+
+		$this->query = $this->getQuery()->select($select)->from($this->getTableName(), $this->getTableAlias());
 		return $this;
 	}
 
@@ -940,6 +936,29 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	}
 
 	/**
+	 * Retrieves the current model's table alias
+	 *
+	 * @return  string
+	 **/
+	public function getTableAlias()
+	{
+		return $this->tableAlias;
+	}
+
+	/**
+	 * Sets the current model's table alias
+	 *
+	 * @param   string  $alias
+	 * @return  object
+	 **/
+	public function setTableAlias($alias)
+	{
+		$this->tableAlias = (string) $alias;
+
+		return $this;
+	}
+
+	/**
 	 * Retrieves the current model's primary key name
 	 *
 	 * @return  string
@@ -969,7 +988,8 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function getQualifiedFieldName($field)
 	{
-		return $this->getTableName() . '.' . $field;
+		$tbl = ($this->getTableAlias() ? $this->getTableAlias() : $this->getTableName());
+		return $tbl . '.' . $field;
 	}
 
 	/**
@@ -1322,20 +1342,86 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 			return false;
 		}
 
-		// See if we're creating or updating
-		$method = $this->isNew() ? 'create' : 'modify';
-		$result = $this->$method($this->attributes);
-
-		// If creating, result is our new id, so set that back on the model
-		if ($this->isNew())
+		// Handle cases where the primary key might be an empty string
+		// For auto-increment in strict-mode DBs, this needs to be NULL
+		// instead.
+		if ($this->hasAttribute($this->getPrimaryKey())
+		 && !$this->get($this->getPrimaryKey()))
 		{
-			$this->set($this->getPrimaryKey(), $result);
-			\Event::trigger($this->getTableName() . '_new', ['model' => $this]);
+			$this->set($this->getPrimaryKey(), null);
 		}
 
-		\Event::trigger('system.onContentSave', array($this->getTableName(), $this));
+		// See if we're creating or updating
+		$method = $this->isNew() ? 'create' : 'modify';
+		$result = $this->$method();
+
+		// Only perform the following upon success
+		if ($result)
+		{
+			// Purge cache
+			$this->purgeCache();
+
+			// If creating, result is our new id, so set that back on the model
+			if ($this->isNew())
+			{
+				$this->set($this->getPrimaryKey(), $result);
+				\Event::trigger($this->getTableName() . '_new', ['model' => $this]);
+			}
+
+			\Event::trigger('system.onContentSave', array($this->getTableName(), $this));
+		}
 
 		return $result;
+	}
+
+	/**
+	 * Get database table columns
+	 *
+	 * @return  array
+	 **/
+	public function getTableColumns()
+	{
+		static $columns = null;
+
+		if (is_null($columns))
+		{
+			$columns = (array)$this->getStructure()->getTableColumns($this->getTableName(), false);
+
+			if (empty($columns))
+			{
+				throw new Exception(sprintf('Columns not found for table %s', $this->getTableName()));
+			}
+		}
+
+		return $columns;
+	}
+
+	/**
+	 * Filters out fields that are not actually a table column
+	 *
+	 * @return  array
+	 **/
+	public function getTableColumnsOnly()
+	{
+		return array_intersect_key($this->attributes, $this->getTableColumns());
+	}
+
+	/**
+	 * Get the defined default value for a database table column
+	 *
+	 * @param   string  $col  The name of the database table column
+	 * @return  mixed
+	 **/
+	public function getTableColumnDefault($col)
+	{
+		$columns = $this->getTableColumns();
+
+		if (isset($columns[$col]))
+		{
+			return $column[$col]['default'];
+		}
+
+		return null;
 	}
 
 	/**
@@ -1349,7 +1435,9 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		// Add any automatic fields
 		$this->parseAutomatics('initiate');
 
-		return $this->query->push($this->getTableName(), $this->attributes);
+		$data = $this->getTableColumnsOnly();
+
+		return $this->query->push($this->getTableName(), $data);
 	}
 
 	/**
@@ -1363,12 +1451,14 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		// Add any automatic fields
 		$this->parseAutomatics('renew');
 
+		$data = $this->getTableColumnsOnly();
+
 		// Return the result of the query
 		return $this->query->alter(
 			$this->getTableName(),
 			$this->getPrimaryKey(),
 			$this->getPkValue(),
-			$this->attributes
+			$data
 		);
 	}
 
@@ -1443,7 +1533,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function destroy()
 	{
-		// If it has an associated Joomla asset entry, try deleting that first
+		// If it has an associated asset entry, try deleting that first
 		if ($this->hasAttribute('asset_id'))
 		{
 			if (!Asset::destroy($this))
@@ -1453,6 +1543,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 		}
 
 		\Event::trigger('system.onContentDestroy', array($this->getTableName(), $this));
+
 		return $this->query->remove(
 			$this->getTableName(),
 			$this->getPrimaryKey(),
@@ -1463,33 +1554,116 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	/**
 	 * Checks out the current model to the provided user
 	 *
-	 * @param   string  $userId  Optional userId for whom the row should be checked out
-	 * @return  $this
+	 * @param   integer  $userId  Optional userId for whom the row should be checked out
+	 * @return  boolean
 	 * @since   2.0.0
 	 **/
 	public function checkout($userId = null)
 	{
-		$userId = $userId ?: \User::get('id');
-		$this->set('checked_out', $userId)
-		     ->set('checked_out_time', \Date::toSql())
-		     ->save();
+		if (!$this->isNew())
+		{
+			$columns = $this->getTableColumns();
+
+			$data = [];
+
+			if (isset($columns['checked_out_time']))
+			{
+				$now = new Date('now');
+				$data['checked_out_time'] = $now->toSql();
+			}
+
+			if (isset($columns['checked_out']))
+			{
+				$userId = $userId ?: \User::get('id');
+				$data['checked_out'] = $userId;
+			}
+
+			if (empty($data))
+			{
+				// There is no 'checked_out_time' or 'checked_out' column
+				return true;
+			}
+
+			$this->set($data);
+
+			// We build a simple update query as calling save()
+			// can have unintended consequences when all we want
+			// is to update two columns
+			$query = $this->getQuery()
+				->update($this->getTableName())
+				->set($data)
+				->whereEquals($this->getPrimaryKey(), $this->get($this->getPrimaryKey()));
+
+			// @FIXME: Maybe unnecessary? Database may throw an exception on error
+			//         so this might be pointless.
+			if (!$query->execute())
+			{
+				$this->addError(__CLASS__ . '::' . __METHOD__ . '() failed');
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
 	 * Checks back in the current model
 	 *
-	 * @return  $this
+	 * @return  boolean
 	 * @since   2.0.0
 	 **/
 	public function checkin()
 	{
-		// @FIXME: need to be able to get database null date format here?
 		if (!$this->isNew())
 		{
-			$this->set('checked_out', '0')
-			     ->set('checked_out_time', '0000-00-00 00:00:00')
-			     ->save();
+			$columns = $this->getTableColumns();
+
+			$data = [];
+			$orig = [];
+
+			// We want to get the default values from the
+			// table's schema, rather than assuming
+			if (isset($columns['checked_out_time']))
+			{
+				$orig['checked_out_time'] = $this->get('checked_out_time');
+				$data['checked_out_time'] = $columns['checked_out_time']['default'];
+			}
+
+			if (isset($columns['checked_out']))
+			{
+				$orig['checked_out'] = $this->get('checked_out');
+				$data['checked_out'] = $columns['checked_out']['default'];
+			}
+
+			if (empty($data))
+			{
+				// There is no 'checked_out_time' or 'checked_out' column
+				return true;
+			}
+
+			$this->set($data);
+
+			// We build a simple update query as calling save()
+			// can have unintended consequences when all we want
+			// is to update two columns
+			$query = $this->getQuery()
+				->update($this->getTableName())
+				->set($data)
+				->whereEquals($this->getPrimaryKey(), $this->get($this->getPrimaryKey()));
+
+			// @FIXME: Maybe unnecessary? Database may throw an exception on error
+			//         so this might be pointless.
+			if (!$query->execute())
+			{
+				// Reset to original data
+				$this->set($orig);
+
+				$this->addError(__CLASS__ . '::' . __METHOD__ . '() failed');
+				return false;
+			}
 		}
+
+		return true;
 	}
 
 	/**
@@ -1500,7 +1674,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function isCheckedOut()
 	{
-		return ($this->checked_out && $this->checked_out != \User::get('id'));
+		return ($this->get('checked_out') && $this->get('checked_out') != \User::get('id'));
 	}
 
 	/**
@@ -2260,7 +2434,12 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function automaticCreated($data)
 	{
-		return (isset($data['created']) && $data['created'] ? $data['created'] : Date::toSql());
+		if (!isset($data['created']) || !$data['created'])
+		{
+			$now = new Date('now');
+			$data['created'] = $now->toSql();
+		}
+		return $data['created'];
 	}
 
 	/**
@@ -2272,7 +2451,7 @@ class Relational implements \IteratorAggregate, \ArrayAccess, \Serializable
 	 **/
 	public function automaticCreatedBy($data)
 	{
-		return (isset($data['created_by']) && $data['created_by'] ? (int)$data['created_by'] : (int)User::get('id'));
+		return (isset($data['created_by']) && $data['created_by'] ? (int)$data['created_by'] : (int)\User::get('id'));
 	}
 
 	/**

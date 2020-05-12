@@ -1,34 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Sam Wilson <samwilson@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
- * @since     Class available since release 2.0.0
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Database\Syntax;
@@ -160,6 +134,18 @@ class Mysql
 	}
 
 	/**
+	 * Empty insert values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetInsert()
+	{
+		$this->insert = '';
+		$this->ignore = false;
+	}
+
+	/**
 	 * Sets an update element on the query
 	 *
 	 * @param   string  $table  The table whose fields will be updated
@@ -172,6 +158,17 @@ class Mysql
 	}
 
 	/**
+	 * Empty update values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetUpdate()
+	{
+		$this->update = '';
+	}
+
+	/**
 	 * Sets a delete element on the query
 	 *
 	 * @param   string  $table  The table whose row will be deleted
@@ -181,6 +178,17 @@ class Mysql
 	public function setDelete($table)
 	{
 		$this->delete = $table;
+	}
+
+	/**
+	 * Empty update values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetDelete()
+	{
+		$this->delete = '';
 	}
 
 	/**
@@ -197,6 +205,17 @@ class Mysql
 			'table' => $table,
 			'as'    => $as
 		];
+	}
+
+	/**
+	 * Empty from values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetFrom()
+	{
+		$this->from = [];
 	}
 
 	/**
@@ -217,6 +236,17 @@ class Mysql
 			'right' => $rightKey,
 			'type'  => $type
 		];
+	}
+
+	/**
+	 * Empty join values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetJoin()
+	{
+		$this->join = [];
 	}
 
 	/**
@@ -249,6 +279,17 @@ class Mysql
 	}
 
 	/**
+	 * Empty join values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetSet()
+	{
+		$this->set = [];
+	}
+
+	/**
 	 * Sets a values element on the query
 	 *
 	 * @param   array  $data  The data to be inserted
@@ -261,6 +302,17 @@ class Mysql
 	}
 
 	/**
+	 * Empty values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetValues()
+	{
+		$this->values = [];
+	}
+
+	/**
 	 * Sets a group element on the query
 	 *
 	 * @param   string  $column  The column on which to apply the group by
@@ -270,6 +322,17 @@ class Mysql
 	public function setGroup($column)
 	{
 		$this->group[] = $column;
+	}
+
+	/**
+	 * Empty group values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetGroup()
+	{
+		$this->group = [];
 	}
 
 	/**
@@ -288,6 +351,17 @@ class Mysql
 			'operator' => $operator,
 			'value'    => $value
 		];
+	}
+
+	/**
+	 * Empty having values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetHaving()
+	{
+		$this->having = [];
 	}
 
 	/**
@@ -345,6 +419,17 @@ class Mysql
 			'resetdepth' => true,
 			'depth'      => $depth
 		];
+	}
+
+	/**
+	 * Empty where values
+	 *
+	 * @return  void
+	 * @since   2.2.15
+	 **/
+	public function resetWhere()
+	{
+		$this->where = [];
 	}
 
 	/**
@@ -490,7 +575,7 @@ class Mysql
 	 **/
 	public function buildDelete()
 	{
-		return 'DELETE FROM' . $this->connection->quoteName($this->delete);
+		return 'DELETE FROM ' . $this->connection->quoteName($this->delete);
 	}
 
 	/**
@@ -721,11 +806,19 @@ class Mysql
 
 		foreach ($this->order as $order)
 		{
-			$string  = $this->connection->quoteName($order['column']);
-			$string .= ' ' . strtoupper($order['dir']);
+			if (is_object($order['column']))
+			{
+				$string = $order['column']->build($this);
+			}
+			else
+			{
+				$string = $this->connection->quoteName($order['column']);
+			}
 
+			$string .= ' ' . strtoupper($order['dir']);
 			$orders[] = $string;
 		}
+
 		return 'ORDER BY ' . implode(',', $orders);
 	}
 

@@ -1,33 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Christopher Smoak <csmoak@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Image;
@@ -127,7 +102,7 @@ class Processor extends Obj
 			$this->image_type = $type;
 		}
 
-		if ($this->image_type == IMAGETYPE_PNG)
+		if ($this->image_type == IMAGETYPE_PNG && $this->resource)
 		{
 			imagealphablending($this->resource, false);
 			imagesavealpha($this->resource, true);
@@ -164,48 +139,56 @@ class Processor extends Obj
 	 */
 	private function openImage()
 	{
-		$image_atts = getimagesize($this->source);
-		if (empty($image_atts))
+		try
 		{
+			$image_atts = getimagesize($this->source);
+			if (empty($image_atts))
+			{
+				return false;
+			}
+
+			switch ($image_atts['mime'])
+			{
+				case 'image/jpeg':
+					$this->image_type = IMAGETYPE_JPEG;
+					$this->resource   = imagecreatefromjpeg($this->source);
+				break;
+				case 'image/gif':
+					$this->image_type = IMAGETYPE_GIF;
+					$this->resource   = imagecreatefromgif($this->source);
+				break;
+				case 'image/png':
+				case 'image/x-png':
+					$this->image_type = IMAGETYPE_PNG;
+					$this->resource   = imagecreatefrompng($this->source);
+				break;
+				default:
+					return false;
+				break;
+			}
+
+			if ($this->image_type == IMAGETYPE_PNG)
+			{
+				imagesavealpha($this->resource, true);
+				imagealphablending($this->resource, false);
+			}
+
+			if (isset($this->config['auto_rotate']) && $this->config['auto_rotate'] == true)
+			{
+				$this->autoRotate();
+			}
+
+			if (!empty($this->resource))
+			{
+				return true;
+			}
 			return false;
 		}
-
-		switch ($image_atts['mime'])
+		catch (Exception $error)
 		{
-			case 'image/jpeg':
-				$this->image_type = IMAGETYPE_JPEG;
-				$this->resource   = imagecreatefromjpeg($this->source);
-			break;
-			case 'image/gif':
-				$this->image_type = IMAGETYPE_GIF;
-				$this->resource   = imagecreatefromgif($this->source);
-			break;
-			case 'image/png':
-			case 'image/x-png':
-				$this->image_type = IMAGETYPE_PNG;
-				$this->resource   = imagecreatefrompng($this->source);
-			break;
-			default:
-				return false;
-			break;
+			$this->setError($error->getMessage());
+			return false;
 		}
-
-		if ($this->image_type == IMAGETYPE_PNG)
-		{
-			imagesavealpha($this->resource, true);
-			imagealphablending($this->resource, false);
-		}
-
-		if (isset($this->config['auto_rotate']) && $this->config['auto_rotate'] == true)
-		{
-			$this->autoRotate();
-		}
-
-		if (!empty($this->resource))
-		{
-			return true;
-		}
-		return false;
 	}
 
 	/**
@@ -223,7 +206,15 @@ class Processor extends Obj
 
 		if ($this->image_type == IMAGETYPE_JPEG)
 		{
-			$this->exif_data = exif_read_data($this->source);
+			try
+			{
+				$this->exif_data = exif_read_data($this->source);
+			}
+			catch (Exception $e)
+			{
+				$this->exif_data = array();
+			}
+
 			if (isset($this->exif_data['Orientation']))
 			{
 				switch ($this->exif_data['Orientation'])
@@ -434,13 +425,20 @@ class Processor extends Obj
 
 		$resource = imagecreatetruecolor($new_w, $new_h);
 
-		if ($this->image_type == IMAGETYPE_PNG)
+		$transparencyIndex = imagecolortransparent($this->resource);
+		$transparencyColor = array('red' => 255, 'green' => 255, 'blue' => 255);
+		if ($transparencyIndex >= 0)
 		{
-			imagealphablending($resource, false);
-			imagesavealpha($resource, true);
-			$transparent = imagecolorallocatealpha($resource, 255, 255, 255, 127);
-			imagefilledrectangle($resource, 0, 0, $new_w, $new_h, $transparent);
+			$transparencyColor = imagecolorsforindex($this->resource, $transparencyIndex);
 		}
+		$transparencyIndex = imagecolorallocate(
+			$resource,
+			$transparencyColor['red'],
+			$transparencyColor['green'],
+			$transparencyColor['blue']
+		);
+		imagefill($resource, 0, 0, $transparencyIndex);
+		imagecolortransparent($resource, $transparencyIndex);
 
 		if ($resample)
 		{
@@ -468,7 +466,14 @@ class Processor extends Obj
 			return false;
 		}
 
-		$this->exif_data = exif_read_data($this->source);
+		try
+		{
+			$this->exif_data = exif_read_data($this->source);
+		}
+		catch (Exception $e)
+		{
+			$this->exif_data = array();
+		}
 
 		if (isset($this->exif_data['GPSLatitude']))
 		{

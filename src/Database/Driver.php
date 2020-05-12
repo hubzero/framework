@@ -1,34 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Sam Wilson <samwilson@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
- * @since     Class available since release 2.0.0
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Database;
@@ -218,9 +192,15 @@ abstract class Driver
 	public static function getInstance($options = [])
 	{
 		// Sanitize the database connector options
-		$options['driver']   = (isset($options['driver']))   ? preg_replace('/[^A-Z0-9_\.-]/i', '', $options['driver']) : 'pdo';
+		$options['driver']   = (isset($options['driver']))   ? preg_replace('/[^A-Z0-9_\.-]/i', '', $options['driver']) : 'mysql';
 		$options['database'] = (isset($options['database'])) ? $options['database']                                     : null;
 		$options['select']   = (isset($options['select']))   ? $options['select']                                       : true;
+
+		// @TODO: Eventually remove this?
+		if ($options['driver'] == 'pdo')
+		{
+			$options['driver'] = 'mysql';
+		}
 
 		// Get the options signature for the database connector
 		$signature = md5(serialize($options));
@@ -265,6 +245,28 @@ abstract class Driver
 	}
 
 	/**
+	 * Destroys the connection
+	 *
+	 * @return  void
+	 * @since   2.1.11
+	 */
+	public function disconnect()
+	{
+		$this->connection = null;
+	}
+
+	/**
+	 * Destroys the connection
+	 *
+	 * @return  void
+	 * @since   2.0.0
+	 */
+	public function __destruct()
+	{
+		$this->disconnect();
+	}
+
+	/**
 	 * Sets the SQL statement string for later execution
 	 *
 	 * @param   string  $query  The SQL statement to set
@@ -303,7 +305,7 @@ abstract class Driver
 	public function quoteName($name, $as = null)
 	{
 		$parts = (strpos($name, '.') !== false) ? explode('.', $name) : (array)$name;
-		$bits  = '';
+		$bits  = array();
 
 		foreach ($parts as $part)
 		{
@@ -1484,6 +1486,16 @@ abstract class Driver
 	 * @since   2.0.0
 	 **/
 	abstract public function getEngine($table);
+
+	/**
+	 * Set the database engine of the given table
+	 *
+	 * @param   string  $table   The table for which to retrieve the engine type
+	 * @param   string  $engine  The engine type to set
+	 * @return  bool
+	 * @since   2.2.15
+	 **/
+	abstract public function setEngine($table, $engine);
 
 	/**
 	 * Gets the database character set of the given table

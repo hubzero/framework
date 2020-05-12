@@ -1,33 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Document\Asset;
@@ -325,24 +300,34 @@ class File extends Obj
 				}
 
 				// App
-				$paths[] = $basea . $path . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . $this->file();
-				$paths[] = $basea . $path . ($this->directory ? $this->directory . DS : '') . $this->file();
+				$paths_app[] = $basea . $path . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . $this->file();
+				$paths_app[] = $basea . $path . ($this->directory ? $this->directory . DS : '') . $this->file();
 
 				// Core
-				$paths[] = $basec . $path . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . $this->file();
-				$paths[] = $basec . $path . ($this->directory ? $this->directory . DS : '') . $this->file();
+				$paths_core[] = $basec . $path . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . $this->file();
+				$paths_core[] = $basec . $path . ($this->directory ? $this->directory . DS : '') . $this->file();
 
 				if ($path2)
 				{
 					// App
-					$paths[] = $basea . $path2 . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . $this->file();
-					$paths[] = $basea . $path2 . ($this->directory ? $this->directory . DS : '') . $this->file();
+					$paths_app[] = $basea . $path2 . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . $this->file();
+					$paths_app[] = $basea . $path2 . ($this->directory ? $this->directory . DS : '') . $this->file();
+					if ($this->name == $this->extension)
+					{
+						$paths_app[] = $basea . $path2 . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . substr($this->name, 4) . '.' . $this->type;
+						$paths_app[] = $basea . $path2 . ($this->directory ? $this->directory . DS : '') . substr($this->name, 4) . '.' . $this->type;
+					}
 
 					// Core
-					$paths[] = $basec . $path2 . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . $this->file();
-					$paths[] = $basec . $path2 . ($this->directory ? $this->directory . DS : '') . $this->file();
+					$paths_core[] = $basec . $path2 . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . $this->file();
+					$paths_core[] = $basec . $path2 . ($this->directory ? $this->directory . DS : '') . $this->file();
+					if ($this->name == $this->extension)
+					{
+						$paths_core[] = $basec . $path2 . 'assets' . ($this->directory ? DS . $this->directory : '') . DS . substr($this->name, 4) . '.' . $this->type;
+						$paths_core[] = $basec . $path2 . ($this->directory ? $this->directory . DS : '') . substr($this->name, 4) . '.' . $this->type;
+					}
 				}
-
+				$paths = array_merge($paths_app, $paths_core);
 				// Run through each path until we find one that works
 				foreach ($paths as $path)
 				{
@@ -366,7 +351,7 @@ class File extends Obj
 	{
 		if (!isset($this->paths['override']))
 		{
-			$this->paths['override']  = (\App::get('template')->protected ? PATH_CORE : PATH_APP) . DS . 'templates' . DS . \App::get('template')->template . DS . 'html';
+			$this->paths['override']  = \App::get('template')->path . DS . 'html';
 			$this->paths['override'] .= DS . $this->extensionName() . DS . ($this->extensionType() == 'system' ? $this->type() . DS : '') . $this->file();
 		}
 		return $this->paths['override'];
@@ -467,8 +452,14 @@ class File extends Obj
 		}
 		else
 		{
-			$relative = rtrim(str_replace('/administrator', '', \Request::base(true)), '/') . substr($output, strlen(PATH_ROOT));
-			$relative = rtrim(\Request::root(true), '/') . rtrim(substr($output, strlen(PATH_ROOT)), '/');
+			if (strpos($output, PATH_ROOT) === 0)
+			{
+				$relative = rtrim(\Request::root(true), '/') . rtrim(substr($output, strlen(PATH_ROOT)), '/');
+			}
+			else if (strpos($output, PATH_CORE) === 0)
+			{
+				$relative = rtrim(\Request::root(true), '/') . "/core/" . rtrim(substr($output, strlen(PATH_CORE)), '/');
+			}
 		}
 
 		return $relative . ($timestamp ? '?v=' . $this->lastModified() : '');

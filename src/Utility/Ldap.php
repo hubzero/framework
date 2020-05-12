@@ -1,32 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2009-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @copyright Copyright 2009-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Utility;
@@ -38,9 +14,9 @@ class Ldap
 	 *
 	 * @var  array
 	 */
-	private static $errors  = array(
+	private static $errors = array(
 		'errors'   => true,
-		'fatal'	=> array(),
+		'fatal'    => array(),
 		'warnings' => array()
 	);
 
@@ -50,12 +26,32 @@ class Ldap
 	 * @var  array
 	 */
 	private static $success = array(
-		'success'  => true,
-		'added'	=> 0,
-		'deleted'  => 0,
-		'modified' => 0,
+		'success'   => true,
+		'added'     => 0,
+		'deleted'   => 0,
+		'modified'  => 0,
 		'unchanged' => 0
 	);
+
+	/**
+	 * Get the list of errors
+	 *
+	 * @return  array
+	 */
+	public static function getErrors()
+	{
+		return self::$errors;
+	}
+
+	/**
+	 * Get the list of success
+	 *
+	 * @return  array
+	 */
+	public static function getSuccess()
+	{
+		return self::$success;
+	}
 
 	/**
 	 * Get the LDAP connection
@@ -189,7 +185,7 @@ class Ldap
 
 		if (ldap_bind($conn, $acctman, $acctmanPW) == false)
 		{
-			$err	 = ldap_errno($conn);
+			$err     = ldap_errno($conn);
 			$errstr  = ldap_error($conn);
 			$errstr2 = ldap_err2str($err);
 
@@ -254,14 +250,25 @@ class Ldap
 		$db->setQuery($query);
 		$dbinfo = $db->loadAssoc();
 
-		// Don't sync usernames that are negative numbers (these are auth_link temp accounts)
-		if (is_numeric($dbinfo['uid']) && $dbinfo['uid'] <= 0)
-		{
-			return false;
-		}
-
 		if (!empty($dbinfo))
 		{
+			// Don't sync usernames that are negative numbers (these are auth_link temp accounts)
+			if (is_numeric($dbinfo['uid']) && $dbinfo['uid'] <= 0)
+			{
+				return false;
+			}
+
+			// Make sure we have a name
+			// If one isn't set, make it the same as the username
+			if (!trim($dbinfo['cn']) && $dbinfo['uid'])
+			{
+				$dbinfo['cn'] = $dbinfo['uid'];
+
+				$query = "UPDATE `#__users` SET `name`=" . $db->quote($dbinfo['uid']) . " WHERE `id`=" . $db->quote($dbinfo['uidNumber']) . ";";
+				$db->setQuery($query);
+				$db->query();
+			}
+
 			$query = "SELECT host FROM `#__xprofiles_host` WHERE uidNumber = " . $db->quote($dbinfo['uidNumber']) . ";";
 			$db->setQuery($query);
 			$dbinfo['host'] = $db->loadColumn();
@@ -495,7 +502,7 @@ class Ldap
 			return false;
 		}
 
-		$query = "SELECT g.gidNumber, g.cn, g.description FROM #__xgroups AS g ";
+		$query = "SELECT g.gidNumber, g.cn, g.description FROM `#__xgroups` AS g ";
 
 		if (is_numeric($group) && ($group >= 0))
 		{
@@ -511,7 +518,7 @@ class Ldap
 
 		if (!empty($dbinfo))
 		{
-			$query = "SELECT DISTINCT(u.username) AS memberUid FROM #__xgroups_members AS gm, #__users AS u WHERE gm.gidNumber = " . $db->quote($dbinfo['gidNumber']) . " AND gm.uidNumber=u.id;";
+			$query = "SELECT DISTINCT(u.username) AS memberUid FROM `#__xgroups_members` AS gm, `#__users` AS u WHERE gm.gidNumber = " . $db->quote($dbinfo['gidNumber']) . " AND gm.uidNumber=u.id;";
 			$db->setQuery($query);
 			$dbinfo['memberUid'] = $db->loadColumn();
 		}
@@ -823,7 +830,7 @@ class Ldap
 
 			if (!empty($addin))
 			{
-				$query = "SELECT username FROM #__users WHERE id IN ($addin) OR username IN ($addin);";
+				$query = "SELECT username FROM `#__users` WHERE id IN ($addin) OR username IN ($addin);";
 				$db->setQuery($query);
 				$add = $db->loadColumn();
 			}
@@ -852,7 +859,7 @@ class Ldap
 
 			if (!empty($deletein))
 			{
-				$query = "SELECT username FROM #__users WHERE id IN ($deletein) OR username IN ($deletein);";
+				$query = "SELECT username FROM `#__users` WHERE id IN ($deletein) OR username IN ($deletein);";
 				$db->setQuery($query);
 				$delete = $db->loadColumn();
 			}
@@ -879,7 +886,7 @@ class Ldap
 
 		$db = \App::get('db');
 
-		$query = "SELECT gidNumber FROM #__xgroups;";
+		$query = "SELECT gidNumber FROM `#__xgroups`;";
 
 		$db->setQuery($query);
 
@@ -922,7 +929,7 @@ class Ldap
 
 		$db = \App::get('db');
 
-		$query = "SELECT id FROM #__users;";
+		$query = "SELECT id FROM `#__users`;";
 
 		$db->setQuery($query);
 
@@ -1023,7 +1030,7 @@ class Ldap
 
 		$db = \App::get('db');
 
-		$query = "SELECT cn FROM #__xgroups;";
+		$query = "SELECT cn FROM `#__xgroups`;";
 
 		$db->setQuery($query);
 

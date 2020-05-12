@@ -1,34 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Sam Wilson <samwilson@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
- * @since     Class available since release 2.0.0
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\User;
@@ -422,6 +396,12 @@ class User extends \Hubzero\Database\Relational
 			$key = 'id';
 		}
 
+		// If the givenName, middleName, or surname isn't set, try to determine it from the name
+		if (($key == 'givenName' || $key == 'middleName' || $key == 'surname') && parent::get($key, null) == null)
+		{
+			return $this->parseName($key);
+		}
+
 		// Legacy code expects get('id') to always
 		// return an integer, even if user is logged out
 		if ($key == 'id' && is_null($default))
@@ -465,6 +445,85 @@ class User extends \Hubzero\Database\Relational
 	 */
 	public function isGuest()
 	{
+		$pubkeyb64 = Config::get('jwt_pub_key', null);
+		$env = substr(Config::get('application_env', ''), -5);
+
+		// check for a jwt if user is not logged in
+		if ($this->guest && array_key_exists('jwt', $_COOKIE) &&
+			$env == 'cloud' && !is_null($pubkeyb64))
+		{
+			try
+			{
+				// decode public key and use it to check jwt signature
+				$pubkey = base64_decode($pubkeyb64);
+				$jwt = \Firebase\JWT\JWT::decode($_COOKIE['jwt'], $pubkey, array('RS512'));
+
+				// if we have information for a user, populate the user variable
+				if (isset($jwt->email) && isset($jwt->id) && isset($jwt->username) && isset($jwt->name) && isset($jwt->exp))
+				{
+					if ($jwt->exp < time())
+					{
+						setcookie('jwt', -86400, '', '/', '.' . \Hubzero\Utility\Dns::domain(), true, true);
+						return $this->guest();
+					}
+					$jwtid = $jwt->id;
+					$jwtemail = $jwt->email;
+					$jwtuser = $jwt->username;
+					$jwtname = $jwt->name;
+
+					// check if we have a user by this email address
+					$user = \User::oneByEmail($jwtemail);
+
+					// this user does not exist
+					// we should create this in the hub database
+					if ($user->isNew())
+					{
+						// Using SQL here because the ORM does not currently support writing
+						// new records with a specific primary key value
+						$db = App::get('db');
+						$query = "INSERT INTO `#__users` (`id`, `name`, `username`, `email`, `password`, `usertype`, `block`, " .
+							"`approved`, `sendEmail`, `activation`, `params`, `access`, `usageAgreement`, `homeDirectory`, `loginShell`, `ftpShell`)
+							VALUES (" . $db->quote($jwtid) . ", " . $db->quote($jwtname) . ", " . $db->quote($jwtuser) .
+							", " . $db->quote($jwtemail) . ", " . $db->quote('') . ", " . $db->quote('') . ", " .
+							$db->quote('0') . ", " . $db->quote('2') . ", " . $db->quote('0') . ", " . $db->quote('1') .
+							", " . $db->quote('') . ", " . $db->quote('5') . ", " . $db->quote('1') . ", " .
+							$db->quote('/home/' . $jwtuser) . ", " . $db->quote('/bin/bash') . ", " .
+							$db->quote('/usr/lib/sftp-server') . ")";
+
+						$db->setQuery($query);
+						$result = $db->query();
+
+						$usersConfig = Component::params('com_members');
+						$newUsertype = $usersConfig->get('new_usertype', '2');
+						$query = "INSERT INTO `#__user_usergroup_map` (`user_id`, `group_id`) VALUES (" . $db->quote($jwtid) . ", " . $db->quote($newUsertype) . ")";
+						$db->setQuery($query);
+						$result = $db->query();
+						// Clear the session that was not logged in
+						App::get('session')->restart();
+					}
+
+					// set up the user object to be logged in
+					\User::set('id', $user->get('id'));
+					\User::set('email', $jwtemail);
+					\User::set('username', $jwtuser);
+					\User::set('guest', false);
+					\User::set('approved', 2);
+
+					// set the user object in the session such that
+					// next visit and other plugins that use the session
+					// know what user is logged in
+					App::get('session')->set('user', App::get('user')->getInstance());
+					$this->guest = false;
+
+					$data = App::get('user')->getInstance()->toArray();
+					\Event::trigger('user.onUserLogin', array($data));
+				}
+			}
+			catch (Exception $e)
+			{
+				// something likely went wrong with the jwt
+			}
+		}
 		return $this->guest;
 	}
 
@@ -926,5 +985,65 @@ class User extends \Hubzero\Database\Relational
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Parse a users name and set the name parts on the instance
+	 * 
+	 * @return void
+	 */
+	private function parseName($key=null)
+	{
+		$name = $this->get('name');
+		if ($name)
+		{
+			$firstname  = "";
+			$middlename = "";
+			$lastname   = "";
+
+			$words = array_map('trim', explode(' ', $this->get('name')));
+			$count = count($words);
+
+			if ($count == 1)
+			{
+				$firstname = $words[0];
+			}
+			else if ($count == 2)
+			{
+				$firstname = $words[0];
+				$lastname  = $words[1];
+			}
+			else if ($count == 3)
+			{
+				$firstname  = $words[0];
+				$middlename = $words[1];
+				$lastname   = $words[2];
+			}
+			else
+			{
+				$firstname  = $words[0];
+				$lastname   = $words[$count-1];
+				$middlename = $words[1];
+
+				for ($i = 2; $i < $count-1; $i++)
+				{
+					$middlename .= ' ' . $words[$i];
+				}
+			}
+			switch ($key)
+			{
+				case 'givenName':
+					return trim($firstname);
+					break;
+				case 'middleName':
+					return trim($middlename);
+					break;
+				case 'surname':
+					return trim($lastname);
+					break;
+				default:
+					return '';
+			}
+		}
 	}
 }

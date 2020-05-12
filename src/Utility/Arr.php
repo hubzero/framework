@@ -1,33 +1,8 @@
 <?php
 /**
- * HUBzero CMS
- *
- * Copyright 2005-2015 HUBzero Foundation, LLC.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- * HUBzero is a registered trademark of Purdue University.
- *
- * @package   framework
- * @author    Shawn Rice <zooley@purdue.edu>
- * @copyright Copyright 2005-2015 HUBzero Foundation, LLC.
- * @license   http://opensource.org/licenses/MIT MIT
+ * @package    framework
+ * @copyright  Copyright (c) 2005-2020 The Regents of the University of California.
+ * @license    http://opensource.org/licenses/MIT MIT
  */
 
 namespace Hubzero\Utility;
@@ -466,8 +441,8 @@ class Arr
 				$locale = self::$sortLocale[$i];
 			}
 
-			$va = $a->$key[$i];
-			$vb = $b->$key[$i];
+			$va = $a->{$key[$i]};
+			$vb = $b->{$key[$i]};
 
 			if ((is_bool($va) or is_numeric($va)) and (is_bool($vb) or is_numeric($vb)))
 			{
@@ -526,7 +501,40 @@ class Arr
 	}
 
 	/**
-	 * Function to randomly append pirate phrases to 
+	 * Filters keys from given array based on whitelist
+	 *
+	 * @param    array   $unfiltered   Array to filter
+	 * @param    array   $whitelist    List of allowed keys
+	 * @return   array
+	 */
+	public static function filterKeys($unfiltered, $whitelist)
+	{
+		$filtered = array_filter($unfiltered, function($key) use ($whitelist) {
+			return in_array($key, $whitelist);
+		}, ARRAY_FILTER_USE_KEY);
+
+		return $filtered;
+	}
+
+	/**
+	 * Returns value under given key and removes key from array
+	 *
+	 * @param   array    $array    Array to pluck from
+	 * @param   string   $name     Key to search for
+	 * @param   mixed    $default  Default value to return if key not found
+	 * @return   mixed
+	 */
+	public static function pluck(&$array, $name, $default = null)
+	{
+		$value = static::getValue($array, $name, $default);
+
+		unset($array[$name]);
+
+		return $value;
+	}
+
+	/**
+	 * Function to randomly append pirate phrases to
 	 * strings in an array.
 	 *
 	 * @codeCoverageIgnore
