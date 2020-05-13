@@ -595,14 +595,26 @@ class Git
 	/**
 	 * Stash local changes
 	 *
-	 * @return  bool
+	 * @return
 	 **/
 	public function stash()
 	{
-		$this->call('stash');
+		$response = $this->call('stash');
 
-		return true;
+		return $response;
 	}
+
+        /**
+         * Clone Repo
+         *
+         * @return
+         **/
+        public function cloneRepo($source)
+        {
+                 $response = $this->call('clone', array($source));
+		 ddie($response);
+		 return $response;
+        }
 
 	/**
 	 * Call a git command
