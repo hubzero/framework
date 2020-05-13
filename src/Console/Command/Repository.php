@@ -625,12 +625,12 @@ class Repository extends Base implements CommandInterface
 	 * @return void
 	 **/
 	public function makeDirectory()
-		{
-			$path = $this->arguments->getOpt('path');
+	{
+		$path = $this->arguments->getOpt('path');
 
-			$newdir = new Local();
-			return $newdir->makeDirectory($path, $mode = 0755, $recursive = false, $force = false);
-		}
+		$newdir = new Local();
+		return $newdir->makeDirectory($path, $mode = 0755, $recursive = false, $force = false);
+	}
 
 	/**
 	 * Call composer
@@ -638,13 +638,13 @@ class Repository extends Base implements CommandInterface
 	 * @return void
 	 **/
 	public function rename()
-		{
-			$currPath = $this->arguments->getOpt('currPath');
-			$targetPath = $this->arguments->getOpt('targetPath');
+	{
+		$currPath = $this->arguments->getOpt('currPath');
+		$targetPath = $this->arguments->getOpt('targetPath');
 
-			$moveme = new Local();
-			return $moveme->rename($currPath, $targetPath);
-		}
+		$moveme = new Local();
+		return $moveme->rename($currPath, $targetPath);
+	}
 
 	/**
 	 * Call composer
