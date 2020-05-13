@@ -604,17 +604,17 @@ class Git
 		return $response;
 	}
 
-        /**
-         * Clone Repo
-         *
-         * @return
-         **/
-        public function cloneRepo($source)
-        {
-                 $response = $this->call('clone', array($source));
-		 ddie($response);
-		 return $response;
-        }
+	/**
+	 * Clone Repo
+	 *
+	 * @return
+	 **/
+	public function cloneRepo($source)
+	{
+		$response = $this->call('clone', array($source));
+		ddie($response);
+		return $response;
+	}
 
 	/**
 	 * Call a git command
@@ -625,7 +625,7 @@ class Git
 	 **/
 	private function call($cmd, $arguments = array())
 	{
-		$command  = "{$this->baseCmd} {$cmd}" . ((!empty($arguments)) ? ' ' . implode(' ', $arguments) : '') . ' 2>&1';
+		$command = "{$this->baseCmd} {$cmd}" . ((!empty($arguments)) ? ' ' . implode(' ', $arguments) : '') . ' 2>&1';
 		$response = shell_exec($command);
 
 		return $response;
