@@ -11,6 +11,7 @@ use Hubzero\Console\Output;
 use Hubzero\Console\Arguments;
 use Hubzero\Console\Config;
 use Hubzero\Console\Command\Utilities\Git;
+use Hubzero\Filesystem\Adapter\Local;
 
 /**
  * Repository class
@@ -617,4 +618,46 @@ class Repository extends Base implements CommandInterface
 			$newCommand->$task();
 		}
 	}
+
+	/**
+	 * Call composer
+	 *
+	 * @return void
+	 **/
+	public function makeDirectory()
+		{
+			$path = $this->arguments->getOpt('path');
+
+			$newdir = new Local();
+			return $newdir->makeDirectory($path, $mode = 0755, $recursive = false, $force = false);
+		}
+
+	/**
+	 * Call composer
+	 *
+	 * @return void
+	 **/
+	public function rename()
+		{
+			$currPath = $this->arguments->getOpt('currPath');
+			$targetPath = $this->arguments->getOpt('targetPath');
+
+			$moveme = new Local();
+			return $moveme->rename($currPath, $targetPath);
+		}
+
+	/**
+	 * Call composer
+	 *
+	 * @return void
+	 **/
+	public function cloneRepo()
+	{
+		$sourceUrl = $this->arguments->getOpt('sourceUrl');
+		$uploadPath = $this->arguments->getOpt('uploadPath');
+
+		$newgit = new Git($uploadPath, $sourceUrl);
+		return $newgit->cloneRepo($sourceUrl);
+	}
+
 }
