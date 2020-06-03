@@ -171,15 +171,15 @@ class Comment extends Relational
 
 		if ($as == 'date')
 		{
-			return Date::of($this->get('created'))->toLocal(Lang::txt('DATE_FORMAT_HZ1'));
+			return Date::of($this->get('modified'))->toLocal(Lang::txt('DATE_FORMAT_HZ1'));
 		}
 
 		if ($as == 'time')
 		{
-			return Date::of($this->get('created'))->toLocal(Lang::txt('TIME_FORMAT_HZ1'));
+			return Date::of($this->get('modified'))->toLocal(Lang::txt('TIME_FORMAT_HZ1'));
 		}
 
-		return $this->get('created');
+		return $this->get('modified');
 	}
 
 	/**
