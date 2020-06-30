@@ -54,7 +54,7 @@ class Pgsql extends PdoDriver
 			}
 		}
 
-		if (substr($options['dsn'], 0, 7) != 'pgsql:')
+		if (substr($options['dsn'], 0, 6) != 'pgsql:')
 		{
 			throw new ConnectionFailedException('Postgres DSN for PDO connection does not appear to be valid.', 500);
 		}
