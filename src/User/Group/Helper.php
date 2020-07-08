@@ -248,7 +248,7 @@ class Helper
 
 		$db =  \App::get('db');
 
-		$query = "SELECT uidNumber FROM `#__xgroups_roles` as r, `#__xgroups_member_roles` as m WHERE r.id='" . $role . "' AND r.id=m.roleid AND r.gidNumber='" . $group->gidNumber . "'";
+		$query = "SELECT uidNumber FROM `#__xgroups_roles` as r, `#__xgroups_member_roles` as m WHERE r.name='" . $role . "' AND r.id=m.roleid AND r.gidNumber='" . $group->gidNumber . "'";
 
 		$db->setQuery($query);
 
