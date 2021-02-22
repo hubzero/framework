@@ -1,3 +1,6 @@
+The Hubzero framework repository has been archived. It has been integrated into the https://github.com/hubzero/hubzero-cms .
+
+
 # HUBzero Framework
 
 [![Build Status](https://travis-ci.org/hubzero/framework.svg?branch=master)](https://travis-ci.org/hubzero/framework)
